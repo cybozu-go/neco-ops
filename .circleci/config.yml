@@ -108,7 +108,6 @@ jobs:
       - run:
           name: Create a branch with the tag
           command: |
-            mkdir ~/.ssh
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
             git branch op-${CIRCLE_TAG} ${CIRCLE_TAG}
             git push git@github.com:${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git origin:op-${CIRCLE_TAG}
