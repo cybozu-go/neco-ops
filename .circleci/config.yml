@@ -110,7 +110,7 @@ jobs:
           command: |
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
             git branch op-${CIRCLE_TAG} ${CIRCLE_TAG}
-            git push git@github.com:${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git origin:op-${CIRCLE_TAG}
+            git push git@github.com:${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git op-${CIRCLE_TAG}
       - run:
           name: Create a pull request
           command: |
