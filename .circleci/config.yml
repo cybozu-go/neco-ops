@@ -105,7 +105,7 @@ jobs:
       - run:
           name: Create a branch with the tag
           command: |
-            hub clone https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git
+            hub clone ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
             cd ${CIRCLE_PROJECT_REPONAME}
             git branch op-${CIRCLE_TAG} ${CIRCLE_TAG}
             hub push origin op-${CIRCLE_TAG}
