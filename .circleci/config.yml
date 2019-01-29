@@ -90,7 +90,6 @@ jobs:
     docker:
       - image: quay.io/cybozu/ubuntu-dev:18.04
     steps:
-      - checkout
       - run:
           name: Install hub command
           command: |
@@ -106,6 +105,8 @@ jobs:
       - run:
           name: Create a branch with the tag
           command: |
+            hub clone https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git
+            cd ${CIRCLE_PROJECT_REPONAME}
             git branch op-${CIRCLE_TAG} ${CIRCLE_TAG}
             hub push origin op-${CIRCLE_TAG}
       - run:
