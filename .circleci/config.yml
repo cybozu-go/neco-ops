@@ -108,12 +108,12 @@ jobs:
       - run:
           name: Create a branch with the tag
           command: |
-            git branch op-${CIRCLE_TAG} ${CIRCLE_TAG}
+            git checkout -b op-${CIRCLE_TAG} ${CIRCLE_TAG}
             git push git@github.com:${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git op-${CIRCLE_TAG}
       - run:
           name: Create a pull request
           command: |
-            hub pull-request --force --message="[CI] Release ${CIRCLE_TAG}" --base=cybozu-go:release --head=cybozu-go:op-${CIRCLE_TAG}
+            hub pull-request --message="[CI] Release ${CIRCLE_TAG}" --base=cybozu-go:release --head=cybozu-go:op-${CIRCLE_TAG}
 
 workflows:
   version: 2
