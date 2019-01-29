@@ -90,6 +90,7 @@ jobs:
     docker:
       - image: quay.io/cybozu/ubuntu-dev:18.04
     steps:
+      - checkout
       - run:
           name: Install hub command
           command: |
@@ -101,14 +102,16 @@ jobs:
           command: |
             git config --global user.email "neco@cybozu.com"
             git config --global user.name "cybozu-neco"
-            git config --global hub.protocol https
+      - add_ssh_keys:
+          fingerprints:
+            - "ea:f2:f4:11:35:3f:87:04:bb:c4:84:50:ba:64:a1:5d"
       - run:
           name: Create a branch with the tag
           command: |
-            hub clone ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
-            cd ${CIRCLE_PROJECT_REPONAME}
+            mkdir ~/.ssh
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
             git branch op-${CIRCLE_TAG} ${CIRCLE_TAG}
-            hub push origin op-${CIRCLE_TAG}
+            git push git@github.com:${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git origin:op-${CIRCLE_TAG}
       - run:
           name: Create a pull request
           command: |
