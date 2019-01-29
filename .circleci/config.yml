@@ -102,6 +102,7 @@ jobs:
           command: |
             git config --global user.email "neco@cybozu.com"
             git config --global user.name "cybozu-neco"
+            git config --global hub.protocol https
       - run:
           name: Create a branch with the tag
           command: |
