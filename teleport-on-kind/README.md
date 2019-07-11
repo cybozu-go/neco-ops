@@ -11,6 +11,7 @@ $ GO111MODULE="on" go get sigs.k8s.io/kind@v0.4.0
 
 ```console
 $ kind create cluster --image kindest/node:v1.14.2 --name=multi --config cluster.yaml
+$ export KUBECONFIG="$(kind get kubeconfig-path --name="multi")"
 ```
 
 * setup helm
@@ -40,7 +41,7 @@ $ helm install -f values.yaml $GOPATH/src/github.com/gravitational/teleport/exam
 * port forward
 
 ```console
-$ kubectl port-forward teleport-9c9dcf485-nm8wv 3080:3080 3025:3025 3023:3023 3026:3026 3024:3024
+$ kubectl port-forward teleport-xxxx 3080:3080 3025:3025 3023:3023 3026:3026 3024:3024
 ```
 
 * add user
