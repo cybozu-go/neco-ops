@@ -148,6 +148,9 @@ message ApplicationSourceHelm {
 
   // Parameters are parameters to the helm template
   repeated HelmParameter parameters = 2;
+
+  // The Helm release name. If omitted it will use the application name
+  optional string releaseName = 3;
 }
 
 // ApplicationSourceJsonnet holds jsonnet specific options
@@ -178,6 +181,9 @@ message ApplicationSourceKustomize {
 
   // Images are kustomize 2.0 image overrides
   repeated string images = 3;
+
+  // CommonLabels adds additional kustomize commonLabels
+  map<string, string> commonLabels = 4;
 }
 
 // ApplicationSourcePlugin holds config management plugin specific options
@@ -201,6 +207,9 @@ message ApplicationSpec {
 
   // IgnoreDifferences controls resources fields which should be ignored during comparison
   repeated ResourceIgnoreDifferences ignoreDifferences = 5;
+
+  // Infos contains a list of useful information (URLs, email addresses, and plain text) that relates to the application
+  repeated Info info = 6;
 }
 
 // ApplicationStatus contains information about application sync, health status
@@ -363,6 +372,12 @@ message HelmRepository {
   optional string username = 6;
 
   optional string password = 7;
+}
+
+message Info {
+  optional string name = 1;
+
+  optional string value = 2;
 }
 
 // InfoItem contains human readable information about object
@@ -583,6 +598,8 @@ message ResourceRef {
   optional string namespace = 4;
 
   optional string name = 5;
+
+  optional string uid = 6;
 }
 
 // ResourceResult holds the operation result details of a specific resource
@@ -597,13 +614,21 @@ message ResourceResult {
 
   optional string name = 5;
 
+  // the final result of the sync, this is be empty if the resources is yet to be applied/pruned and is always zero-value for hooks
   optional string status = 6;
 
+  // message for the last sync OR operation
   optional string message = 7;
 
+  // the type of the hook, empty for non-hook resources
   optional string hookType = 8;
 
+  // the state of any operation associated with this resource OR hook
+  // note: can contain values for non-hook resources
   optional string hookPhase = 9;
+
+  // indicates the particular phase of the sync that this is for
+  optional string syncPhase = 10;
 }
 
 // ResourceStatus holds the current sync and health status of a resource
@@ -657,6 +682,9 @@ message SyncOperation {
   // Source overrides the source definition set in the application.
   // This is typically set in a Rollback operation and nil during a Sync operation
   optional ApplicationSource source = 7;
+
+  // Manifests is an optional field that overrides sync source with a local directory for development
+  repeated string manifests = 8;
 }
 
 // SyncOperationResource contains resources to sync.

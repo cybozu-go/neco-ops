@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	argocd "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
@@ -217,10 +218,29 @@ func testSetup() {
 
 		syncOrder := loadSyncOrder()
 
-		for _, appName := range syncOrder {
-			By("waiting initialization for " + appName)
-			ExecAt(boot0, "argocd", "app", "wait", appName)
-		}
+		By("waiting initialization")
+		Eventually(func() error {
+		OUTER:
+			for _, appName := range syncOrder {
+				out := ExecSafeAt(boot0, "argocd", "app", "get", "-o", "json", appName)
+				var app argocd.Application
+				err := json.Unmarshal(out, &app)
+				if err != nil {
+					return err
+				}
+				st := app.Status
+				if st.Sync.Status == argocd.SyncStatusCodeSynced && st.Health.Status == argocd.HealthStatusHealthy {
+					continue
+				}
+				for _, cond := range st.Conditions {
+					if cond.Type == argocd.ApplicationConditionSyncError {
+						continue OUTER
+					}
+				}
+				return errors.New(appName + " is not initialized")
+			}
+			return nil
+		}).Should(Succeed())
 
 		for _, appName := range syncOrder {
 			By("syncing " + appName + " manually")

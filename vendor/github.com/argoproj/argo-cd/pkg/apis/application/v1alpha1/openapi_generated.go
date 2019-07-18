@@ -44,6 +44,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.HealthStatus":               schema_pkg_apis_application_v1alpha1_HealthStatus(ref),
 		"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.HelmParameter":              schema_pkg_apis_application_v1alpha1_HelmParameter(ref),
 		"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.HelmRepository":             schema_pkg_apis_application_v1alpha1_HelmRepository(ref),
+		"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.Info":                       schema_pkg_apis_application_v1alpha1_Info(ref),
 		"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.InfoItem":                   schema_pkg_apis_application_v1alpha1_InfoItem(ref),
 		"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.JWTToken":                   schema_pkg_apis_application_v1alpha1_JWTToken(ref),
 		"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.JsonnetVar":                 schema_pkg_apis_application_v1alpha1_JsonnetVar(ref),
@@ -325,7 +326,7 @@ func schema_pkg_apis_application_v1alpha1_Application(ref common.ReferenceCallba
 						},
 					},
 				},
-				Required: []string{"metadata", "spec", "status"},
+				Required: []string{"metadata", "spec"},
 			},
 		},
 		Dependencies: []string{
@@ -561,6 +562,13 @@ func schema_pkg_apis_application_v1alpha1_ApplicationSourceHelm(ref common.Refer
 							},
 						},
 					},
+					"releaseName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The Helm release name. If omitted it will use the application name",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},
@@ -686,6 +694,21 @@ func schema_pkg_apis_application_v1alpha1_ApplicationSourceKustomize(ref common.
 							},
 						},
 					},
+					"commonLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CommonLabels adds additional kustomize commonLabels",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -758,12 +781,25 @@ func schema_pkg_apis_application_v1alpha1_ApplicationSpec(ref common.ReferenceCa
 							},
 						},
 					},
+					"info": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Infos contains a list of useful information (URLs, email addresses, and plain text) that relates to the application",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.Info"),
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"source", "destination", "project"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.ApplicationDestination", "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.ApplicationSource", "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.ResourceIgnoreDifferences", "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.SyncPolicy"},
+			"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.ApplicationDestination", "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.ApplicationSource", "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.Info", "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.ResourceIgnoreDifferences", "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.SyncPolicy"},
 	}
 }
 
@@ -1335,6 +1371,31 @@ func schema_pkg_apis_application_v1alpha1_HelmRepository(ref common.ReferenceCal
 					},
 				},
 				Required: []string{"url", "name"},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_application_v1alpha1_Info(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"value": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"name", "value"},
 			},
 		},
 	}
@@ -2063,6 +2124,12 @@ func schema_pkg_apis_application_v1alpha1_ResourceNode(ref common.ReferenceCallb
 							Format: "",
 						},
 					},
+					"uid": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"parentRefs": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -2192,6 +2259,12 @@ func schema_pkg_apis_application_v1alpha1_ResourceRef(ref common.ReferenceCallba
 							Format: "",
 						},
 					},
+					"uid": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -2237,26 +2310,37 @@ func schema_pkg_apis_application_v1alpha1_ResourceResult(ref common.ReferenceCal
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Description: "the final result of the sync, this is be empty if the resources is yet to be applied/pruned and is always zero-value for hooks",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"message": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Description: "message for the last sync OR operation",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"hookType": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Description: "the type of the hook, empty for non-hook resources",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"hookPhase": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Description: "the state of any operation associated with this resource OR hook note: can contain values for non-hook resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"syncPhase": {
+						SchemaProps: spec.SchemaProps{
+							Description: "indicates the particular phase of the sync that this is for",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 				},
@@ -2358,7 +2442,7 @@ func schema_pkg_apis_application_v1alpha1_RevisionHistory(ref common.ReferenceCa
 						},
 					},
 				},
-				Required: []string{"revision", "deployedAt", "id", "source"},
+				Required: []string{"revision", "deployedAt", "id"},
 			},
 		},
 		Dependencies: []string{
@@ -2417,6 +2501,20 @@ func schema_pkg_apis_application_v1alpha1_SyncOperation(ref common.ReferenceCall
 						SchemaProps: spec.SchemaProps{
 							Description: "Source overrides the source definition set in the application. This is typically set in a Rollback operation and nil during a Sync operation",
 							Ref:         ref("github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1.ApplicationSource"),
+						},
+					},
+					"manifests": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Manifests is an optional field that overrides sync source with a local directory for development",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -2493,7 +2591,7 @@ func schema_pkg_apis_application_v1alpha1_SyncOperationResult(ref common.Referen
 						},
 					},
 				},
-				Required: []string{"revision", "source"},
+				Required: []string{"revision"},
 			},
 		},
 		Dependencies: []string{

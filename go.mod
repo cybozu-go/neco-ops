@@ -10,12 +10,14 @@ replace (
 )
 
 require (
-	github.com/argoproj/argo-cd v1.0.1
+	github.com/argoproj/argo-cd v1.1.0-rc7
+	github.com/argoproj/pkg v0.0.0-20190708182346-fb13aebbef1c // indirect
 	github.com/cybozu-go/log v1.5.0
 	github.com/cybozu-go/sabakan/v2 v2.4.2
 	github.com/google/gofuzz v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/jetstack/cert-manager v0.8.0
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kubernetes-incubator/external-dns v0.5.14
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

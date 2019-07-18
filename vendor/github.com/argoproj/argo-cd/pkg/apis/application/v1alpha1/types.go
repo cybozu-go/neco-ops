@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v2"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -31,7 +30,7 @@ type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata" protobuf:"bytes,1,opt,name=metadata"`
 	Spec              ApplicationSpec   `json:"spec" protobuf:"bytes,2,opt,name=spec"`
-	Status            ApplicationStatus `json:"status" protobuf:"bytes,3,opt,name=status"`
+	Status            ApplicationStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 	Operation         *Operation        `json:"operation,omitempty" protobuf:"bytes,4,opt,name=operation"`
 }
 
@@ -47,6 +46,8 @@ type ApplicationSpec struct {
 	SyncPolicy *SyncPolicy `json:"syncPolicy,omitempty" protobuf:"bytes,4,name=syncPolicy"`
 	// IgnoreDifferences controls resources fields which should be ignored during comparison
 	IgnoreDifferences []ResourceIgnoreDifferences `json:"ignoreDifferences,omitempty" protobuf:"bytes,5,name=ignoreDifferences"`
+	// Infos contains a list of useful information (URLs, email addresses, and plain text) that relates to the application
+	Info []Info `json:"info,omitempty" protobuf:"bytes,6,name=info"`
 }
 
 // ResourceIgnoreDifferences contains resource filter and list of json paths which should be ignored during comparison with live state.
@@ -114,6 +115,8 @@ type ApplicationSourceHelm struct {
 	ValueFiles []string `json:"valueFiles,omitempty" protobuf:"bytes,1,opt,name=valueFiles"`
 	// Parameters are parameters to the helm template
 	Parameters []HelmParameter `json:"parameters,omitempty" protobuf:"bytes,2,opt,name=parameters"`
+	// The Helm release name. If omitted it will use the application name
+	ReleaseName string `json:"releaseName,omitempty" protobuf:"bytes,3,opt,name=releaseName"`
 }
 
 // HelmParameter is a parameter to a helm template
@@ -125,7 +128,7 @@ type HelmParameter struct {
 }
 
 func (h *ApplicationSourceHelm) IsZero() bool {
-	return len(h.ValueFiles) == 0 && len(h.Parameters) == 0
+	return (h.ReleaseName == "") && len(h.ValueFiles) == 0 && len(h.Parameters) == 0
 }
 
 // ApplicationSourceKustomize holds kustomize specific options
@@ -136,6 +139,8 @@ type ApplicationSourceKustomize struct {
 	ImageTags []KustomizeImageTag `json:"imageTags,omitempty" protobuf:"bytes,2,opt,name=imageTags"`
 	// Images are kustomize 2.0 image overrides
 	Images []string `json:"images,omitempty" protobuf:"bytes,3,opt,name=images"`
+	// CommonLabels adds additional kustomize commonLabels
+	CommonLabels map[string]string `json:"commonLabels,omitempty" protobuf:"bytes,4,opt,name=commonLabels"`
 }
 
 // KustomizeImageTag is a kustomize image tag
@@ -264,6 +269,12 @@ type SyncOperation struct {
 	// Source overrides the source definition set in the application.
 	// This is typically set in a Rollback operation and nil during a Sync operation
 	Source *ApplicationSource `json:"source,omitempty" protobuf:"bytes,7,opt,name=source"`
+	// Manifests is an optional field that overrides sync source with a local directory for development
+	Manifests []string `json:"manifests,omitempty" protobuf:"bytes,8,opt,name=manifests"`
+}
+
+func (o *SyncOperation) IsApplyStrategy() bool {
+	return o.SyncStrategy != nil && o.SyncStrategy.Apply != nil
 }
 
 type OperationPhase string
@@ -304,6 +315,11 @@ type OperationState struct {
 	FinishedAt *metav1.Time `json:"finishedAt,omitempty" protobuf:"bytes,7,opt,name=finishedAt"`
 }
 
+type Info struct {
+	Name  string `json:"name" protobuf:"bytes,1,name=name"`
+	Value string `json:"value" protobuf:"bytes,2,name=value"`
+}
+
 // SyncPolicy controls when a sync will be performed in response to updates in git
 type SyncPolicy struct {
 	// Automated will keep an application synced to the target revision
@@ -322,6 +338,18 @@ type SyncStrategy struct {
 	Apply *SyncStrategyApply `json:"apply,omitempty" protobuf:"bytes,1,opt,name=apply"`
 	// Hook will submit any referenced resources to perform the sync. This is the default strategy
 	Hook *SyncStrategyHook `json:"hook,omitempty" protobuf:"bytes,2,opt,name=hook"`
+}
+
+func (m *SyncStrategy) Force() bool {
+	if m == nil {
+		return false
+	} else if m.Apply != nil {
+		return m.Apply.Force
+	} else if m.Hook != nil {
+		return m.Hook.Force
+	} else {
+		return false
+	}
 }
 
 // SyncStrategyApply uses `kubectl apply` to perform the apply
@@ -364,11 +392,11 @@ const (
 // SyncOperationResult represent result of sync operation
 type SyncOperationResult struct {
 	// Resources holds the sync result of each individual resource
-	Resources []*ResourceResult `json:"resources,omitempty" protobuf:"bytes,1,opt,name=resources"`
+	Resources ResourceResults `json:"resources,omitempty" protobuf:"bytes,1,opt,name=resources"`
 	// Revision holds the git commit SHA of the sync
 	Revision string `json:"revision" protobuf:"bytes,2,opt,name=revision"`
 	// Source records the application source information of the sync, used for comparing auto-sync
-	Source ApplicationSource `json:"source" protobuf:"bytes,3,opt,name=source"`
+	Source ApplicationSource `json:"source,omitempty" protobuf:"bytes,3,opt,name=source"`
 }
 
 type ResultCode string
@@ -380,25 +408,32 @@ const (
 	ResultCodePruneSkipped ResultCode = "PruneSkipped"
 )
 
-func (s ResultCode) Successful() bool {
-	return s != ResultCodeSyncFailed
-}
+type SyncPhase = string
+
+const (
+	SyncPhasePreSync  = "PreSync"
+	SyncPhaseSync     = "Sync"
+	SyncPhasePostSync = "PostSync"
+)
 
 // ResourceResult holds the operation result details of a specific resource
 type ResourceResult struct {
-	Group     string         `json:"group" protobuf:"bytes,1,opt,name=group"`
-	Version   string         `json:"version" protobuf:"bytes,2,opt,name=version"`
-	Kind      string         `json:"kind" protobuf:"bytes,3,opt,name=kind"`
-	Namespace string         `json:"namespace" protobuf:"bytes,4,opt,name=namespace"`
-	Name      string         `json:"name" protobuf:"bytes,5,opt,name=name"`
-	Status    ResultCode     `json:"status,omitempty" protobuf:"bytes,6,opt,name=status"`
-	Message   string         `json:"message,omitempty" protobuf:"bytes,7,opt,name=message"`
-	HookType  HookType       `json:"hookType,omitempty" protobuf:"bytes,8,opt,name=hookType"`
+	Group     string `json:"group" protobuf:"bytes,1,opt,name=group"`
+	Version   string `json:"version" protobuf:"bytes,2,opt,name=version"`
+	Kind      string `json:"kind" protobuf:"bytes,3,opt,name=kind"`
+	Namespace string `json:"namespace" protobuf:"bytes,4,opt,name=namespace"`
+	Name      string `json:"name" protobuf:"bytes,5,opt,name=name"`
+	// the final result of the sync, this is be empty if the resources is yet to be applied/pruned and is always zero-value for hooks
+	Status ResultCode `json:"status,omitempty" protobuf:"bytes,6,opt,name=status"`
+	// message for the last sync OR operation
+	Message string `json:"message,omitempty" protobuf:"bytes,7,opt,name=message"`
+	// the type of the hook, empty for non-hook resources
+	HookType HookType `json:"hookType,omitempty" protobuf:"bytes,8,opt,name=hookType"`
+	// the state of any operation associated with this resource OR hook
+	// note: can contain values for non-hook resources
 	HookPhase OperationPhase `json:"hookPhase,omitempty" protobuf:"bytes,9,opt,name=hookPhase"`
-}
-
-func (r *ResourceResult) IsHook() bool {
-	return r.HookType != ""
+	// indicates the particular phase of the sync that this is for
+	SyncPhase SyncPhase `json:"syncPhase,omitempty" protobuf:"bytes,10,opt,name=syncPhase"`
 }
 
 func (r *ResourceResult) GroupVersionKind() schema.GroupVersionKind {
@@ -409,12 +444,41 @@ func (r *ResourceResult) GroupVersionKind() schema.GroupVersionKind {
 	}
 }
 
+type ResourceResults []*ResourceResult
+
+func (r ResourceResults) Filter(predicate func(r *ResourceResult) bool) ResourceResults {
+	results := ResourceResults{}
+	for _, res := range r {
+		if predicate(res) {
+			results = append(results, res)
+		}
+	}
+	return results
+}
+func (r ResourceResults) Find(group string, kind string, namespace string, name string, phase SyncPhase) (int, *ResourceResult) {
+	for i, res := range r {
+		if res.Group == group && res.Kind == kind && res.Namespace == namespace && res.Name == name && res.SyncPhase == phase {
+			return i, res
+		}
+	}
+	return 0, nil
+}
+
+func (r ResourceResults) PruningRequired() (num int) {
+	for _, res := range r {
+		if res.Status == ResultCodePruneSkipped {
+			num++
+		}
+	}
+	return num
+}
+
 // RevisionHistory contains information relevant to an application deployment
 type RevisionHistory struct {
 	Revision   string            `json:"revision" protobuf:"bytes,2,opt,name=revision"`
 	DeployedAt metav1.Time       `json:"deployedAt" protobuf:"bytes,4,opt,name=deployedAt"`
 	ID         int64             `json:"id" protobuf:"bytes,5,opt,name=id"`
-	Source     ApplicationSource `json:"source" protobuf:"bytes,6,opt,name=source"`
+	Source     ApplicationSource `json:"source,omitempty" protobuf:"bytes,6,opt,name=source"`
 }
 
 // ApplicationWatchEvent contains information about application change.
@@ -584,6 +648,7 @@ type ResourceRef struct {
 	Kind      string `json:"kind,omitempty" protobuf:"bytes,3,opt,name=kind"`
 	Namespace string `json:"namespace,omitempty" protobuf:"bytes,4,opt,name=namespace"`
 	Name      string `json:"name,omitempty" protobuf:"bytes,5,opt,name=name"`
+	UID       string `json:"uid,omitempty" protobuf:"bytes,6,opt,name=uid"`
 }
 
 // ResourceNode contains information about live resource and its children
@@ -774,11 +839,13 @@ func (m *Repository) HasCredentials() bool {
 	return m.Username != "" || m.Password != "" || m.SSHPrivateKey != "" || m.InsecureIgnoreHostKey
 }
 
-func (m *Repository) CopyCredentialsFrom(source Repository) {
-	m.Username = source.Username
-	m.Password = source.Password
-	m.SSHPrivateKey = source.SSHPrivateKey
-	m.InsecureIgnoreHostKey = source.InsecureIgnoreHostKey
+func (m *Repository) CopyCredentialsFrom(source *Repository) {
+	if source != nil {
+		m.Username = source.Username
+		m.Password = source.Password
+		m.SSHPrivateKey = source.SSHPrivateKey
+		m.InsecureIgnoreHostKey = source.InsecureIgnoreHostKey
+	}
 }
 
 // RepositoryList is a collection of Repositories.
@@ -1090,7 +1157,7 @@ func (c *Cluster) RESTConfig() *rest.Config {
 		}
 	}
 	if err != nil {
-		panic("Unable to create K8s REST config")
+		panic(fmt.Sprintf("Unable to create K8s REST config: %v", err))
 	}
 	config.QPS = common.K8sClientConfigQPS
 	config.Burst = common.K8sClientConfigBurst
