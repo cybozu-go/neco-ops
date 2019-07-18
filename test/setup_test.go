@@ -215,10 +215,15 @@ func testSetup() {
 		By("creating Argo CD app")
 		ExecSafeAt(boot0, "kubectl", "apply", "-k", "./neco-apps/argocd-config/overlays/gcp")
 
-		By("syncing manually according to the given order")
 		syncOrder := loadSyncOrder()
+
+		By("waiting initialization")
 		for _, appName := range syncOrder {
-			_, _, _ = ExecAt(boot0, "argocd", "app", "wait", appName)
+			ExecAt(boot0, "argocd", "app", "wait", appName)
+		}
+
+		By("syncing manually according to the given order")
+		for _, appName := range syncOrder {
 			ExecSafeAt(boot0, "argocd", "app", "sync", appName)
 		}
 	})
