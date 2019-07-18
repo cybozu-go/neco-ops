@@ -6,6 +6,8 @@ metadata:
   labels:
     app.kubernetes.io/name: cainjector
     app.kubernetes.io/component: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
   selector:

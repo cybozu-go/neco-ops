@@ -6,6 +6,7 @@ metadata:
     app.kubernetes.io/name: webhook
   annotations:
     certmanager.k8s.io/inject-ca-from: "external-dns/cert-manager-webhook-webhook-tls"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   group: admission.certmanager.k8s.io
   groupPriorityMinimum: 1000

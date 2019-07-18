@@ -5,6 +5,8 @@ metadata:
   namespace: external-dns
   labels:
     app.kubernetes.io/name: webhook
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   type: ClusterIP
   ports:
