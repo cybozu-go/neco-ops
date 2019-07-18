@@ -217,13 +217,13 @@ func testSetup() {
 
 		syncOrder := loadSyncOrder()
 
-		By("waiting initialization")
 		for _, appName := range syncOrder {
+			By("waiting initialization for " + appName)
 			ExecAt(boot0, "argocd", "app", "wait", appName)
 		}
 
-		By("syncing manually according to the given order")
 		for _, appName := range syncOrder {
+			By("syncing " + appName + " manually")
 			ExecSafeAt(boot0, "argocd", "app", "sync", appName)
 		}
 	})
