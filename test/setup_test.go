@@ -218,6 +218,7 @@ func testSetup() {
 		By("syncing manually according to the given order")
 		syncOrder := loadSyncOrder()
 		for _, appName := range syncOrder {
+			_, _, _ = ExecAt(boot0, "argocd", "app", "wait", appName)
 			ExecSafeAt(boot0, "argocd", "app", "sync", appName)
 		}
 	})
