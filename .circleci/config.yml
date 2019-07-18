@@ -46,6 +46,10 @@ jobs:
             ./bin/wait-for-previous-builds.sh --job test
       - run:
           command: |
+            ./bin/watch_podlogs
+          background: true
+      - run:
+          command: |
             ./bin/run-test.sh
           no_output_timeout: 30m
       - run:
