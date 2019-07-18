@@ -45,6 +45,8 @@ metadata:
   labels:
     app.kubernetes.io/name: webhook
     app.kubernetes.io/component: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
   selector:
@@ -104,6 +106,8 @@ metadata:
   labels:
     app.kubernetes.io/name: cert-manager
     app.kubernetes.io/component: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
   selector:
