@@ -1,7 +1,7 @@
+network-policy
 argocd
 external-dns
 open-policy-agent
-network-policy
 metallb
 ingress
 monitoring
