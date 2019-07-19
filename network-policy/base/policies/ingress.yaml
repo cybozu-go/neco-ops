@@ -1,0 +1,20 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-contour
+  namespace: ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'contour'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+          - 8002
+          - 8080
+          - 8443

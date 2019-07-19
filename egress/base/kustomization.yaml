@@ -1,9 +1,0 @@
-apiVersion: v1beta1
-kind: Kustomization
-resources:
-  - squid-configmap.yaml
-  - squid-deployment.yaml
-  - squid-service.yaml
-  - unbound-configmap.yaml
-  - unbound-deployment.yaml
-  - unbound-service.yaml

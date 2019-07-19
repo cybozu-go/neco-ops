@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - calico/common.yaml
+  - calico/daemonset.yaml
+  - calico/deployment.yaml
+  - calico/poddisruptionbudget.yaml
+  - calico/podsecuritypolicy.yaml
+  - calico/rbac.yaml
+  - calico/service.yaml
+  - calico/serviceaccount.yaml
+  - policies/argocd.yaml
+  - policies/cluster-dns.yaml
+  - policies/external-dns.yaml
+  - policies/ingress.yaml
+  - policies/internet-egress.yaml
+  - policies/metallb.yaml
+  - policies/monitoring.yaml
+  - policies/open-policy-agent.yaml
+  - global-policies/apiserver.yaml
+  - global-policies/egress-all-allow.yaml
+  - global-policies/egress-backyard-deny.yaml
+  - global-policies/ingress-all-deny.yaml
+  - global-policies/network-set.yaml
+  - global-policies/node-dns.yaml
+configMapGenerator:
+  - name: network-policy-validator
+    namespace: opa
+    files:
+      - validation/network-policy.rego
+generatorOptions:
+  labels:
+    openpolicyagent.org/policy: rego

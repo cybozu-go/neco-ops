@@ -1,0 +1,130 @@
+rule_files:
+  - alert_rules.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
+        values: 0+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.2"}'
+        values: 0+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
+        values: 0+0x15
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: K8sAPIServersDegraded
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: No kube-apiserver is running.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.2"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
+        values: 0+0x15
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: K8sAPIServersDegraded
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: The number of kube-apiserver is less than 3.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.2"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
+        values: 1+0x15
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: K8sAPIServersDegraded
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'argocd_app_sync_status{exported_name="monitoring",sync_status="Synced"}'
+        values: 0+0x20
+      - series: 'argocd_app_sync_status{exported_name="metallb",sync_status="Synced"}'
+        values: 0+0x20
+      - series: 'argocd_app_sync_status{exported_name="argocd",sync_status="Synced"}'
+        values: '0+0x10 1+0x10'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: AppOutOfSync
+        exp_alerts:
+          - exp_labels:
+              exported_name: monitoring
+              severity: page
+              sync_status: Synced
+            exp_annotations:
+              summary: monitoring is out-of-sync.
+              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
+          - exp_labels:
+              exported_name: metallb
+              severity: page
+              sync_status: Synced
+            exp_annotations:
+              summary: metallb is out-of-sync.
+              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
+  - interval: 1m
+    input_series:
+      - series: 'etcd_mvcc_db_total_size_in_bytes{instance="10.0.0.1:2379", job="etcd"}'
+        values: '10+0x10 71+0x10'
+      - series: 'etcd_server_quota_backend_bytes{instance="10.0.0.1:2379", job="etcd"}'
+        values: '100+0x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: DatabaseSpaceExceeded
+        exp_alerts:
+          - exp_labels:
+              job: etcd
+              instance: 10.0.0.1:2379
+              severity: warning
+            exp_annotations:
+              summary: "10.0.0.1:2379, etcd of etcd DB space uses more than 70%"
+              runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
+  - interval: 1m
+    input_series:
+      - series: 'etcd_mvcc_db_total_size_in_bytes{instance="10.0.0.1:2379", job="etcd"}'
+        values: '10+0x10 91+0x10'
+      - series: 'etcd_server_quota_backend_bytes{instance="10.0.0.1:2379", job="etcd"}'
+        values: '100+0x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: DatabaseSpaceExceeded
+        exp_alerts:
+          - exp_labels:
+              job: etcd
+              instance: 10.0.0.1:2379
+              severity: warning
+            exp_annotations:
+              summary: "10.0.0.1:2379, etcd of etcd DB space uses more than 70%"
+              runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
+          - exp_labels:
+              job: etcd
+              instance: 10.0.0.1:2379
+              severity: critical
+            exp_annotations:
+              summary: "10.0.0.1:2379, etcd of etcd DB space uses more than 90%"
+              runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
+  - interval: 30m
+    input_series:
+      - series: 'etcd_mvcc_db_total_size_in_use_in_bytes{instance="10.0.0.1:2379", job="etcd", __name__="etcd"}'
+        values: '0+5000001x2'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: LogicalDatabaseUsageIncreaseRapidly
+        exp_alerts:
+          - exp_labels:
+              job: etcd
+              instance: 10.0.0.1:2379
+              severity: warning
+            exp_annotations:
+              summary: "10.0.0.1:2379, etcd of etcd DB space increases 10MB/h"
+              runbook: "Please consider to find root causes, and solve the problems"

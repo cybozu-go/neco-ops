@@ -1,0 +1,9 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+spec:
+  source:
+    targetRevision: HEAD
+    path: external-dns/overlays/stage0

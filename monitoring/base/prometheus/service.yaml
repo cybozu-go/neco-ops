@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app.kubernetes.io/name: prometheus
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: 9090

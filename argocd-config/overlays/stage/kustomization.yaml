@@ -1,8 +1,0 @@
-bases:
-- ../../base
-apiVersion: v1beta1
-kind: Kustomization
-patchesStrategicMerge:
-- guestbook.yaml
-- coil.yaml
-- egress.yaml

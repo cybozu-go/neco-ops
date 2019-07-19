@@ -1,0 +1,99 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkSet
+metadata:
+  name: node
+  namespace: monitoring
+  labels:
+    role: node
+spec:
+  nets:
+    - 10.69.0.0/16
+
+---
+
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-alertmanager
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'alertmanager'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+          - 9093
+
+---
+
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-kube-state-metrics
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'kube-state-metrics'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+          - 8080
+          - 8081
+
+---
+
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-prometheus
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'prometheus'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+          - 9090
+
+---
+
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-prometheus
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 500.0
+  selector: app.kubernetes.io/name == 'prometheus'
+  types:
+    - Egress
+  egress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        selector: role == 'node'
+        ports:
+          - 7472
+          - 9093
+          - 9100
+          - 9105

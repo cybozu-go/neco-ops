@@ -1,4 +1,0 @@
-bases:
-- ../../base
-kind: Kustomization
-apiVersion: v1beta1

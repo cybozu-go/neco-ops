@@ -1,0 +1,3 @@
+{{/* print summary, followed by runbook if any */}}
+{{ define "slack.neco.text" }}{{ .CommonAnnotations.summary }}{{ with .CommonAnnotations.runbook }}
+{{ . }}{{ end }}{{ end }}

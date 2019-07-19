@@ -1,0 +1,70 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: bmc
+  labels:
+    role: bmc
+spec:
+  nets:
+    - 10.72.16.0/20
+    - 10.76.16.0/20
+    - 10.78.16.0/20
+---
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: bastion
+  labels:
+    role: bastion
+spec:
+  nets:
+    - 10.72.48.0/24
+    - 10.72.80.0/24
+    - 10.76.48.0/24
+    - 10.76.80.0/24
+    - 10.78.48.0/24
+    - 10.78.80.0/24
+---
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: node
+  labels:
+    role: node
+spec:
+  nets:
+    - 10.69.0.0/16
+---
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: switch
+  labels:
+    role: switch
+spec:
+  nets:
+    - 10.72.0.0/20
+    - 10.76.0.0/20
+    - 10.78.0.0/20
+---
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: private
+  labels:
+    role: private
+spec:
+  nets:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+---
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: cluster
+  labels:
+    role: cluster
+spec:
+  nets:
+    - 10.0.0.0/8

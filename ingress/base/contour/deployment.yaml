@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: contour
+  name: contour
+  namespace: ingress
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: contour
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: contour
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8002"
+        prometheus.io/path: "/stats"
+        prometheus.io/format: "prometheus"
+    spec:
+      containers:
+      - image: quay.io/cybozu/contour:0.12.0.1
+        name: contour
+        command: ["contour"]
+        args: ["serve", "--incluster"]
+      - image: quay.io/cybozu/contour-plus:0.2.5
+        name: contour-plus
+        env:
+        - name: CP_SERVICE_NAME
+          value: ingress/contour-global
+        - name: CP_DEFAULT_ISSUER_NAME
+          value: clouddns
+      - image: quay.io/cybozu/envoy:1.10.0.1
+        name: envoy
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        command: ["envoy"]
+        args:
+        - --config-path /config/contour.json
+        - --service-cluster cluster0
+        - --service-node node0
+        - --log-level info
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8002
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        volumeMounts:
+        - name: contour-config
+          mountPath: /config
+        lifecycle:
+          preStop:
+            exec:
+              command: ["wget", "-qO-", "http://localhost:9001/healthcheck/fail"]
+      initContainers:
+      - image: quay.io/cybozu/contour:0.12.0.1
+        imagePullPolicy: Always
+        name: envoy-initconfig
+        command: ["contour"]
+        args:
+        - bootstrap
+        # Uncomment the statsd-enable to enable statsd metrics
+        #- --statsd-enable
+        # Uncomment to set a custom stats emission address and port
+        #- --stats-address=0.0.0.0
+        #- --stats-port=8002
+        - /config/contour.json
+        volumeMounts:
+        - name: contour-config
+          mountPath: /config
+      volumes:
+      - name: contour-config
+        emptyDir: {}
+      dnsPolicy: ClusterFirst
+      serviceAccountName: contour
+      terminationGracePeriodSeconds: 30
+      # The affinity stanza below tells Kubernetes to try hard not to place 2 of
+      # these pods on the same node.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: contour
+              topologyKey: "cke.cybozu.com/rack"
+---

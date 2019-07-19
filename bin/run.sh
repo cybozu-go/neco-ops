@@ -19,10 +19,15 @@ cd dctest
 cp /assets/cybozu-ubuntu-18.04-server-cloudimg-amd64.img .
 export GO111MODULE=on
 make setup
-
-set +e
 make placemat
 sleep 3
-make test-light
+make SUITE=./bootstrap TAGS=release test
+for boot in boot-0 boot-1 boot-2; do
+  ./dcssh cybozu@${boot} sudo systemctl stop cke.service
+done
+for boot in boot-0 boot-1 boot-2; do
+  ./dcssh cybozu@${boot} sudo systemctl stop vault.service
+done
 pmctl snapshot save init
+touch /tmp/setup-done
 exit $?

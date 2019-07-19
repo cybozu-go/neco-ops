@@ -1,0 +1,12 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: egress-all-allow
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 10000.0
+  types:
+    - Egress
+  egress:
+    - action: Allow

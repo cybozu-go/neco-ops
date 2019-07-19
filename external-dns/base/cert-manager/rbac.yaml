@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-manager-cainjector
+  namespace: external-dns
+  labels:
+    app.kubernetes.io/name: cainjector
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-manager-webhook
+  namespace: external-dns
+  labels:
+    app.kubernetes.io/name: webhook
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-manager
+  namespace: external-dns
+  labels:
+    app.kubernetes.io/name: cert-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-cainjector
+  labels:
+    app.kubernetes.io/name: cainjector
+rules:
+  - apiGroups: ["certmanager.k8s.io"]
+    resources: ["certificates"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps", "events"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["configmaps/status"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+    verbs: ["*"]
+  - apiGroups: ["apiregistration.k8s.io"]
+    resources: ["apiservices"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager-cainjector
+  labels:
+    app.kubernetes.io/name: cainjector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cert-manager-cainjector
+subjects:
+  - name: cert-manager-cainjector
+    namespace: external-dns
+    kind: ServiceAccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager
+  labels:
+    app.kubernetes.io/name: cert-manager
+rules:
+  - apiGroups: ["certmanager.k8s.io"]
+    resources: ["certificates", "certificates/finalizers", "issuers", "clusterissuers", "orders", "orders/finalizers", "challenges",  "challenges/finalizers"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "events", "services","pods"]
+    verbs: ["*"]
+  - apiGroups: ["extensions", "networking.k8s.io/v1beta1"]
+    resources: ["ingresses", "ingresses/finalizers"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager
+  labels:
+    app.kubernetes.io/name: cert-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cert-manager
+subjects:
+  - name: cert-manager
+    namespace: external-dns
+    kind: ServiceAccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-view
+  labels:
+    app.kubernetes.io/name: cert-manager
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["certmanager.k8s.io"]
+    resources: ["certificates", "issuers"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-edit
+  labels:
+    app.kubernetes.io/name: cert-manager
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["certmanager.k8s.io"]
+    resources: ["certificates", "issuers"]
+    verbs: ["create", "delete", "deletecollection", "patch", "update"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager-webhook:auth-delegator
+  labels:
+    app.kubernetes.io/name: webhook
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- apiGroup: ""
+  kind: ServiceAccount
+  name: cert-manager-webhook
+  namespace: external-dns
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: cert-manager-webhook:webhook-authentication-reader
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: webhook
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+- apiGroup: ""
+  kind: ServiceAccount
+  name: cert-manager-webhook
+  namespace: external-dns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-webhook:webhook-requester
+  labels:
+    app.kubernetes.io/name: webhook
+rules:
+- apiGroups:
+  - admission.certmanager.k8s.io
+  resources:
+  - certificates
+  - issuers
+  - clusterissuers
+  verbs:
+  - create

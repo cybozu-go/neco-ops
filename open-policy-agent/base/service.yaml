@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: opa
+  namespace: opa
+spec:
+  selector:
+    app.kubernetes.io/name: opa
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 8443

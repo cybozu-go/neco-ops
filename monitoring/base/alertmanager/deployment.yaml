@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  labels:
+    app.kubernetes.io/name: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: alertmanager
+    spec:
+      containers:
+        - name: alertmanager
+          image: quay.io/cybozu/prometheus:2.9.2.1
+          command: ["alertmanager"]
+          args: ["--config.file=/etc/alertmanager.secret/alertmanager.yaml"]
+          ports:
+            - containerPort: 9093
+          volumeMounts:
+            - name: alertmanager-config-volume
+              mountPath: /etc/alertmanager/
+            - name: alertmanager-secret-volume
+              mountPath: /etc/alertmanager.secret/
+      volumes:
+        - name: alertmanager-config-volume
+          configMap:
+            name: alertmanager
+        - name: alertmanager-secret-volume
+          secret:
+            secretName: alertmanager

@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+spec:
+  template:
+    spec:
+      containers:
+      - name: external-dns
+        args:
+        - --source=crd
+        - --domain-filter=gcp0.dev-ne.co
+        - --provider=google
+        - --google-project=neco-test
+        - --registry=txt
+        - --txt-owner-id=neco
+        - --log-format=json

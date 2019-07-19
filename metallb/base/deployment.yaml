@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: metallb-system
+  name: speaker
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: metallb
+      app.kubernetes.io/component: speaker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: metallb
+        app.kubernetes.io/component: speaker
+      annotations:
+        prometheus.io/port: "7472"
+    spec:
+      serviceAccountName: speaker
+      terminationGracePeriodSeconds: 0
+      hostNetwork: true
+      containers:
+      - name: speaker
+        image: quay.io/cybozu/metallb:0.7.3.3
+        command: ["/speaker"]
+        imagePullPolicy: IfNotPresent
+        args:
+        - --port=7472
+        - --config=config
+        env:
+        - name: METALLB_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+        - name: monitoring
+          containerPort: 7472
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: metallb-system
+  name: controller
+  labels:
+    app.kubernetes.io/name: metallb
+    app.kubernetes.io/component: controller
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: metallb
+      app.kubernetes.io/component: controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: metallb
+        app.kubernetes.io/component: controller
+      annotations:
+        prometheus.io/port: "7472"
+    spec:
+      serviceAccountName: controller
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534 # nobody
+      containers:
+      - name: controller
+        image: quay.io/cybozu/metallb:0.7.3.3
+        command: ["/controller"]
+        imagePullPolicy: IfNotPresent
+        args:
+        - --port=7472
+        - --config=config
+        ports:
+        - name: monitoring
+          containerPort: 7472
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - all
+          readOnlyRootFilesystem: true

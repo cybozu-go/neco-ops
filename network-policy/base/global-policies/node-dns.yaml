@@ -1,0 +1,23 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: egress-node-dns-allow
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 500.0
+  types:
+    - Egress
+  egress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        selector: role == 'node'
+        ports:
+          - 53
+    - action: Allow
+      protocol: UDP
+      destination:
+        selector: role == 'node'
+        ports:
+          - 53

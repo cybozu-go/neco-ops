@@ -1,0 +1,59 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: opa
+  namespace: opa
+  labels:
+    app.kubernetes.io/name: opa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opa
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opa
+      name: opa
+    spec:
+      securityContext:
+        runAsUser: 10000
+        runAsGroup: 10000
+      containers:
+        # WARNING: OPA is NOT running with an authorization policy configured. This
+        # means that clients can read and write policies in OPA. If you are
+        # deploying OPA in an insecure environment, be sure to configure
+        # authentication and authorization on the daemon. See the Security page for
+        # details: https://www.openpolicyagent.org/docs/security.html.
+        - name: opa
+          image: quay.io/cybozu/open-policy-agent:0.12.0.1
+          command:
+            - opa
+          args:
+            - "run"
+            - "--server"
+            - "--tls-cert-file=/certs/tls.crt"
+            - "--tls-private-key-file=/certs/tls.key"
+            - "--addr=0.0.0.0:8443"
+            - "--addr=http://127.0.0.1:8181"
+          volumeMounts:
+            - name: certs
+              mountPath: /certs
+              readOnly: true
+        - name: kube-mgmt
+          image: quay.io/cybozu/open-policy-agent:0.12.0.1
+          command:
+            - kube-mgmt
+          args:
+            - "--require-policy-label=true"
+            - "--replicate-cluster=v1/namespaces"
+            - "--replicate=extensions/v1beta1/ingresses"
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: certs
+          secret:
+            secretName: opa-server-tls
+        - name: tmp
+          emptyDir: {}

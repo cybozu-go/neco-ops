@@ -1,0 +1,57 @@
+# Create a selfsigned Issuer, in order to create a root CA certificate for
+# signing webhook serving certificates
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Issuer
+metadata:
+  name: opa-server-selfsign
+  namespace: opa
+  labels:
+    app.kubernetes.io/name: opa
+spec:
+  selfSigned: {}
+---
+# Generate a CA Certificate used to sign certificates for the webhook
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: opa-server-ca
+  namespace: opa
+  labels:
+    app.kubernetes.io/name: opa
+spec:
+  secretName: opa-server-ca
+  duration: 87600h0m0s # 10y
+  issuerRef:
+    name: opa-server-selfsign
+  commonName: "ca.webhook.open-policy-agent"
+  isCA: true
+---
+# Create an Issuer that uses the above generated CA certificate to issue certs
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Issuer
+metadata:
+  name: opa-server-ca
+  namespace: opa
+  labels:
+    app.kubernetes.io/name: opa
+spec:
+  ca:
+    secretName: opa-server-ca
+---
+# Finally, generate a serving certificate for the webhook to use
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: opa-server-tls
+  namespace: opa
+  labels:
+    app.kubernetes.io/name: opa
+spec:
+  secretName: opa-server-tls
+  duration: 8760h0m0s # 1y
+  issuerRef:
+    name: opa-server-ca
+  dnsNames:
+    - opa
+    - opa.opa
+    - opa.opa.svc

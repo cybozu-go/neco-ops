@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-policy-agent
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/cybozu-go/neco-apps.git
+    targetRevision: release
+    path: open-policy-agent/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opa
+  syncPolicy:
+    automated:
+      prune: true

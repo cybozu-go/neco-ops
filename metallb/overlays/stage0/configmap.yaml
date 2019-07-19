@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    peers:
+    - peer-address: 127.0.0.1
+      peer-asn: 64699
+      my-asn: 64698
+    address-pools:
+    - name: default
+      protocol: bgp
+      addresses:
+      - 10.72.32.0/20
+    - name: internet
+      protocol: bgp
+      addresses:
+      - 103.79.13.208/28
+      auto-assign: false
+

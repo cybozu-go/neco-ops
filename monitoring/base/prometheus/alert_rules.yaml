@@ -1,0 +1,53 @@
+groups:
+  - name: kube-apiserver
+    rules:
+      - alert: K8sAPIServersDegraded
+        expr: count(up{job="kubernetes-apiservers"} == 1) < 3
+        labels:
+          severity: warning
+        for: 10m
+        annotations:
+          summary: The number of kube-apiserver is less than 3.
+      - alert: K8sAPIServersDegraded
+        expr: absent(up{job="kubernetes-apiservers"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: No kube-apiserver is running.
+  - name: applications CD
+    rules:
+      - alert: AppOutOfSync
+        expr: argocd_app_sync_status{sync_status="Synced"} == 0
+        for: 20m
+        labels:
+          severity: page
+        annotations:
+          summary: "{{ $labels.exported_name }} is out-of-sync."
+          runbook: "See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync"
+  - name: etcd
+    rules:
+      - alert: DatabaseSpaceExceeded
+        expr: etcd_mvcc_db_total_size_in_bytes/etcd_server_quota_backend_bytes > 0.70
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space uses more than 70%"
+          runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
+      - alert: DatabaseSpaceExceeded
+        expr: etcd_mvcc_db_total_size_in_bytes/etcd_server_quota_backend_bytes > 0.90
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space uses more than 90%"
+          runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
+      - alert: LogicalDatabaseUsageIncreaseRapidly
+        expr: delta(etcd_mvcc_db_total_size_in_use_in_bytes[1h]) > 10000000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space increases {{ $value | humanize }}B/h"
+          runbook: "Please consider to find root causes, and solve the problems"

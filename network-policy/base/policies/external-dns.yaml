@@ -1,0 +1,60 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-external-dns
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'external-dns'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+          - 7979
+
+---
+
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-cert-manager
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'cert-manager'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+          - 9402
+
+---
+
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-cert-manager-webhook
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'webhook'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+          - 6443

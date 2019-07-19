@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+spec:
+  template:
+    spec:
+      containers:
+      - name: external-dns
+        args:
+        - --source=crd
+        - --domain-filter=stage0.cybozu-ne.co
+        - --provider=google
+        - --google-project=cybozu-neco
+        - --registry=txt
+        - --txt-owner-id=neco
+        - --log-format=json

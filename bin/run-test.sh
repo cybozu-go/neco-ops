@@ -13,18 +13,13 @@ git clone https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAM
 cd \$HOME/${TEST_DIR}/go/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
 git checkout -qf ${CIRCLE_SHA1}
 cd test
+cp \$HOME/${TEST_DIR}/account.json ./
 export GO111MODULE=on
+sudo chown -R cybozu:cybozu \$HOME/.cache
 make setup
 make kustomize-check
-make COMMIT_ID=${CIRCLE_SHA1} test
-
-targets="$(git diff origin/master ${CIRCLE_SHA1} --name-only | cut -d '/' -f 1 | uniq)"
-for target in \${targets}; do
-    if test -f ../\${target}/test/suite_test.go; then
-        echo "Run test-\${target}"
-        make COMMIT_ID=${CIRCLE_SHA1} test-\${target}
-    fi
-done
+make opa-test
+make test COMMIT_ID=${CIRCLE_SHA1}
 EOF
 chmod +x run.sh
 
@@ -32,7 +27,7 @@ chmod +x run.sh
 $GCLOUD compute ssh --zone=${ZONE} cybozu@${INSTANCE_NAME} --command="rm -rf /home/cybozu/${CIRCLE_PROJECT_REPONAME}-*"
 
 $GCLOUD compute ssh --zone=${ZONE} cybozu@${INSTANCE_NAME} --command="mkdir -p /home/cybozu/${TEST_DIR}"
-$GCLOUD compute scp --zone=${ZONE} run.sh cybozu@${INSTANCE_NAME}:${TEST_DIR}
+$GCLOUD compute scp --zone=${ZONE} run.sh account.json cybozu@${INSTANCE_NAME}:${TEST_DIR}
 $GCLOUD compute ssh --zone=${ZONE} cybozu@${INSTANCE_NAME} --command="/home/cybozu/${TEST_DIR}/run.sh"
 
 exit $?

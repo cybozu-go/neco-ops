@@ -1,0 +1,112 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkSet
+metadata:
+  name: private
+  namespace: internet-egress
+  labels:
+    role: private
+spec:
+  nets:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkSet
+metadata:
+  name: cluster
+  namespace: internet-egress
+  labels:
+    role: cluster
+spec:
+  nets:
+    - 10.0.0.0/8
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-squid
+  namespace: internet-egress
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'squid' || k8s-app == 'squid'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      source:
+        selector: role == 'cluster'
+      destination:
+        ports:
+          - 3128
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-squid
+  namespace: internet-egress
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  order: 100.0
+  selector: app.kubernetes.io/name == 'squid' || k8s-app == 'squid'
+  types:
+    - Egress
+  egress:
+    - action: Log
+      destination:
+        selector: role == 'private'
+    - action: Deny
+      destination:
+        selector: role == 'private'
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-unbound
+  namespace: internet-egress
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 1000.0
+  selector: app.kubernetes.io/name == 'unbound' || k8s-app == 'unbound'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      source:
+        selector: role == 'cluster'
+      destination:
+        ports:
+          - 53
+    - action: Allow
+      protocol: UDP
+      source:
+        selector: role == 'cluster'
+      destination:
+        ports:
+          - 53
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-unbound
+  namespace: internet-egress
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  order: 100.0
+  selector: app.kubernetes.io/name == 'unbound' || k8s-app == 'unbound'
+  types:
+    - Egress
+  egress:
+    - action: Log
+      destination:
+        selector: role == 'private'
+    - action: Deny
+      destination:
+        selector: role == 'private'

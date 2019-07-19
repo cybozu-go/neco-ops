@@ -1,0 +1,19 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: machines-endpoints-cronjob
+  labels:
+    cronjob: machines-endpoints-cronjob
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: machines-endpoints
+              image: quay.io/cybozu/machines-endpoints:0.3.0
+              imagePullPolicy: IfNotPresent
+          hostNetwork: true
+          restartPolicy: OnFailure
+          serviceAccountName: machines-endpoints

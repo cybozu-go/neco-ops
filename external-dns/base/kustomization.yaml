@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- namespace.yaml
+- cert-manager/apiservice.yaml
+- cert-manager/clouddns.yaml
+- cert-manager/common.yaml
+- cert-manager/deployment.yaml
+- cert-manager/internal.yaml
+- cert-manager/rbac.yaml
+- cert-manager/service.yaml
+- cert-manager/validatingwebhookconfiguration.yaml
+- external-dns/common.yaml
+- external-dns/deployment.yaml
+- external-dns/rbac.yaml
+- external-dns/service.yaml

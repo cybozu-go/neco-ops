@@ -1,8 +1,0 @@
-apiVersion: v1beta1
-kind: Kustomization
-resources:
-  - configmap.yaml
-  - daemonset.yaml
-  - deployment.yaml
-  - rbac.yaml
-  - serviceaccount.yaml
