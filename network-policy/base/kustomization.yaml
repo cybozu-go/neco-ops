@@ -9,6 +9,7 @@ resources:
   - calico/rbac.yaml
   - calico/service.yaml
   - calico/serviceaccount.yaml
+  - policies/argocd.yaml
   - policies/cluster-dns.yaml
   - policies/ingress.yaml
   - policies/internet-egress.yaml
