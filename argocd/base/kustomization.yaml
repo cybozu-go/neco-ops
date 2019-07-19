@@ -9,3 +9,4 @@ resources:
 - secret.yaml
 - service.yaml
 - deployment.yaml
+- network-policy.yaml

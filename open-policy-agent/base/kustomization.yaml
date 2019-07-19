@@ -8,3 +8,4 @@ resources:
   - rbac.yaml
   - service.yaml
   - validatingwebhookconfiguration.yaml
+  - network-policy.yaml

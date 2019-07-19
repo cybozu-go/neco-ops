@@ -14,3 +14,4 @@ resources:
 - external-dns/deployment.yaml
 - external-dns/rbac.yaml
 - external-dns/service.yaml
+- network-policy.yaml
