@@ -124,8 +124,9 @@ when a tag is pushed as follows:
 
 ```console
 $ git checkout master
-$ git tag release-$(date +%Y.%m.%d)-1
-$ git push origin --tags
+$ TAG=release-$(date +%Y.%m.%d)-1
+$ git tag $TAG
+$ git push origin $TAG
 ```
 
 Then merge the pull request.
