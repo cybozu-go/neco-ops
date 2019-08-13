@@ -2,11 +2,29 @@ version: 2.1
 commands:
   boot-dctest:
     description: "datacenter test"
+    parameters:
+      neco-release-branch:
+        type: boolean
     steps:
-      - run:
-          name: Checkout Neco
-          command: |
-            git clone --depth 1 https://github.com/cybozu-go/neco -b release
+      - when:
+          condition: <<parameters.neco-release-branch>>
+          steps:
+          - run:
+              name: Checkout Neco (release)
+              command: |
+                git clone --depth 1 https://github.com/cybozu-go/neco -b release
+      - unless:
+          condition: <<parameters.neco-release-branch>>
+          steps:
+          - run:
+              name: Checkout Neco (specified branch)
+              command: |
+                # If CIRCLE_BRANCH has specified prefix("with-neco-branch-"), change the branch to be cloned.
+                NECO_BRANCH=${CIRCLE_BRANCH#with-neco-branch-}
+
+                # If there is not NECO_BRANCH branch in the cybozu-go/neco repository, git clone will fail.
+                echo "checkout $NECO_BRANCH"
+                git clone --depth 1 https://github.com/cybozu-go/neco -b $NECO_BRANCH
       - run:
           name: Store Service Account
           command: |
@@ -26,12 +44,24 @@ commands:
             cd neco
             ./bin/watch_podlogs
           background: true
-      - run:
-          command: |
-            cd neco
-            sed -i 's/^trap/#trap/' bin/run-dctest-release.sh
-            ./bin/run-dctest-release.sh bootstrap
-          no_output_timeout: 20m
+      - when:
+          condition: <<parameters.neco-release-branch>>
+          steps:
+          - run:
+              name: dctest(bootstrap) TAG=release
+              command: |
+                cd neco
+                ./bin/run-dctest.sh bootstrap "" release
+              no_output_timeout: 20m
+      - unless:
+          condition: <<parameters.neco-release-branch>>
+          steps:
+          - run:
+              name: dctest(bootstrap) TAG=""
+              command: |
+                cd neco
+                ./bin/run-dctest.sh bootstrap "" ""
+              no_output_timeout: 20m
 
 jobs:
   test:
@@ -51,9 +81,14 @@ jobs:
   bootstrap:
     docker:
       - image: google/cloud-sdk
+    parameters:
+      neco-release-branch:
+        type: boolean
+        default: true
     steps:
       - checkout
-      - boot-dctest
+      - boot-dctest:
+          neco-release-branch: <<parameters.neco-release-branch>>
       - run:
           name: Test neco-apps
           command: |
@@ -70,9 +105,14 @@ jobs:
   upgrade-master:
     docker:
       - image: google/cloud-sdk
+    parameters:
+      neco-release-branch:
+        type: boolean
+        default: true
     steps:
       - checkout
-      - boot-dctest
+      - boot-dctest:
+          neco-release-branch: <<parameters.neco-release-branch>>
       - run:
           name: Bootstrap neco-apps at master
           command: |
@@ -89,9 +129,14 @@ jobs:
   upgrade-release:
     docker:
       - image: google/cloud-sdk
+    parameters:
+      neco-release-branch:
+        type: boolean
+        default: true
     steps:
       - checkout
-      - boot-dctest
+      - boot-dctest:
+          neco-release-branch: <<parameters.neco-release-branch>>
       - run:
           name: Bootstrap neco-apps at release
           command: |
@@ -153,6 +198,22 @@ workflows:
           filters:
             branches:
               ignore: ["master", "release"]
+      # If branch name has specified prefix("with-neco-branch-hoge-piyo"), testing with the specified neco branch("hoge-piyo").
+      - bootstrap:
+          neco-release-branch: false
+          filters:
+            branches:
+              only: /^with-neco-branch-.*$/
+      - upgrade-master:
+          neco-release-branch: false
+          filters:
+            branches:
+              only: /^with-neco-branch-.*$/
+      - upgrade-release:
+          neco-release-branch: false
+          filters:
+            branches:
+              only: /^with-neco-branch-.*$/
 
   production-release:
     jobs:
