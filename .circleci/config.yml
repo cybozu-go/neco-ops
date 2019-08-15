@@ -16,15 +16,15 @@ commands:
       - unless:
           condition: <<parameters.neco-release-branch>>
           steps:
-          - run:
-              name: Checkout Neco (specified branch)
-              command: |
-                # If CIRCLE_BRANCH has specified prefix("with-neco-branch-"), change the branch to be cloned.
-                NECO_BRANCH=${CIRCLE_BRANCH#with-neco-branch-}
+            - run:
+                name: Checkout Neco (specified branch)
+                command: |
+                  # If CIRCLE_BRANCH has specified prefix("with-neco-branch-"), change the branch to be cloned.
+                  NECO_BRANCH=${CIRCLE_BRANCH#with-neco-branch-}
 
-                # If there is not NECO_BRANCH branch in the cybozu-go/neco repository, git clone will fail.
-                echo "checkout $NECO_BRANCH"
-                git clone --depth 1 https://github.com/cybozu-go/neco -b $NECO_BRANCH
+                  # If there is not NECO_BRANCH branch in the cybozu-go/neco repository, git clone will fail.
+                  echo "checkout $NECO_BRANCH"
+                  git clone --depth 1 https://github.com/cybozu-go/neco -b $NECO_BRANCH
       - run:
           name: Store Service Account
           command: |
@@ -47,21 +47,21 @@ commands:
       - when:
           condition: <<parameters.neco-release-branch>>
           steps:
-          - run:
-              name: dctest(bootstrap) TAG=release
-              command: |
-                cd neco
-                ./bin/run-dctest.sh bootstrap "" release
-              no_output_timeout: 20m
+            - run:
+                name: dctest(bootstrap) TAG=release
+                command: |
+                  cd neco
+                  ./bin/run-dctest.sh bootstrap release
+                no_output_timeout: 20m
       - unless:
           condition: <<parameters.neco-release-branch>>
           steps:
-          - run:
-              name: dctest(bootstrap) TAG=""
-              command: |
-                cd neco
-                ./bin/run-dctest.sh bootstrap "" ""
-              no_output_timeout: 20m
+            - run:
+                name: dctest(bootstrap) TAG=""
+                command: |
+                  cd neco
+                  ./bin/run-dctest.sh bootstrap
+                no_output_timeout: 20m
 
 jobs:
   test:
