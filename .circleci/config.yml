@@ -5,6 +5,7 @@ commands:
     parameters:
       neco-release-branch:
         type: boolean
+        default: true
     steps:
       - when:
           condition: <<parameters.neco-release-branch>>
@@ -105,14 +106,9 @@ jobs:
   upgrade-master:
     docker:
       - image: google/cloud-sdk
-    parameters:
-      neco-release-branch:
-        type: boolean
-        default: true
     steps:
       - checkout
       - boot-dctest:
-          neco-release-branch: <<parameters.neco-release-branch>>
       - run:
           name: Bootstrap neco-apps at master
           command: |
@@ -129,14 +125,9 @@ jobs:
   upgrade-release:
     docker:
       - image: google/cloud-sdk
-    parameters:
-      neco-release-branch:
-        type: boolean
-        default: true
     steps:
       - checkout
       - boot-dctest:
-          neco-release-branch: <<parameters.neco-release-branch>>
       - run:
           name: Bootstrap neco-apps at release
           command: |
@@ -200,16 +191,6 @@ workflows:
               ignore: ["master", "release"]
       # If branch name has specified prefix("with-neco-branch-hoge-piyo"), testing with the specified neco branch("hoge-piyo").
       - bootstrap:
-          neco-release-branch: false
-          filters:
-            branches:
-              only: /^with-neco-branch-.*$/
-      - upgrade-master:
-          neco-release-branch: false
-          filters:
-            branches:
-              only: /^with-neco-branch-.*$/
-      - upgrade-release:
           neco-release-branch: false
           filters:
             branches:
