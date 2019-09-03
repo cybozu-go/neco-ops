@@ -16,7 +16,7 @@ export GOFLAGS
 
 # Follow Argo CD installed kustomize version
 # https://github.com/cybozu/neco-containers/blob/master/argocd/Dockerfile#L32
-KUSTOMIZE_VERSION = 2.0.3
+KUSTOMIZE_VERSION = 3.1.0
 OPA_VERSION = 0.12.0
 PROMTOOL_VERSION := 2.9.2
 TELEPORT_VERSION := 4.0.2
