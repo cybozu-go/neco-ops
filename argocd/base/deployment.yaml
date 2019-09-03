@@ -118,9 +118,19 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: ssh-known-hosts
+              mountPath: /app/config/ssh
+            - name: tls-certs
+              mountPath: /app/config/tls
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: ssh-known-hosts
+          configMap:
+            name: argocd-ssh-known-hosts-cm
+        - name: tls-certs
+          configMap:
+            name: argocd-tls-certs-cm
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -166,4 +176,16 @@ spec:
               value: http://squid.internet-egress.svc.cluster.local:3128
             - name: HTTPS_PROXY
               value: http://squid.internet-egress.svc.cluster.local:3128
+          volumeMounts:
+            - name: ssh-known-hosts
+              mountPath: /app/config/ssh
+            - name: tls-certs
+              mountPath: /app/config/tls
       serviceAccountName: argocd-server
+      volumes:
+        - name: ssh-known-hosts
+          configMap:
+            name: argocd-ssh-known-hosts-cm
+        - name: tls-certs
+          configMap:
+            name: argocd-tls-certs-cm
