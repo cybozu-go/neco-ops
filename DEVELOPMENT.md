@@ -58,7 +58,7 @@ Create `kustomization.yaml` to apply patches to base manifets.
 $ cat <<EOF > ${APP_NAME}/overlays/${ENV}/kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
+bases:
 - ../../base
 patches:
 - deployment_replicas.yaml

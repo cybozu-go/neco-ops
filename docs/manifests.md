@@ -34,7 +34,7 @@ Directory tree
 
 `argocd-config/overlays/stage/kustomization.yaml`
 ```yaml
-resources: # It includes all applications for stage.
+bases: # It includes all applications for stage.
 - ../../base
 ...
 
@@ -60,7 +60,7 @@ spec:
 
 `monitoring/overlays/stage/kustomization.yaml`
 ```yaml
-resources:   # It includes all K8s objects for monitoring.
+bases:   # It includes all K8s objects for monitoring.
 - ../../base
 patches: # Patches for stage
 - cpu_count.yaml
