@@ -7,3 +7,7 @@ resources:
 patchesStrategicMerge:
   - deployment.yaml
   - statefulset.yaml
+images:
+  - name: quay.io/gravitational/teleport-ent
+    newName: quay.io/gravitational/teleport
+    newTag: "4.0.9"

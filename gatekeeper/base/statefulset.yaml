@@ -36,8 +36,7 @@ spec:
               fieldPath: metadata.name
         - name: SECRET_NAME
           value: gatekeeper-webhook-server-secret
-        image: quay.io/cybozu/gatekeeper:3.0.4-beta.0.1
-        imagePullPolicy: Always
+        image: quay.io/cybozu/gatekeeper:3.0.4-beta.1.1
         name: manager
         ports:
         - containerPort: 8443
@@ -54,7 +53,7 @@ spec:
         - mountPath: /certs
           name: cert
           readOnly: true
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 60
       volumes:
       - name: cert
         secret:

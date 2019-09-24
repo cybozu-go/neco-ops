@@ -1,0 +1,57 @@
+include Makefile
+
+KIND_NODE_VERSION = 1.15
+TOPOLVM_VERSION = 0.1.1
+TOPOLVM_STORAGE_SIZE = 20G
+
+/tmp/kindtest/scheduler/scheduler-config.yaml: kind/scheduler-config.yaml
+	mkdir -p /tmp/kindtest/scheduler
+	cp $< $@
+
+/tmp/kindtest/scheduler/scheduler-policy.cfg: kind/scheduler-policy.cfg
+	mkdir -p /tmp/kindtest/scheduler
+	cp $< $@
+
+launch-kind: start-lvmd /tmp/kindtest/scheduler/scheduler-config.yaml /tmp/kindtest/scheduler/scheduler-policy.cfg
+	sed s/@KUBERNETES_VERSION@/$(KUBERNETES_VERSION)/ kind/cluster.yaml > /tmp/kindtest/cluster.yaml
+	env KUBECONFIG= kind create cluster --config /tmp/kindtest/cluster.yaml --image quay.io/cybozu/kind-node:$(KIND_NODE_VERSION) --name=kindtest --wait=300s
+
+shutdown-kind:
+	kind delete cluster --name=kindtest || true
+	for d in $$($(SUDO) find /tmp/kindtest -type d); do \
+		if $(SUDO) mountpoint -q $$d; then \
+			$(SUDO) umount $$d; \
+		fi; \
+	done
+
+build/lvmd:
+	mkdir -p build
+	curl -Lsf https://github.com/cybozu-go/topolvm/releases/download/v$(TOPOLVM_VERSION)/lvmd-$(TOPOLVM_VERSION).tar.gz | tar xzf - -C build
+
+start-lvmd: build/lvmd
+	if [ -f build/backing_store ]; then $(MAKE) -f Makefile.kindtest stop-lvmd; fi
+	mkdir -p /tmp/kindtest/lvmd
+	truncate --size=$(TOPOLVM_STORAGE_SIZE) build/backing_store
+	$(SUDO) losetup -f build/backing_store
+	$(SUDO) vgcreate -y kindtest-vg $$($(SUDO) losetup -j build/backing_store | cut -d: -f1)
+	$(SUDO) systemd-run --unit=kindtest-lvmd.service $(shell pwd)/build/lvmd --volume-group=kindtest-vg --listen=/tmp/kindtest/lvmd/lvmd.sock --spare=1
+
+stop-lvmd:
+	$(MAKE) -f Makefile.kindtest shutdown-kind
+	if systemctl is-active -q kindtest-lvmd.service; then $(SUDO) systemctl stop kindtest-lvmd.service; fi
+	if [ -f build/backing_store ]; then \
+		$(SUDO) vgremove -ffy kindtest-vg; \
+		$(SUDO) pvremove -ffy $$($(SUDO) losetup -j build/backing_store | cut -d: -f1); \
+		$(SUDO) losetup -d $$($(SUDO) losetup -j build/backing_store | cut -d: -f1); \
+		rm -f build/backing_store; \
+	fi
+
+start: launch-kind
+
+stop: stop-lvmd
+
+kindtest: install.yaml
+	$(SUDO) sysctl -w vm.max_map_count=262144
+	env KIND=1 $(GINKGO) -tags kind
+
+.PHONY: launch-kind shutdown-kind start-lvmd stop-lvmd start stop kindtest

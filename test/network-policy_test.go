@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os/exec"
 	"strings"
 
 	"github.com/cybozu-go/log"
@@ -203,6 +204,10 @@ spec:
 			Expect(err).To(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 		}
 
+		if withKind {
+			Skip("does not make sense with kindtest")
+		}
+
 		By("deploying ubuntu for network commands in internet-egress NS")
 		createUbuntuDebugPod("internet-egress")
 
@@ -211,13 +216,15 @@ spec:
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 
 		By("accessing DNS port of some node as squid")
-		_, _, err = ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "internet-egress", "exec", "-i", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
+		stdout, stderr, err = ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "internet-egress", "exec", "-i", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
 		switch t := err.(type) {
 		case *ssh.ExitError:
 			// telnet command returns 124 when it times out
 			Expect(t.ExitStatus()).To(Equal(124))
+		case *exec.ExitError:
+			Expect(t.ExitCode()).To(Equal(124))
 		default:
-			Fail("telnet should fail with timeout")
+			Fail(fmt.Sprintf("telnet should fail with timeout: stdout: %s, stderr: %s", stdout, stderr))
 		}
 
 		By("removing label")
@@ -234,6 +241,8 @@ spec:
 		case *ssh.ExitError:
 			// telnet command returns 124 when it times out
 			Expect(t.ExitStatus()).To(Equal(124))
+		case *exec.ExitError:
+			Expect(t.ExitCode()).To(Equal(124))
 		default:
 			Fail("telnet should fail with timeout")
 		}
@@ -244,6 +253,10 @@ spec:
 	})
 
 	It("should pass packets to node network for system services", func() {
+		if withKind {
+			Skip("does not make sense with kindtest")
+		}
+
 		By("accessing DNS port of some node")
 		stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "exec", "-i", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
@@ -269,6 +282,10 @@ spec:
 	})
 
 	It("should filter icmp packets to BMC/Node/Bastion/switch networks", func() {
+		if withKind {
+			Skip("does not make sense with kindtest")
+		}
+
 		stdout, stderr, err := ExecAt(boot0, "sabactl", "machines", "get")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 

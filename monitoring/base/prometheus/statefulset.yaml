@@ -19,7 +19,7 @@ spec:
       serviceAccountName: prometheus
       containers:
         - name: prometheus
-          image: quay.io/cybozu/prometheus:2.9.2.1
+          image: quay.io/cybozu/prometheus:2.12.0.1
           command: ["prometheus"]
           args:
             - --config.file=/etc/prometheus/prometheus.yaml
@@ -32,6 +32,10 @@ spec:
               mountPath: /etc/prometheus/
             - name: prometheus-storage-volume
               mountPath: /prometheus/
+      securityContext:
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
       volumes:
         - name: prometheus-config-volume
           configMap:

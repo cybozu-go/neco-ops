@@ -101,7 +101,6 @@ spec:
 		}).Should(Succeed())
 
 		By("create Service")
-		targetIP := "10.72.32.29"
 		loadBalancer := `
 kind: Service
 apiVersion: v1
@@ -116,13 +115,13 @@ spec:
     port: 80
     targetPort: 8000
   type: LoadBalancer
-  loadBalancerIP: 10.72.32.29
   externalTrafficPolicy: Local
 `
 		_, stderr, err = ExecAtWithInput(boot0, []byte(loadBalancer), "kubectl", "create", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 
 		By("waiting service are ready")
+		var targetIP string
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "get", "service/testhttpd", "-o", "json")
 			if err != nil {
@@ -139,10 +138,7 @@ spec:
 				return errors.New("LoadBalancer status is not updated")
 			}
 
-			actualIP := service.Status.LoadBalancer.Ingress[0].IP
-			if actualIP != targetIP {
-				return fmt.Errorf("LoadBalancer is not %s, %s", targetIP, actualIP)
-			}
+			targetIP = service.Status.LoadBalancer.Ingress[0].IP
 			return nil
 		}).Should(Succeed())
 
@@ -154,8 +150,11 @@ spec:
 
 		By("access service from external")
 		Eventually(func() error {
-			cmd := exec.Command("sudo", "nsenter", "-n", "-t", externalPID, "curl", targetIP, "-m", "5")
-			return cmd.Run()
+			if withKind {
+				return exec.Command("curl", targetIP, "-m", "5").Run()
+			}
+
+			return exec.Command("sudo", "nsenter", "-n", "-t", externalPID, "curl", targetIP, "-m", "5").Run()
 		}).Should(Succeed())
 	})
 }

@@ -5,4 +5,4 @@ metadata:
   namespace: argocd
 spec:
   source:
-    targetRevision: HEAD
+    targetRevision: stage

@@ -3,32 +3,59 @@ kind: ClusterRole
 metadata:
   name: metallb-system:controller
 rules:
-- apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list", "watch", "update"]
-- apiGroups: [""]
-  resources: ["services/status"]
-  verbs: ["update"]
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["create", "patch"]
-- apiGroups: ["policy"]
-  resources: ["podsecuritypolicies"]
-  verbs: ["use"]
-  resourceNames: ["metallb"]
+- apiGroups:
+  - ''
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services/status
+  verbs:
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: metallb-system:speaker
 rules:
-- apiGroups: [""]
-  resources: ["services", "endpoints", "nodes"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["policy"]
-  resources: ["podsecuritypolicies"]
-  verbs: ["use"]
-  resourceNames: ["metallb"]
+- apiGroups:
+  - ''
+  resources:
+  - services
+  - endpoints
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - extensions
+  resourceNames:
+  - metallb
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -36,13 +63,17 @@ metadata:
   namespace: metallb-system
   name: config-watcher
 rules:
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["create"]
-- apiGroups: ["policy"]
-  resources: ["podsecuritypolicies"]
-  verbs: ["use"]
-  resourceNames: ["metallb"]
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create

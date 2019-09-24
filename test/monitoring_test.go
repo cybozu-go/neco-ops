@@ -127,6 +127,10 @@ func testPrometheus() {
 	})
 
 	It("should find endpoint", func() {
+		if withKind {
+			Skip("does not make sense with kindtest")
+		}
+
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
 				podName, "curl", "http://localhost:9090/api/v1/targets")

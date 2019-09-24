@@ -54,7 +54,15 @@ spec:
               properties:
                 fqdn:
                   type: string
-                  pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-z0-9]{2,}$
+                  # This regex handles two cases:
+                  # 1. A reasonably well-formed FQDN, which is allowed
+                  #    a hyphen in the top-level label (not usually
+                  #    the case for TLDs.) This fixes https://github.com/heptio/contour/issues/1117
+                  #    This is the first option in the regex.
+                  # 2. A bareword containing a hyphen, no periods. This fixes 
+                  #    https://github.com/heptio/contour/issues/755 and is the
+                  #    second option in the regex
+                  pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[\-a-z0-9]{2,}|[\-a-z0-9]+$
                 tls:
                   properties:
                     secretName:
@@ -72,8 +80,7 @@ spec:
                 - RoundRobin
                 - WeightedLeastRequest
                 - Random
-                - RingHash
-                - Maglev
+                - Cookie
             healthCheck:
               type: object
               required:
@@ -90,6 +97,58 @@ spec:
                   type: integer
                 healthyThresholdCount:
                   type: integer
+            tcpproxy:
+              type: object
+              properties:
+                services:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - port
+                    properties:
+                      name:
+                        type: string
+                        pattern: ^[a-z]([-a-z0-9]*[a-z0-9])?$ # DNS-1035 label
+                      port:
+                        type: integer
+                      weight:
+                        type: integer
+                      strategy:
+                        type: string
+                        enum:
+                          - RoundRobin
+                          - WeightedLeastRequest
+                          - Random
+                          - Cookie
+                      healthCheck:
+                        type: object
+                        required:
+                          - path
+                        properties:
+                          path:
+                            type: string
+                            pattern: ^\/.*$
+                          intervalSeconds:
+                            type: integer
+                          timeoutSeconds:
+                            type: integer
+                          unhealthyThresholdCount:
+                            type: integer
+                          healthyThresholdCount:
+                            type: integer
+                delegate:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$ # DNS-1123 subdomain
+                    namespace:
+                      type: string
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ # DNS-1123 label
             routes:
               type: array
               items:
@@ -131,8 +190,7 @@ spec:
                             - RoundRobin
                             - WeightedLeastRequest
                             - Random
-                            - RingHash
-                            - Maglev
+                            - Cookie
                         healthCheck:
                           type: object
                           required:

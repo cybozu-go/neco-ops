@@ -113,7 +113,26 @@ jobs:
           name: Bootstrap neco-apps at master
           command: |
             export NECO_DIR=$(pwd)/neco
-            TARGET=test-upgrade ./bin/run-test.sh
+            TARGET=dctest-upgrade ./bin/run-test.sh
+          no_output_timeout: 20m
+      - run:
+          name: Remove instance
+          command: |
+            cd neco
+            . bin/env
+            $GCLOUD compute instances delete $INSTANCE_NAME --zone $ZONE
+
+  upgrade-stage:
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - checkout
+      - boot-dctest
+      - run:
+          name: Bootstrap neco-apps at stage
+          command: |
+            export NECO_DIR=$(pwd)/neco
+            TARGET=dctest-upgrade BASE_BRANCH=stage ./bin/run-test.sh
           no_output_timeout: 20m
       - run:
           name: Remove instance
@@ -132,7 +151,7 @@ jobs:
           name: Bootstrap neco-apps at release
           command: |
             export NECO_DIR=$(pwd)/neco
-            TARGET=test-upgrade BASE_BRANCH=release ./bin/run-test.sh
+            TARGET=dctest-upgrade BASE_BRANCH=release ./bin/run-test.sh
           no_output_timeout: 20m
       - run:
           name: Remove instance
@@ -140,6 +159,73 @@ jobs:
             cd neco
             . bin/env
             $GCLOUD compute instances delete $INSTANCE_NAME --zone $ZONE
+
+  kindtest:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: /home/circleci/work
+    steps:
+      - checkout
+      - run:
+          name: Update PATH and Define Environment Variable at Runtime
+          command: |
+            echo 'export GOPATH=/home/circleci/go' >> $BASH_ENV
+            echo 'export PATH=$GOPATH/bin:/usr/local/go/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: setup golang
+          command: |
+            sudo rm -rf /usr/local/go
+            GO_VERSION=1.12.9
+            curl -fsL https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz | sudo tar xzf - -C /usr/local
+      - run:
+          name: Store Service Account
+          command: |
+            echo $GCLOUD_SERVICE_ACCOUNT > ./test/account.json
+      - run:
+          name: Setup
+          command: |
+            cd test
+            make setup
+      - run:
+          name: Run test
+          command: |
+            cd test
+            make -f Makefile.kindtest start
+            make -f Makefile.kindtest kindtest
+
+  update-stage:
+    docker:
+      - image: quay.io/cybozu/golang:1.12-bionic
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "ea:f2:f4:11:35:3f:87:04:bb:c4:84:50:ba:64:a1:5d"
+      - checkout
+      - run:
+          name: Configure GIT
+          command: |
+            git config --global user.email "neco@cybozu.com"
+            git config --global user.name "cybozu-neco"
+      - run: git checkout stage
+      - run: git merge --no-commit ${CIRCLE_SHA1}
+      - run:
+          name: Check diff
+          command: |
+            diffs=$(git status -s)
+            if [ "$diffs" = "" ]; then touch .skip; exit 0; fi
+            printf "%s\n" "$diffs"
+      # Skip the following steps if there is no difference.
+      - run:
+          name: Store github-token
+          command: |
+            if [ -f .skip ]; then exit 0; fi
+            echo "$NECO_GITHUB_TOKEN" > github-token
+      - run:
+          name: Commit and push to GitHub
+          command: |
+            if [ -f .skip ]; then exit 0; fi
+            ./bin/commit-push.sh
 
   create-pull-request:
     docker:
@@ -177,24 +263,74 @@ workflows:
   main:
     jobs:
       - test
+      - kindtest:
+          filters:
+            branches:
+              ignore: ["master", "stage", "release"]
+
+  manual-dctest:
+    jobs:
+      - hold:
+          type: approval
       - bootstrap:
-          filters:
-            branches:
-              ignore: ["master", "release"]
-      - upgrade-master:
-          filters:
-            branches:
-              ignore: ["master", "release"]
-      - upgrade-release:
-          filters:
-            branches:
-              ignore: ["master", "release"]
+          name: bootstrap-1
+          requires:
+            - hold
       # If branch name has specified prefix("with-neco-branch-hoge-piyo"), testing with the specified neco branch("hoge-piyo").
       - bootstrap:
+          name: bootstrap-2
           neco-release-branch: false
           filters:
             branches:
               only: /^with-neco-branch-.*$/
+      - upgrade-master:
+          requires:
+            - hold
+          filters:
+            branches:
+              ignore:
+                - master
+      - upgrade-release:
+          requires:
+            - hold
+      - upgrade-stage:
+          requires:
+            - hold
+          filters:
+            branches:
+              only:
+                - master
+      - hold-update-stage:
+          type: approval
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - bootstrap-1
+            - upgrade-stage
+            - upgrade-release
+      - update-stage:
+          requires:
+            - hold-update-stage
+
+  daily:
+    triggers:
+      - schedule:
+          cron: "0 18 * * 1-5"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - bootstrap
+      - upgrade-stage
+      - upgrade-release
+      - update-stage:
+          requires:
+            - bootstrap
+            - upgrade-stage
+            - upgrade-release
 
   production-release:
     jobs:

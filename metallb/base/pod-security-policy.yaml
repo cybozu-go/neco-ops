@@ -1,10 +1,10 @@
+# We ignore upstream psp because metallb neco does not require any priviledges.
+# Note that metallb in general can run in L2 mode that requires some priviledges.
+
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: metallb
-  annotations:
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
-    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+  name: metallb 
 spec:
   privileged: false
   # Required to prevent escalations to root.

@@ -6,9 +6,10 @@ resources:
 - cert-manager/clouddns.yaml
 - cert-manager/common.yaml
 - cert-manager/deployment.yaml
-- cert-manager/internal.yaml
+- cert-manager/mutatingwebhookconfiguration.yaml
 - cert-manager/rbac.yaml
 - cert-manager/service.yaml
+- cert-manager/serviceaccount.yaml
 - cert-manager/validatingwebhookconfiguration.yaml
 - external-dns/common.yaml
 - external-dns/deployment.yaml

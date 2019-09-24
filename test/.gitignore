@@ -1,2 +1,8 @@
 install.yaml
 account.json
+/alertmanager.yaml
+/grafana.yaml
+/lets.crt
+/squid.yml
+/build
+/neco-apps

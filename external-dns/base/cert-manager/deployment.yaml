@@ -22,7 +22,7 @@ spec:
       serviceAccountName: cert-manager-cainjector
       containers:
         - name: cainjector
-          image: quay.io/cybozu/cert-manager:0.8.0.1
+          image: quay.io/cybozu/cert-manager:0.10.0.1
           imagePullPolicy: IfNotPresent
           command:
           - cainjector
@@ -34,67 +34,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cert-manager-webhook
-  namespace: external-dns
-  labels:
-    app.kubernetes.io/name: webhook
-    app.kubernetes.io/component: cert-manager
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: webhook
-      app.kubernetes.io/component: cert-manager
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: webhook
-        app.kubernetes.io/component: cert-manager
-      annotations:
-    spec:
-      serviceAccountName: cert-manager-webhook
-      containers:
-        - name: webhook
-          image: quay.io/cybozu/cert-manager:0.8.0.1
-          imagePullPolicy: IfNotPresent
-          command:
-          - webhook
-          args:
-          - --v=2
-          - --secure-port=6443
-          - --tls-cert-file=/certs/tls.crt
-          - --tls-private-key-file=/certs/tls.key
-          env:
-          - name: POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          volumeMounts:
-          - name: certs
-            mountPath: /certs
-            readOnly: true
-          - name: tmp
-            mountPath: /tmp
-          livenessProbe:
-            tcpSocket:
-              port: 6443
-            initialDelaySeconds: 10
-          readinessProbe:
-            tcpSocket:
-              port: 6443
-            initialDelaySeconds: 10
-      volumes:
-      - name: certs
-        secret:
-          secretName: cert-manager-webhook-webhook-tls
-      - name: tmp
-        emptyDir: {}
+          resources:
+            {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -123,7 +64,7 @@ spec:
       serviceAccountName: cert-manager
       containers:
         - name: cert-manager
-          image: quay.io/cybozu/cert-manager:0.8.0.1
+          image: quay.io/cybozu/cert-manager:0.10.0.1
           imagePullPolicy: IfNotPresent
           command:
           - controller
@@ -133,6 +74,10 @@ spec:
           - --leader-election-namespace=$(POD_NAMESPACE)
           - --dns01-recursive-nameservers-only
           - --enable-certificate-owner-ref
+          - --webhook-namespace=$(POD_NAMESPACE)
+          - --webhook-ca-secret=cert-manager-webhook-ca
+          - --webhook-serving-secret=cert-manager-webhook-tls
+          - --webhook-dns-names=cert-manager-webhook,cert-manager-webhook.external-dns,cert-manager-webhook.external-dns.svc
           ports:
           - containerPort: 9402
           env:
@@ -150,3 +95,66 @@ spec:
             requests:
               cpu: 10m
               memory: 32Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cert-manager-webhook
+  namespace: external-dns
+  labels:
+    app.kubernetes.io/name: webhook
+    app.kubernetes.io/component: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: webhook
+      app.kubernetes.io/component: cert-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: webhook
+        app.kubernetes.io/component: cert-manager
+      annotations:
+    spec:
+      serviceAccountName: cert-manager-webhook
+      containers:
+        - name: webhook
+          image: quay.io/cybozu/cert-manager:0.10.0.1
+          imagePullPolicy: IfNotPresent
+          command:
+          - webhook
+          args:
+          - --v=2
+          - --secure-port=6443
+          - --tls-cert-file=/certs/tls.crt
+          - --tls-private-key-file=/certs/tls.key
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          resources:
+            {}
+          volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          - name: tmp
+            mountPath: /tmp
+          livenessProbe:
+            tcpSocket:
+              port: 6443
+            initialDelaySeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 6443
+            initialDelaySeconds: 10
+      volumes:
+      - name: certs
+        secret:
+          secretName: cert-manager-webhook-tls
+      - name: tmp
+        emptyDir: {}

@@ -1,0 +1,18 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: egress-internet-deny
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  order: 1000.0
+  types:
+    - Egress
+  selector: app.kubernetes.io/name != 'squid' && k8s-app != 'kube-dns'
+  egress:
+    - action: Log
+      destination:
+        notSelector: role == 'cluster'
+    - action: Deny
+      destination:
+        notSelector: role == 'cluster'

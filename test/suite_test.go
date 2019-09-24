@@ -26,13 +26,7 @@ var _ = BeforeSuite(func() {
 	SetDefaultEventuallyPollingInterval(time.Second)
 	SetDefaultEventuallyTimeout(10 * time.Minute)
 
-	err := prepareSSHClients(boot0, boot1, boot2)
-	Expect(err).NotTo(HaveOccurred())
-
-	// sync VM root filesystem to store newly generated SSH host keys.
-	for h := range sshClients {
-		ExecSafeAt(h, "sync")
-	}
+	prepare()
 
 	log.DefaultLogger().SetOutput(GinkgoWriter)
 
@@ -46,19 +40,26 @@ var _ = Describe("Test applications", func() {
 	if doBootstrap {
 		return
 	}
+	if doReboot {
+		Context("reboot", testRebootAllNodes)
+	}
 	Context("gatekeeper", testGatekeeper)
 	Context("network-policy", testNetworkPolicy)
 	Context("metallb", testMetalLB)
 	Context("external-dns", testExternalDNS)
 	Context("cert-manager", testCertManager)
 	Context("contour", testContour)
-	Context("machines-endpoints", testMachinesEndpoints)
+	if !withKind {
+		Context("machines-endpoints", testMachinesEndpoints)
+	}
 	Context("kube-state-metrics", testKubeStateMetrics)
 	Context("prometheus", testPrometheus)
 	Context("grafana", testGrafana)
 	Context("alertmanager", testAlertmanager)
 	Context("metrics", testMetrics)
-	Context("teleport", testTeleport)
+	if !withKind {
+		Context("teleport", testTeleport)
+	}
 	Context("topolvm", testTopoLVM)
 	Context("elastic", testElastic)
 })

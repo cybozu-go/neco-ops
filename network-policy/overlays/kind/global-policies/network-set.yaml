@@ -1,0 +1,8 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: cluster
+spec:
+  nets:
+    - 10.0.0.0/8
+    - 172.17.0.0/16

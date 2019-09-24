@@ -26,7 +26,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: teleport-auth
-        image: "quay.io/cybozu/teleport:4.0.2.2"
+        image: "quay.io/gravitational/teleport-ent:4.0.9"
         imagePullPolicy: IfNotPresent
         env:
         - name: NO_PROXY
@@ -36,11 +36,8 @@ spec:
         - name: HTTPS_PROXY
           value: http://squid.internet-egress.svc.cluster.local:3128
         args:
-        - start
         - --roles=auth
         - --diag-addr=0.0.0.0:3020
-        - -c
-        - /etc/teleport/teleport.yaml
         livenessProbe:
           httpGet:
             port: 3020
@@ -65,9 +62,14 @@ spec:
           readOnly: true
         - mountPath: /var/lib/teleport
           name: teleport-storage
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/lib/license
+          name: teleport-enterprise-license
       securityContext:
-        runAsNonRoot: true
         runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
       volumes:
       - name: teleport-etcd-certs
         secret:
@@ -75,6 +77,11 @@ spec:
       - name: teleport-auth-secret
         secret:
           secretName: teleport-auth-secret
+      - name: tmp
+        emptyDir: {}
+      - name: teleport-enterprise-license
+        secret:
+          secretName: teleport-enterprise-license
       serviceAccountName: teleport
   volumeClaimTemplates:
   - metadata:

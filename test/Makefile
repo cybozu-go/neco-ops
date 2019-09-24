@@ -3,6 +3,7 @@ BOOT1 = 10.72.48.1
 BOOT2 = 10.72.48.2
 GINKGO = env GO111MODULE=on GOFLAGS=-mod=vendor $(GOPATH)/bin/ginkgo --failFast -v
 SSH_PRIVKEY = $(NECO_DIR)/dctest/dctest_key
+CIRCLE_BUILD_NUM ?= -$(USER)
 TEST_ID := test$(CIRCLE_BUILD_NUM)
 BASE_BRANCH = master
 COMMIT_ID = $(shell git rev-parse --abbrev-ref HEAD)
@@ -20,6 +21,9 @@ KUSTOMIZE_VERSION = 2.0.3
 OPA_VERSION = 0.12.0
 PROMTOOL_VERSION := 2.9.2
 TELEPORT_VERSION := 4.0.2
+KUBERNETES_VERSION = 1.15.3
+KIND_VERSION = 0.5.1
+ARGOCD_VERSION = 1.1.2
 REGO_FILES = $(shell find .. -path ../vendor -prune -o -name '*.rego' -print)
 
 install.yaml: $(shell find ../argocd/base)
@@ -39,24 +43,20 @@ kustomize-check:
 	./kustomize-check.sh
 
 test: install.yaml validation opa-test test-alert-rules kustomize-check
-	test -z "$$(gofmt -s -l . | grep -v '^vendor' | tee /dev/stderr)"
+	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"
 	test -z "$$(golint $$(go list ./... | grep -v /vendor/) | grep -v '/mtest/.*: should not use dot imports' | tee /dev/stderr)"
 	test -z "$$(nilerr ./... 2>&1 | tee /dev/stderr)"
 	test -z "$$(restrictpkg -packages=html/template,log ./... 2>&1 | tee /dev/stderr)"
 	ineffassign .
 	go vet ./...
 
-test-upgrade:
-	-git worktree remove /tmp/neco-apps
-	git worktree add /tmp/neco-apps $(BASE_BRANCH)
-	cp account.json /tmp/neco-apps/test
-	cd /tmp/neco-apps/test; make test-apps BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
-	UPGRADE=1 ./test.sh
-
-test-apps: install.yaml
-	./test.sh
+test-apps:
+	$(MAKE) -f Makefile.dctest dctest
 
 setup:
+	curl -sSLf -O https://storage.googleapis.com/kubernetes-release/release/v$(KUBERNETES_VERSION)/bin/linux/amd64/kubectl
+	$(SUDO) mv kubectl /usr/local/bin/kubectl
+	chmod +x /usr/local/bin/kubectl
 	curl -sSLf -O https://github.com/kubernetes-sigs/kustomize/releases/download/v$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_linux_amd64
 	$(SUDO) mv kustomize_$(KUSTOMIZE_VERSION)_linux_amd64 /usr/local/bin/kustomize
 	chmod +x /usr/local/bin/kustomize
@@ -68,6 +68,12 @@ setup:
 	$(SUDO) mv promtool /usr/local/bin/promtool
 	curl -sSLf https://get.gravitational.com/teleport-v$(TELEPORT_VERSION)-linux-amd64-bin.tar.gz | tar -xzvf - --strip-component=1 teleport/tsh
 	$(SUDO) mv tsh /usr/local/bin/tsh
+	cd /tmp; env GOFLAGS= GO111MODULE=on go get sigs.k8s.io/kind@v$(KIND_VERSION)
+	curl -sSLf -O https://github.com/argoproj/argo-cd/releases/download/v$(ARGOCD_VERSION)/argocd-linux-amd64
+	$(SUDO) mv argocd-linux-amd64 /usr/local/bin/argocd
+	chmod +x /usr/local/bin/argocd
+	env GOFLAGS= GO111MODULE=off go get github.com/gostaticanalysis/nilerr/cmd/nilerr
+	env GOFLAGS= GO111MODULE=off go get github.com/cybozu/neco-containers/golang/restrictpkg/cmd/restrictpkg
 
 clean:
 	rm -f install.yaml

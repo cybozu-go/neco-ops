@@ -3,4 +3,5 @@ kind: Kustomization
 bases:
   - ../../base
 patchesStrategicMerge:
+  - cert-manager/clouddns.yaml
   - external-dns/deployment.yaml

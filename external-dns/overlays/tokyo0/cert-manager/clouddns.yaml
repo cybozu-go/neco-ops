@@ -1,0 +1,16 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: clouddns
+spec:
+  acme:
+    solvers:
+    - selector:
+        dnsZones:
+        - tokyo0.cybozu-ne.co
+      dns01:
+        clouddns:
+          project: cybozu-neco
+          serviceAccountSecretRef:
+            name: external-dns
+            key: account.json

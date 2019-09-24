@@ -1,0 +1,8 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: network-policy
+  namespace: argocd
+spec:
+  source:
+    path: network-policy/overlays/kind

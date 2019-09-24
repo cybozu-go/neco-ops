@@ -18,6 +18,8 @@ data:
     logs = /var/log/grafana
     plugins = /var/lib/grafana/plugins
     provisioning = /etc/grafana/provisioning
+    [users]
+    viewers_can_edit = true
 ---
 apiVersion: v1
 kind: ConfigMap

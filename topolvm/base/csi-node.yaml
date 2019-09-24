@@ -48,10 +48,12 @@ spec:
       labels:
         app.kubernetes.io/name: csi-topolvm-node
     spec:
+      nodeSelector:
+        cke.cybozu.com/role: cs
       serviceAccountName: csi-topolvm-node
       containers:
         - name: node
-          image: quay.io/cybozu/topolvm:0.1.1
+          image: quay.io/cybozu/topolvm:0.1.2
           securityContext:
             privileged: true
           command:
@@ -78,7 +80,7 @@ spec:
               mountPropagation: "Bidirectional"
 
         - name: csi-registrar
-          image: quay.io/cybozu/topolvm:0.1.1
+          image: quay.io/cybozu/topolvm:0.1.2
           command:
             - /csi-node-driver-registrar
             - "--csi-address=/run/topolvm/csi-topolvm.sock"
@@ -94,7 +96,7 @@ spec:
               mountPath: /registration
 
         - name: topolvm-node
-          image: quay.io/cybozu/topolvm:0.1.1
+          image: quay.io/cybozu/topolvm:0.1.2
           command:
             - /topolvm-node
             - --node-name=$(MY_NODE_NAME)
@@ -109,7 +111,7 @@ spec:
               mountPath: /run/lvmd
 
         - name: lvmetrics
-          image: quay.io/cybozu/topolvm:0.1.1
+          image: quay.io/cybozu/topolvm:0.1.2
           command:
             - /lvmetrics
             - --socket=/run/topolvm/lvmd.sock

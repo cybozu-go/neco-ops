@@ -114,6 +114,17 @@ stringData:
         output: stderr
         severity: DEBUG
 `
+	teleportEnterpriseLicenseSecret = `
+apiVersion: v1
+kind: Secret
+metadata:
+  name: teleport-enterprise-license
+  namespace: teleport
+  labels:
+    app.kubernetes.io/name: teleport
+stringData:
+  license.pem: dummy license file
+`
 	elasticSecret = `
 apiVersion: v1
 kind: Secret
@@ -138,9 +149,11 @@ metadata:
 
 // testSetup tests setup of Argo CD
 func testSetup() {
-	It("should disable CKE-sabakan integration feature", func() {
-		ExecSafeAt(boot0, "ckecli", "sabakan", "disable")
-	})
+	if !withKind {
+		It("should disable CKE-sabakan integration feature", func() {
+			ExecSafeAt(boot0, "ckecli", "sabakan", "disable")
+		})
+	}
 
 	It("should list all apps in app-sync-order.txt", func() {
 		appList := loadSyncOrder()
@@ -163,7 +176,7 @@ func testSetup() {
 	})
 
 	It("should re-issue kubeconfig", func() {
-		ExecSafeAt(boot0, "ckecli", "kubernetes", "issue", ">", ".kube/config")
+		issueKubeconfig()
 	})
 
 	if !doUpgrade {
@@ -190,28 +203,30 @@ func testSetup() {
 			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 			ExecSafeAt(boot0, "kubectl", "apply", "-f", "grafana.yaml")
 
-			By("creating namespace and secrets for teleport")
-			stdout, stderr, err = ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
-				"get", "--print-value-only", "/neco/teleport/auth-token")
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-			teleportToken := strings.TrimSpace(string(stdout))
-			teleportTmpl := template.Must(template.New("").Parse(teleportSecret))
-			buf := bytes.NewBuffer(nil)
-			err = teleportTmpl.Execute(buf, struct {
-				Token string
-			}{
-				Token: teleportToken,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			ExecSafeAt(boot0, "kubectl", "create", "namespace", "teleport")
-			stdout, stderr, err = ExecAtWithInput(boot0, buf.Bytes(), "kubectl", "apply", "-n", "teleport", "-f", "-")
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+			if !withKind {
+				By("creating namespace and secrets for teleport")
+				stdout, stderr, err = ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
+					"get", "--print-value-only", "/neco/teleport/auth-token")
+				Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+				teleportToken := strings.TrimSpace(string(stdout))
+				teleportTmpl := template.Must(template.New("").Parse(teleportSecret))
+				buf := bytes.NewBuffer(nil)
+				err = teleportTmpl.Execute(buf, struct {
+					Token string
+				}{
+					Token: teleportToken,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				ExecSafeAt(boot0, "kubectl", "create", "namespace", "teleport")
+				stdout, stderr, err = ExecAtWithInput(boot0, buf.Bytes(), "kubectl", "apply", "-n", "teleport", "-f", "-")
+				Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
-			ExecSafeAt(boot0, "ckecli", "etcd", "user-add", "teleport", "/teleport")
-			ExecSafeAt(boot0, "ckecli", "etcd", "issue", "teleport", "--output", "file")
-			ExecSafeAt(boot0, "kubectl", "-n", "teleport", "create", "secret", "generic",
-				"teleport-etcd-certs", "--from-file=ca.crt=etcd-ca.crt",
-				"--from-file=tls.crt=etcd-teleport.crt", "--from-file=tls.key=etcd-teleport.key")
+				ExecSafeAt(boot0, "ckecli", "etcd", "user-add", "teleport", "/teleport")
+				ExecSafeAt(boot0, "ckecli", "etcd", "issue", "teleport", "--output", "file")
+				ExecSafeAt(boot0, "kubectl", "-n", "teleport", "create", "secret", "generic",
+					"teleport-etcd-certs", "--from-file=ca.crt=etcd-ca.crt",
+					"--from-file=tls.crt=etcd-teleport.crt", "--from-file=tls.key=etcd-teleport.key")
+			}
 
 			By("creating namespace and secrets for elastic")
 			ExecSafeAt(boot0, "kubectl", "create", "namespace", "elastic-system")
@@ -229,10 +244,22 @@ func testSetup() {
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 	})
 
+	It("should prepare secrets for teleport", func() {
+		//TODO: move into `if !doUpgrade {}` when the teleport enterprise is deployed
+		if !withKind {
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte(teleportEnterpriseLicenseSecret), "kubectl", "create", "-f", "-")
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		}
+	})
+
 	It("should checkout neco-apps repository@"+commitID, func() {
 		ExecSafeAt(boot0, "rm", "-rf", "neco-apps")
-		ExecSafeAt(boot0, "env", "https_proxy=http://10.0.49.3:3128",
-			"git", "clone", "https://github.com/cybozu-go/neco-apps")
+		if !withKind {
+			ExecSafeAt(boot0, "env", "https_proxy=http://10.0.49.3:3128",
+				"git", "clone", "https://github.com/cybozu-go/neco-apps")
+		} else {
+			ExecSafeAt(boot0, "git", "clone", "https://github.com/cybozu-go/neco-apps")
+		}
 		ExecSafeAt(boot0, "cd neco-apps; git checkout "+commitID)
 	})
 
@@ -264,7 +291,11 @@ func loadSyncOrder() []string {
 
 func applyAndWaitForApplications() {
 	By("creating Argo CD app")
-	ExecSafeAt(boot0, "kubectl", "apply", "-k", "./neco-apps/argocd-config/overlays/gcp")
+	if withKind {
+		ExecSafeAt(boot0, "kubectl", "apply", "-k", "./neco-apps/argocd-config/overlays/kind")
+	} else {
+		ExecSafeAt(boot0, "kubectl", "apply", "-k", "./neco-apps/argocd-config/overlays/gcp")
+	}
 
 	syncOrder := loadSyncOrder()
 
@@ -318,7 +349,7 @@ func setupArgoCD() {
 		return nil
 	}).Should(Succeed())
 
-	By("logging in to Argo CD")
+	By("waiting Argo CD comes up")
 	// admin password is same as pod name
 	var podList corev1.PodList
 	Eventually(func() error {

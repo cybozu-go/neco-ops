@@ -1,0 +1,45 @@
+kind: Cluster
+apiVersion: kind.sigs.k8s.io/v1alpha3
+# patch the generated kubeadm config with some extra settings
+kubeadmConfigPatches:
+- |
+  apiVersion: kubeadm.k8s.io/v1beta2
+  kind: ClusterConfiguration
+  metadata:
+    name: config
+  kubernetesVersion: "v@KUBERNETES_VERSION@"
+  networking:
+    serviceSubnet: 10.68.0.0/16
+    podSubnet: 10.64.0.0/14
+  apiServer:
+    extraArgs:
+      "enable-admission-plugins": "NamespaceLifecycle,LimitRanger,ServiceAccount,Priority,DefaultTolerationSeconds,DefaultStorageClass,PersistentVolumeClaimResize,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,NodeRestriction"
+  scheduler:
+    extraVolumes:
+      - name: "config"
+        hostPath: /mnt/host/scheduler
+        mountPath: /var/lib/scheduler
+        readOnly: true
+    extraArgs:
+      config: /var/lib/scheduler/scheduler-config.yaml
+
+# 1 control plane node and 3 workers
+nodes:
+# the control plane node config
+- role: control-plane
+  extraMounts:
+    - containerPath: /mnt/host/scheduler
+      hostPath: /tmp/kindtest/scheduler
+# the three workers
+- role: worker
+  extraMounts:
+    - containerPath: /run/topolvm
+      hostPath: /tmp/kindtest/lvmd
+- role: worker
+  extraMounts:
+    - containerPath: /run/topolvm
+      hostPath: /tmp/kindtest/lvmd
+- role: worker
+  extraMounts:
+    - containerPath: /run/topolvm
+      hostPath: /tmp/kindtest/lvmd

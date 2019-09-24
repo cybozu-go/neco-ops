@@ -1,3 +1,5 @@
+// +build !kind
+
 package test
 
 import (
@@ -37,6 +39,16 @@ var (
 type sshAgent struct {
 	client *ssh.Client
 	conn   net.Conn
+}
+
+func prepare() {
+	err := prepareSSHClients(boot0, boot1, boot2)
+	Expect(err).NotTo(HaveOccurred())
+
+	// sync VM root filesystem to store newly generated SSH host keys.
+	for h := range sshClients {
+		ExecSafeAt(h, "sync")
+	}
 }
 
 func sshTo(address string, sshKey ssh.Signer, userName string) (*sshAgent, error) {
@@ -113,6 +125,10 @@ func prepareSSHClients(addresses ...string) error {
 	}
 
 	return nil
+}
+
+func issueKubeconfig() {
+	ExecSafeAt(boot0, "ckecli", "kubernetes", "issue", ">", ".kube/config")
 }
 
 // ExecAt executes command at given host

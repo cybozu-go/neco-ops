@@ -10,18 +10,18 @@ spec:
       app.kubernetes.io/component: speaker
   template:
     metadata:
+      annotations:
+        prometheus.io/port: "7472"
       labels:
         app.kubernetes.io/name: metallb
         app.kubernetes.io/component: speaker
-      annotations:
-        prometheus.io/port: "7472"
     spec:
       serviceAccountName: speaker
       terminationGracePeriodSeconds: 0
       hostNetwork: true
       containers:
       - name: speaker
-        image: quay.io/cybozu/metallb:0.7.3.3
+        image: quay.io/cybozu/metallb:0.8.1.1
         command: ["/speaker"]
         imagePullPolicy: IfNotPresent
         args:
@@ -32,6 +32,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
+        - name: METALLB_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         ports:
         - name: monitoring
           containerPort: 7472
@@ -61,11 +65,11 @@ spec:
       app.kubernetes.io/component: controller
   template:
     metadata:
+      annotations:
+        prometheus.io/port: "7472"
       labels:
         app.kubernetes.io/name: metallb
         app.kubernetes.io/component: controller
-      annotations:
-        prometheus.io/port: "7472"
     spec:
       serviceAccountName: controller
       terminationGracePeriodSeconds: 0
@@ -74,7 +78,7 @@ spec:
         runAsUser: 65534 # nobody
       containers:
       - name: controller
-        image: quay.io/cybozu/metallb:0.7.3.3
+        image: quay.io/cybozu/metallb:0.8.1.1
         command: ["/controller"]
         imagePullPolicy: IfNotPresent
         args:

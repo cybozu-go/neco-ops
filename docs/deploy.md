@@ -19,15 +19,18 @@ Staging cluster
       --dest-namespace argocd \
       --dest-server https://kubernetes.default.svc \
       --sync-policy automated \
-      --auto-prune
+      --auto-prune \
+      --revision stage
     ```
-5. Argo CD in the staging cluster watches changes of the **master HEAD** branch.
+5. Argo CD in the staging cluster watches changes of the **stage HEAD** branch.
 
 ### Apply changes
 
 1. Developer makes changes, commits, and PR which merges to `master` branch.
 2. Test by CI, Reviewer review, and accept if LGTM.
-3. **Reviewer merges PR, and Argo CD synchronizes latest master HEAD.**
+3. Reviewer merges PR.
+4. Daily CI tests `master` branch and merges it to `stage` branch.
+5. Argo CD synchronizes latest stage HEAD.
 
 Production cluster
 ------------------
@@ -52,11 +55,11 @@ Production cluster
 
 ### Apply changes
 
-1. Deployment team confirms all changes the since last commit of `origin/release` branch are stable according to the CI result and the staging cluster deployment by `origin/master`.
-2. Developer adds a git tag `release-YYYY.MM.DD-UNIQUE_ID` with `master HEAD` branch, and push the tag.  
+1. Deployment team confirms all changes the since last commit of `origin/release` branch are stable according to the CI result and the staging cluster deployment by `origin/stage`.
+2. Developer adds a git tag `release-YYYY.MM.DD-UNIQUE_ID` with `stage HEAD` branch, and push the tag.  
     **TODO: This operation might be automated by the simple script**
     ```console
-    $ git checkout master
+    $ git checkout stage
     $ git pull
     $ git tag release-$(date +%Y.%m.%d)-UNIQUE_ID
     $ git push origin --tags

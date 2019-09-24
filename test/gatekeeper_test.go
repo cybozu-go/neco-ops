@@ -42,8 +42,13 @@ spec:
           msg := sprintf("you must provide labels: %v", [missing])
         }
 `
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte(constraintTemplete), "kubectl", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		Eventually(func() error {
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte(constraintTemplete), "kubectl", "apply", "-f", "-")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+			return nil
+		}).Should(Succeed())
 
 		By("registering constraint")
 		constraint := `
@@ -60,7 +65,7 @@ spec:
     labels: ["gatekeeper"]
 `
 		Eventually(func() error {
-			stdout, stderr, err = ExecAtWithInput(boot0, []byte(constraint), "kubectl", "apply", "-f", "-")
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte(constraint), "kubectl", "apply", "-f", "-")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -69,7 +74,7 @@ spec:
 
 		By("waiting for constrains enforced")
 		Eventually(func() error {
-			stdout, stderr, err = ExecAtWithInput(boot0, []byte(constraint), "kubectl", "get", "k8srequiredlabels", "ns-must-have-gk", "-o", "json")
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte(constraint), "kubectl", "get", "k8srequiredlabels", "ns-must-have-gk", "-o", "json")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -101,7 +106,7 @@ kind: Namespace
 metadata:
   name: bad
 `
-		stdout, stderr, err = ExecAtWithInput(boot0, []byte(badNSYAML), "kubectl", "apply", "-f", "-")
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte(badNSYAML), "kubectl", "apply", "-f", "-")
 		Expect(err).To(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
 		By("creating good Namespace")

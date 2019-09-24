@@ -1,6 +1,9 @@
 How to run tests
 ================
 
+dctest
+------
+
 1. Prepare dctest environment using `github.com/cybozu-go/neco/dctest`
 2. Set `NECO_DIR` environment variable to point the directory for `github.com/cybozu-go/neco`
 3. Place `account.json` file for GCP Cloud DNS in this directory.
@@ -11,7 +14,22 @@ How to run tests
     cd test
     make setup
     make test
-    make test-apps
+    make -f Makefile.dctest dctest
+    ```
+
+kindtest
+--------
+
+1. Place `account.json` file for GCP Cloud DNS in this directory.
+2. Push the current feature branch to GitHub.
+3. Run following commands to setup Argo CD and run tests.
+
+    ```console
+    cd test
+    make setup
+    make test
+    make -f Makefile.kindtest start
+    make -f Makefile.kindtest kindtest
     ```
 
 `./account.json`
@@ -40,5 +58,8 @@ You can run test for neco-apps on the running dctest.
 
 - `make setup`: Install test required components.
 - `make clean`: Delete generated files.
+- `make test`: Run `gofmt` and other trivial tests.
+- `make validation`: Run validation of CRD.
+- `make opa-test`: Run unit test of OPA Rego files.
+- `make test-alert-rules`: Run unit test of Prometheus alerts.
 - `make kustomize-check`: Check syntax of the Kubernetes manifests using `kustomize check`
-- `make test`: Deploy Argo CD then run tests for applications.

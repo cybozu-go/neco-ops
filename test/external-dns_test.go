@@ -83,7 +83,11 @@ spec:
 				return errors.New("can not get NodeIP")
 			}
 
-			stdout, stderr, err = ExecAt(boot0, "ckecli", "ssh", nodeAddress, "dig", "+noall", "+answer", domainName)
+			if withKind {
+				stdout, stderr, err = ExecAt("", "dig", "+noall", "+answer", domainName)
+			} else {
+				stdout, stderr, err = ExecAt(boot0, "ckecli", "ssh", nodeAddress, "dig", "+noall", "+answer", domainName)
+			}
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}

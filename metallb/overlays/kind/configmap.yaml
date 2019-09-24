@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - 172.17.250.0/24
+    - name: bastion
+      protocol: layer2
+      addresses:
+      - 172.17.251.0/24
+      auto-assign: false
+    - name: internet
+      protocol: layer2
+      addresses:
+      - 172.17.252.0/24
+      auto-assign: false
