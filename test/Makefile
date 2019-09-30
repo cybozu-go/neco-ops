@@ -23,7 +23,7 @@ PROMTOOL_VERSION := 2.9.2
 TELEPORT_VERSION := 4.0.9
 KUBERNETES_VERSION = 1.15.4
 KIND_VERSION = 0.5.1
-ARGOCD_VERSION = 1.2.1
+ARGOCD_VERSION = 1.2.2
 REGO_FILES = $(shell find .. -path ../vendor -prune -o -name '*.rego' -print)
 
 install.yaml: $(shell find ../argocd/base)

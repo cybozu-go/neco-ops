@@ -22,7 +22,7 @@ spec:
       serviceAccountName: cert-manager-cainjector
       containers:
         - name: cainjector
-          image: quay.io/cybozu/cert-manager:0.10.0.1
+          image: quay.io/cybozu/cert-manager:0.10.1.1
           imagePullPolicy: IfNotPresent
           command:
           - cainjector
@@ -64,7 +64,7 @@ spec:
       serviceAccountName: cert-manager
       containers:
         - name: cert-manager
-          image: quay.io/cybozu/cert-manager:0.10.0.1
+          image: quay.io/cybozu/cert-manager:0.10.1.1
           imagePullPolicy: IfNotPresent
           command:
           - controller
@@ -122,7 +122,7 @@ spec:
       serviceAccountName: cert-manager-webhook
       containers:
         - name: webhook
-          image: quay.io/cybozu/cert-manager:0.10.0.1
+          image: quay.io/cybozu/cert-manager:0.10.1.1
           imagePullPolicy: IfNotPresent
           command:
           - webhook
