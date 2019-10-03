@@ -38,7 +38,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: topolvm-hook
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:

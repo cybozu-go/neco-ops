@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 )
 
 func testContour() {
@@ -112,6 +113,16 @@ spec:
 			}
 			return nil
 		}).Should(Succeed())
+
+		By("checking PodDisruptionBudget for contour Deployment")
+		pdb := policyv1beta1.PodDisruptionBudget{}
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "poddisruptionbudgets", "contour-pdb", "-n", "ingress", "-o", "json")
+		if err != nil {
+			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		}
+		err = json.Unmarshal(stdout, &pdb)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(pdb.Status.CurrentHealthy).Should(Equal(int32(2)))
 
 		By("creating IngressRoute")
 		fqdnHTTP := testID + "-http.test-ingress.gcp0.dev-ne.co"

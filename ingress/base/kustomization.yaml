@@ -6,3 +6,4 @@ resources:
 - contour/deployment.yaml
 - contour/rbac.yaml
 - contour/service.yaml
+- contour/pdb.yaml

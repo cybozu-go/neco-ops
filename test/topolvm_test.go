@@ -1,15 +1,29 @@
 package test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 )
 
 func testTopoLVM() {
+	It("should apply PodDisruptionBudget to topolvm-hook", func() {
+		By("checking PodDisruptionBudget for topolvm-hook Deployment")
+		pdb := policyv1beta1.PodDisruptionBudget{}
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "poddisruptionbudgets", "topolvm-hook-pdb", "-n", "topolvm-system", "-o", "json")
+		if err != nil {
+			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		}
+		err = json.Unmarshal(stdout, &pdb)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(pdb.Status.CurrentHealthy).Should(Equal(int32(2)))
+	})
+
 	ns := "test-topolvm"
 	It("should create test-topolvm namespace", func() {
 		ExecSafeAt(boot0, "kubectl", "delete", "namespace", ns, "--ignore-not-found=true")

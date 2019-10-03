@@ -10,3 +10,4 @@ resources:
 - provisioner.yaml
 - psp.yaml
 - scheduler.yaml
+- topolvm-hook-pdb.yaml
