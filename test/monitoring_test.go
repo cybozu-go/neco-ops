@@ -260,6 +260,26 @@ func testGrafana() {
 			if adminStats.Dashboards == 0 {
 				return fmt.Errorf("no dashboards")
 			}
+
+			By("confirming all dashboards are successfully registered")
+			stdout, stderr, err = ExecAt(boot0, "curl", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", loadBalancerIP+"/api/search")
+			if err != nil {
+				return fmt.Errorf("unable to get dashboards, stderr: %s, err: %v", stderr, err)
+			}
+			var dashboards []struct {
+				ID int `json:"id"`
+			}
+			err = json.Unmarshal(stdout, &dashboards)
+			if err != nil {
+				return err
+			}
+
+			// NOTE: expectedNum is the number of JSON files under monitoring/base/grafana/dashboards + 1(Node Exporter Full).
+			// Node Exporter Full is downloaded every time from the Internet because too large to store into configMap.
+			expectedNum := 9
+			if len(dashboards) != expectedNum {
+				return fmt.Errorf("len(dashboards) should be %d: %d", expectedNum, len(dashboards))
+			}
 			return nil
 		}).Should(Succeed())
 	})

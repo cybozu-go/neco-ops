@@ -67,6 +67,27 @@ data:
       editable: false
       options:
         path: /var/lib/grafana/dashboards/node-exporter
+    - name: 'memory-usage'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/memory-usage
+    - name: 'cpu-usage'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/cpu-usage
+    - name: 'all-nodes'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/all-nodes
 ---
 apiVersion: v1
 kind: ConfigMap
