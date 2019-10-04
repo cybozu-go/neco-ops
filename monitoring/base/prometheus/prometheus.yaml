@@ -22,7 +22,7 @@ scrape_configs:
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}:${2}
+        replacement: ${1}
         target_label: __address__
   - job_name: "alertmanager"
     kubernetes_sd_configs:
@@ -36,7 +36,7 @@ scrape_configs:
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}:${2}
+        replacement: ${1}
         target_label: __address__
   - job_name: 'kubernetes-apiservers'
     kubernetes_sd_configs:
@@ -150,7 +150,7 @@ scrape_configs:
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}:${2}
+        replacement: ${1}
         target_label: __address__
   - job_name: "argocd"
     kubernetes_sd_configs:
@@ -173,7 +173,7 @@ scrape_configs:
       - source_labels: [__address__]
         action: replace
         regex: ([^:]+)(?::\d+)?
-        replacement: ${1}:2381
+        replacement: ${1}
         target_label: __address__
   - job_name: "calico-node"
     kubernetes_sd_configs:
@@ -187,7 +187,7 @@ scrape_configs:
       - source_labels: [__address__]
         action: replace
         regex: ([^:]+)(?::\d+)?
-        replacement: ${1}:9091
+        replacement: ${1}
         target_label: __address__
   - job_name: "monitor-hw"
     kubernetes_sd_configs:
@@ -201,7 +201,7 @@ scrape_configs:
       - source_labels: [__address__]
         action: replace
         regex: ([^:]+)(?::\d+)?
-        replacement: ${1}:9105
+        replacement: ${1}
         target_label: __address__
   - job_name: "contour"
     kubernetes_sd_configs:
@@ -238,7 +238,7 @@ scrape_configs:
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}:${2}
+        replacement: ${1}
         target_label: __address__
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
         target_label: __metrics_path__
@@ -262,5 +262,5 @@ scrape_configs:
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}:${2}
+        replacement: ${1}
         target_label: __address__

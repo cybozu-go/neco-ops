@@ -44,3 +44,12 @@ configMapGenerator:
   - name: dashboard-kubernetes-cluster
     files:
       - grafana/dashboards/kubernetes_cluster.json
+  - name: dashboard-memory-usage
+    files:
+      - grafana/dashboards/memory_usage.json
+  - name: dashboard-cpu-usage
+    files:
+      - grafana/dashboards/cpu_usage.json
+  - name: dashboard-all-nodes
+    files:
+      - grafana/dashboards/all_nodes.json
