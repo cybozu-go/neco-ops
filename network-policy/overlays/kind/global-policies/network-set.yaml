@@ -5,4 +5,5 @@ metadata:
 spec:
   nets:
     - 10.0.0.0/8
+    # For default docker0 network
     - 172.17.0.0/16

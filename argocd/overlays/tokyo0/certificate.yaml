@@ -1,0 +1,11 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: argocd-server-tls
+  namespace: argocd
+spec:
+  secretName: argocd-server-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: clouddns
+  commonName: argocd.tokyo0.cybozu-ne.co

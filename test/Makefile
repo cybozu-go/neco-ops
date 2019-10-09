@@ -57,6 +57,7 @@ setup:
 	curl -sSLf -O https://storage.googleapis.com/kubernetes-release/release/v$(KUBERNETES_VERSION)/bin/linux/amd64/kubectl
 	$(SUDO) mv kubectl /usr/local/bin/kubectl
 	chmod +x /usr/local/bin/kubectl
+	$(SUDO) bash -c "kubectl completion bash > /etc/bash_completion.d/kubectl"
 	curl -sSLf -O https://github.com/kubernetes-sigs/kustomize/releases/download/v$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_linux_amd64
 	$(SUDO) mv kustomize_$(KUSTOMIZE_VERSION)_linux_amd64 /usr/local/bin/kustomize
 	chmod +x /usr/local/bin/kustomize
@@ -72,6 +73,7 @@ setup:
 	curl -sSLf -O https://github.com/argoproj/argo-cd/releases/download/v$(ARGOCD_VERSION)/argocd-linux-amd64
 	$(SUDO) mv argocd-linux-amd64 /usr/local/bin/argocd
 	chmod +x /usr/local/bin/argocd
+	$(SUDO) bash -c "argocd completion bash > /etc/bash_completion.d/argocd"
 	env GOFLAGS= GO111MODULE=off go get github.com/gostaticanalysis/nilerr/cmd/nilerr
 	env GOFLAGS= GO111MODULE=off go get github.com/cybozu/neco-containers/golang/restrictpkg/cmd/restrictpkg
 
