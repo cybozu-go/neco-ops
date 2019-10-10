@@ -12,7 +12,11 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: gatekeeper-system
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+  ignoreDifferences:
+  - group: core
+    kind: Secret
+    name: gatekeeper-webhook-server-secret
+    namespace: gatekeeper-system
+    jsonPointers:
+    - /data
+    - /type

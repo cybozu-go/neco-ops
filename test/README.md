@@ -58,7 +58,7 @@ You can run test for neco-apps on the running dctest.
 - `make setup`: Install test required components.
 - `make clean`: Delete generated files.
 - `make test`: Run `gofmt` and other trivial tests.
-- `make validation`: Run validation of CRD.
+- `make validation`: Run validation test of manifests.
 - `make opa-test`: Run unit test of OPA Rego files.
 - `make test-alert-rules`: Run unit test of Prometheus alerts.
 - `make kustomize-check`: Check syntax of the Kubernetes manifests using `kustomize check`

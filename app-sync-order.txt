@@ -1,4 +1,6 @@
+namespaces
 argocd
+secrets
 external-dns
 gatekeeper
 metallb

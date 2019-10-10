@@ -9,3 +9,4 @@ patchesStrategicMerge:
 - monitoring.yaml
 - network-policy.yaml
 - teleport.yaml
+- secrets.yaml

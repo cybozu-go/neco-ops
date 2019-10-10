@@ -3,5 +3,3 @@ kind: Kustomization
 bases:
 - cert-manager
 - external-dns
-resources:
-- namespace.yaml

@@ -7,3 +7,4 @@ patchesStrategicMerge:
 - monitoring.yaml
 - metallb.yaml
 - teleport.yaml
+- secrets.yaml

@@ -9,14 +9,3 @@ metadata:
 spec:
   finalizers:
     - kubernetes
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: kube-system
-  labels:
-    openpolicyagent.org/webhook: ignore
-    control-plane: "true"
-spec:
-  finalizers:
-    - kubernetes

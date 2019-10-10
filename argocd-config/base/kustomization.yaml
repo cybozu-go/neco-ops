@@ -12,3 +12,5 @@ resources:
 - teleport.yaml
 - topolvm.yaml
 - team-management.yaml
+- namespaces.yaml
+- secrets.yaml

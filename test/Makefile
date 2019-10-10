@@ -30,7 +30,8 @@ install.yaml: $(shell find ../argocd/base)
 	kustomize build ../argocd/base/ > install.yaml
 
 validation:
-	go test -v ./validation_test.go
+	./fetch-secret.sh
+	env SSH_PRIVKEY= go test -v ./validation_test.go
 
 opa-test:
 	test -z "$$(opa fmt -l ../ | grep -v '^vendor' | tee /dev/stderr)"

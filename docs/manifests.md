@@ -15,24 +15,24 @@ Directory tree
 │       └── stage
 │           ├── kustumization.yaml # Argo CD CRD deployment for stage.
 │           └── monitoring.yaml    # overlays for base/monitoring.yaml.
-└── monitoring # App "monitoring" deployment manifests.
-    ├── base
-    │   ├── deployment.yaml    # Plain manifest files of each K8s object name
-    │   ├── kustomization.yaml
-    │   └── service.yaml
-    ├── overlays
-    │   ├── dev
-    │   ├── prod
-    │   └── stage
-    │       ├── cpu_count.yaml     # Some tuning
-    │       ├── kustomization.yaml
-    │       └── proxy.yaml         # NO_PROXY, HTTP_PROXY, HTTPS_PROXY environment variables
-    └── test
-        └── suite_test.go          # Ginkgo based deployment test
+├─── monitoring # App "monitoring" deployment manifests.
+|   ├── base
+|   │   ├── deployment.yaml    # Plain manifest files of each K8s object name
+|   │   ├── kustomization.yaml
+|   │   └── service.yaml
+|   └── overlays
+|       ├── dev
+|       ├── prod
+|       └── stage
+|           ├── cpu_count.yaml     # Some tuning
+|           ├── kustomization.yaml
+|           └── proxy.yaml         # NO_PROXY, HTTP_PROXY, HTTPS_PROXY environment variables
+└────── test                       # Ginkgo based deployment test
 ...
 ```
 
 `argocd-config/overlays/stage/kustomization.yaml`
+
 ```yaml
 bases: # It includes all applications for stage.
 - ../../base
@@ -43,6 +43,7 @@ patches:
 ```
 
 `argocd-config/overlays/stage/monitoring.yaml`
+
 ```yaml
 # Custom Resource Definition for Argo CD app "monitoring"
 spec:
@@ -59,6 +60,7 @@ spec:
 ```
 
 `monitoring/overlays/stage/kustomization.yaml`
+
 ```yaml
 bases:   # It includes all K8s objects for monitoring.
 - ../../base
@@ -68,6 +70,7 @@ patches: # Patches for stage
 ```
 
 `monitoring/base/kustomization.yaml`
+
 ```yaml
 resources:   # It includes all K8s objects for monitoring.
 - deployment.yaml

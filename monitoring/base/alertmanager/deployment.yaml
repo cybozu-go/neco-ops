@@ -34,4 +34,4 @@ spec:
             name: alertmanager
         - name: alertmanager-secret-volume
           secret:
-            secretName: alertmanager
+            secretName: alertmanager-5dc8822tc8

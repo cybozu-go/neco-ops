@@ -12,7 +12,3 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: topolvm-system
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true

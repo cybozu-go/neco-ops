@@ -20,25 +20,7 @@ import (
 )
 
 const (
-	appSyncOrderFile   = "../app-sync-order.txt"
-	alertmanagerSecret = `
-route:
-  receiver: slack
-  group_wait: 5s # Send a notification after 5 seconds
-  routes:
-  - receiver: slack
-    continue: true # Continue notification to next receiver
-
-# Receiver configurations
-receivers:
-- name: slack
-  slack_configs:
-  - channel: '#test'
-    api_url: https://hooks.slack.com/services/XXX/XXX
-    icon_url: https://avatars3.githubusercontent.com/u/3380462 # Prometheus icon
-    http_config:
-      proxy_url: http://squid.internet-egress.svc.cluster.local:3128
-`
+	appSyncOrderFile = "../app-sync-order.txt"
 
 	grafanaSecret = `apiVersion: v1
 kind: Secret
@@ -114,37 +96,6 @@ stringData:
         output: stderr
         severity: DEBUG
 `
-	teleportEnterpriseLicenseSecret = `
-apiVersion: v1
-kind: Secret
-metadata:
-  name: teleport-enterprise-license
-  namespace: teleport
-  labels:
-    app.kubernetes.io/name: teleport
-stringData:
-  license.pem: dummy license file
-`
-	elasticSecret = `
-apiVersion: v1
-kind: Secret
-metadata:
-  name: webhook-server-secret
-  namespace: elastic-system
-`
-	gatekeeperNS = `
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: gatekeeper-system
-`
-	gatekeeperSecret = `
-apiVersion: v1
-kind: Secret
-metadata:
-  name: gatekeeper-webhook-server-secret
-  namespace: gatekeeper-system
-`
 )
 
 // testSetup tests setup of Argo CD
@@ -197,15 +148,9 @@ func testSetup() {
 				"create", "secret", "generic", "external-dns", "--from-file=account.json=/dev/stdin")
 			Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 
-			By("creating namespace and secrets for alertmanager")
-			stdout, stderr, err := ExecAtWithInput(boot0, []byte(alertmanagerSecret), "dd", "of=alertmanager.yaml")
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-			ExecSafeAt(boot0, "kubectl", "create", "namespace", "monitoring")
-			ExecSafeAt(boot0, "kubectl", "--namespace=monitoring", "create", "secret",
-				"generic", "alertmanager", "--from-file", "alertmanager.yaml")
-
 			By("creating namespace and secrets for grafana")
-			stdout, stderr, err = ExecAtWithInput(boot0, []byte(grafanaSecret), "dd", "of=grafana.yaml")
+			ExecSafeAt(boot0, "kubectl", "create", "namespace", "monitoring")
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte(grafanaSecret), "dd", "of=grafana.yaml")
 			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 			ExecSafeAt(boot0, "kubectl", "apply", "-f", "grafana.yaml")
 
@@ -233,29 +178,8 @@ func testSetup() {
 					"teleport-etcd-certs", "--from-file=ca.crt=etcd-ca.crt",
 					"--from-file=tls.crt=etcd-teleport.crt", "--from-file=tls.key=etcd-teleport.key")
 			}
-
-			By("creating namespace and secrets for elastic")
-			ExecSafeAt(boot0, "kubectl", "create", "namespace", "elastic-system")
-			stdout, stderr, err = ExecAtWithInput(boot0, []byte(elasticSecret), "kubectl", "--namespace=elastic-system", "create", "-f", "-")
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 		})
 	}
-
-	It("should prepare secrets for gatekeeper", func() {
-		//TODO: move into `if !doUpgrade {}` when the gatekeeper is released
-		By("creating namespace and secret for gatekeeper")
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte(gatekeeperNS), "kubectl", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		stdout, stderr, err = ExecAtWithInput(boot0, []byte(gatekeeperSecret), "kubectl", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-	})
-
-	It("should prepare secrets for teleport", func() {
-		if !withKind {
-			stdout, stderr, err := ExecAtWithInput(boot0, []byte(teleportEnterpriseLicenseSecret), "kubectl", "apply", "-f", "-")
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		}
-	})
 
 	It("should checkout neco-apps repository@"+commitID, func() {
 		ExecSafeAt(boot0, "rm", "-rf", "neco-apps")
@@ -344,7 +268,11 @@ func applyAndWaitForApplications() {
 	Eventually(func() error {
 	OUTER:
 		for _, appName := range syncOrder {
-			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", appName)
+			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", appName)
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", appStdout, stderr, err)
+			}
+			appStdout, stderr, err = ExecAt(boot0, "argocd", "app", "get", "-o", "json", appName)
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", appStdout, stderr, err)
 			}
@@ -380,15 +308,11 @@ func applyAndWaitForApplications() {
 
 func setupArgoCD() {
 	By("installing Argo CD")
+	ExecSafeAt(boot0, "kubectl", "create", "namespace", "argocd")
 	data, err := ioutil.ReadFile("install.yaml")
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(func() error {
-		stdout, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-n", "argocd", "-f", "-")
-		if err != nil {
-			return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-		}
-		return nil
-	}).Should(Succeed())
+	_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-n", "argocd", "-f", "-")
+	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 
 	By("waiting Argo CD comes up")
 	// admin password is same as pod name

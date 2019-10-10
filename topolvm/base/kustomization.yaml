@@ -6,7 +6,6 @@ resources:
 - csi-controller.yaml
 - csi-node.yaml
 - mutatingwebhooks.yaml
-- namespace.yaml
 - provisioner.yaml
 - psp.yaml
 - scheduler.yaml

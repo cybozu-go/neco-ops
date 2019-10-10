@@ -13,7 +13,7 @@ $GCLOUD compute instances create ${INSTANCE_NAME} \
   --local-ssd interface=scsi
 
 # Run data center test
-for i in $(seq 300); do
+for _ in $(seq 300); do
   if $GCLOUD compute ssh --zone=${ZONE} cybozu@${INSTANCE_NAME} --command=date 2>/dev/null; then
     break
   fi

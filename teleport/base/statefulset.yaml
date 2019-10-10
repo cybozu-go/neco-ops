@@ -81,7 +81,7 @@ spec:
         emptyDir: {}
       - name: teleport-enterprise-license
         secret:
-          secretName: teleport-enterprise-license
+          secretName: teleport-enterprise-license-m5bffgtbh6
       serviceAccountName: teleport
   volumeClaimTemplates:
   - metadata:

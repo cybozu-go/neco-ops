@@ -195,7 +195,7 @@ jobs:
             git config --global user.email "neco@cybozu.com"
             git config --global user.name "cybozu-neco"
       - run: git checkout stage
-      - run: git merge --no-commit ${CIRCLE_SHA1}
+      - run: git merge --no-commit --no-ff ${CIRCLE_SHA1}
       - run:
           name: Check diff
           command: |
@@ -208,6 +208,11 @@ jobs:
           command: |
             if [ -f .skip ]; then exit 0; fi
             ./bin/commit-push.sh
+      - run:
+          name: Merge neco-apps-secret
+          command: |
+            if [ -f .skip ]; then exit 0; fi
+            ./bin/run-neco-apps-secret-ci.sh
 
   create-pull-request:
     docker:
