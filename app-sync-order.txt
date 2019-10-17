@@ -11,3 +11,4 @@ monitoring
 elastic
 network-policy
 team-management
+argocd-ingress

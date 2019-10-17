@@ -1,0 +1,19 @@
+apiVersion: contour.heptio.com/v1beta1
+kind: IngressRoute
+metadata:
+  name: argocd-server
+  namespace: argocd
+  annotations:
+    contour-plus.cybozu.com/exclude: "true"
+spec:
+  virtualhost:
+    fqdn: argocd.tokyo0.cybozu-ne.co
+    tls:
+      secretName: argocd-server-tls
+  routes:
+    - match: /
+      timeoutPolicy:
+        request: 2m
+      services:
+        - name: argocd-server
+          port: 443

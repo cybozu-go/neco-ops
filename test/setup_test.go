@@ -193,112 +193,12 @@ func testSetup() {
 		ExecSafeAt(boot0, "cd neco-apps; git checkout "+commitID)
 	})
 
-	if doUpgrade {
-		It("should delete previous version TopoLVM", func() {
-			By("disabling argocd self healing")
-			ExecSafeAt(boot0, "argocd", "app", "set", "argocd", "--sync-policy", "none")
-			ExecSafeAt(boot0, "argocd", "app", "set", "topolvm", "--sync-policy", "none")
-			ExecSafeAt(boot0, "argocd", "app", "set", "monitoring", "--sync-policy", "none")
-			ExecSafeAt(boot0, "argocd", "app", "set", "teleport", "--sync-policy", "none")
-
-			By("deleting statefulsets which use pvc created by topolvm")
-			ExecSafeAt(boot0, "kubectl", "delete", "sts", "-n=monitoring", "grafana")
-			ExecSafeAt(boot0, "kubectl", "delete", "sts", "-n=monitoring", "prometheus")
-			ExecSafeAt(boot0, "kubectl", "delete", "sts", "-n=teleport", "teleport-auth")
-			Eventually(func() error {
-				_, _, err := ExecAt(boot0, "kubectl", "get", "sts", "-n=monitoring", "grafana")
-				if err == nil {
-					return errors.New("grafana still exists")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "sts", "-n=monitoring", "prometheus")
-				if err == nil {
-					return errors.New("prometheus still exists")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "sts", "-n=teleport", "teleport-auth")
-				if err == nil {
-					return errors.New("teleport-auth still exists")
-				}
-				return nil
-			}).Should(Succeed())
-
-			By("deleting pvc created by topolvm")
-			ExecSafeAt(boot0, "kubectl", "delete", "pvc", "-n=monitoring", "storage-grafana-0")
-			ExecSafeAt(boot0, "kubectl", "delete", "pvc", "-n=monitoring", "prometheus-storage-volume-prometheus-0")
-			ExecSafeAt(boot0, "kubectl", "delete", "pvc", "-n=teleport", "teleport-storage-teleport-auth-0")
-
-			Eventually(func() error {
-				_, _, err := ExecAt(boot0, "kubectl", "get", "pvc", "-n=monitoring", "storage-grafana-0")
-				if err == nil {
-					return errors.New("storage-grafana-0 still exists")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "pvc", "-n=monitoring", "prometheus-storage-volume-prometheus-0")
-				if err == nil {
-					return errors.New("prometheus-storage-volume-prometheus-0 still exists")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "pvc", "-n=teleport", "teleport-storage-teleport-auth-0")
-				if err == nil {
-					return errors.New("teleport-storage-teleport-auth-0 still exists")
-				}
-				return nil
-			}).Should(Succeed())
-
-			By("deleting topolvm storageclass")
-			ExecSafeAt(boot0, "kubectl", "delete", "storageclasses.storage.k8s.io", "topolvm-provisioner")
-			Eventually(func() error {
-				_, _, err := ExecAt(boot0, "kubectl", "get", "storageclasses.storage.k8s.io", "topolvm-provisioner")
-				if err == nil {
-					return errors.New("topolvm-provisioner still exists")
-				}
-				return nil
-			}).Should(Succeed())
-
-			By("deleting relevant resources")
-			ExecSafeAt(boot0, "kubectl", "delete", "mutatingwebhookconfigurations", "topolvm-hook")
-			ExecSafeAt(boot0, "kubectl", "delete", "ns", "topolvm-system")
-			ExecSafeAt(boot0, "kubectl", "delete", "clusterrolebindings,clusterroles", "topolvm-system:csi-topolvm-controller", "topolvm-system:csi-topolvm-node", "topolvm-system:topolvm-hook")
-			ExecSafeAt(boot0, "kubectl", "delete", "crds", "logicalvolumes.topolvm.cybozu.com")
-			ExecSafeAt(boot0, "kubectl", "delete", "csidrivers", "topolvm.cybozu.com")
-
-			Eventually(func() error {
-				_, _, err := ExecAt(boot0, "kubectl", "get", "mutatingwebhookconfigurations", "topolvm-hook")
-				if err == nil {
-					return errors.New("topolvm-hook mutatingwebhookconfigurations still exists")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "ns", "topolvm-system")
-				if err == nil {
-					return errors.New("topolvm-system ns still exists")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "clusterrolebindings,clusterroles", "topolvm-system:csi-topolvm-controller", "topolvm-system:csi-topolvm-node", "topolvm-system:topolvm-hook")
-				if err == nil {
-					return errors.New("clusterrolebindings and clusterroles still exist")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "crds", "logicalvolumes.topolvm.cybozu.com")
-				if err == nil {
-					return errors.New("topolvm crd still exists")
-				}
-				_, _, err = ExecAt(boot0, "kubectl", "get", "csidrivers", "topolvm.cybozu.com")
-				if err == nil {
-					return errors.New("csidriver still exists")
-				}
-				return nil
-			}).Should(Succeed())
-		})
-	}
-
 	It("should setup applications", func() {
 		if !doUpgrade {
 			setupArgoCD()
 		}
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/base/*.yaml")
 		applyAndWaitForApplications()
-
-		if doUpgrade {
-			By("enabling argocd self healing")
-			ExecSafeAt(boot0, "argocd", "app", "set", "teleport", "--sync-policy", "automated", "--auto-prune", "--self-heal")
-			ExecSafeAt(boot0, "argocd", "app", "set", "monitoring", "--sync-policy", "automated", "--auto-prune", "--self-heal")
-			ExecSafeAt(boot0, "argocd", "app", "set", "topolvm", "--sync-policy", "automated", "--auto-prune", "--self-heal")
-			ExecSafeAt(boot0, "argocd", "app", "set", "argocd", "--sync-policy", "automated", "--auto-prune", "--self-heal")
-		}
 	})
 
 	if !withKind {

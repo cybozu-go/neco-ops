@@ -1,9 +1,9 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: argocd-ingress
   namespace: argocd
 spec:
   source:
     targetRevision: stage
-    path: argocd/overlays/stage0
+    path: argocd-ingress/overlays/stage0

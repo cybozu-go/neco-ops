@@ -1,8 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: argocd-ingress
   namespace: argocd
 spec:
   source:
-    path: argocd/overlays/osaka0
+    path: argocd-ingress/overlays/osaka0

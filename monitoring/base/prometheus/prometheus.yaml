@@ -16,28 +16,40 @@ scrape_configs:
         namespaces:
           names: ["monitoring"]
     relabel_configs:
+      # Discovered Labels
+      #   __meta_kubernetes_pod_label_app_kubernetes_io_name="prometheus"
+      #   __address__="10.64.13.225:9090"
+      # Expected Target Labels
+      #   job="prometheus"
+      #   instance="10.64.13.225"
       - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
         action: keep
         regex: prometheus
-      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      - source_labels: [__address__]
         action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
+        regex: ([^:]+)(?::\d+)?
         replacement: ${1}
-        target_label: __address__
+        target_label: instance
   - job_name: "alertmanager"
     kubernetes_sd_configs:
       - role: pod
         namespaces:
           names: ["monitoring"]
     relabel_configs:
+      # Discovered Labels
+      #   __meta_kubernetes_pod_label_app_kubernetes_io_name="alertmanager"
+      #   __address__="10.64.11.130:9093"
+      # Expected Target Labels
+      #   job="alertmanager"
+      #   instance="10.64.11.130"
       - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
         action: keep
         regex: alertmanager
-      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      - source_labels: [__address__]
         action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
+        regex: ([^:]+)(?::\d+)?
         replacement: ${1}
-        target_label: __address__
+        target_label: instance
   - job_name: 'kubernetes-apiservers'
     kubernetes_sd_configs:
     - role: endpoints
@@ -150,7 +162,7 @@ scrape_configs:
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}
+        replacement: ${1}:${2}
         target_label: __address__
   - job_name: "argocd"
     kubernetes_sd_configs:
@@ -167,6 +179,13 @@ scrape_configs:
         namespaces:
           names: ["kube-system"]
     relabel_configs:
+      # Discovered Labels
+      #   __meta_kubernetes_endpoints_name="cke-etcd"
+      #   __address__="10.69.1.149:2379"
+      # Expected Target Labels
+      #   job="cke-etcd"
+      #   instance="10.69.1.149"
+      #   __address__="10.69.1.149:2381"
       - source_labels: [__meta_kubernetes_endpoints_name]
         action: keep
         regex: cke-etcd
@@ -174,6 +193,11 @@ scrape_configs:
         action: replace
         regex: ([^:]+)(?::\d+)?
         replacement: ${1}
+        target_label: instance
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:2381
         target_label: __address__
   - job_name: "calico-node"
     kubernetes_sd_configs:
@@ -181,6 +205,13 @@ scrape_configs:
         namespaces:
           names: ["kube-system"]
     relabel_configs:
+      # Discovered Labels
+      #   __meta_kubernetes_pod_label_app_kubernetes_io_name="calico-node"
+      #   __address__="10.69.0.6"
+      # Expected Target Labels
+      #   job="calico-node"
+      #   instance="10.69.0.6"
+      #   __address__="10.69.0.6:9091"
       - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
         action: keep
         regex: calico-node
@@ -188,6 +219,11 @@ scrape_configs:
         action: replace
         regex: ([^:]+)(?::\d+)?
         replacement: ${1}
+        target_label: instance
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:9091
         target_label: __address__
   - job_name: "monitor-hw"
     kubernetes_sd_configs:
@@ -195,6 +231,11 @@ scrape_configs:
         namespaces:
           names: ["monitoring"]
     relabel_configs:
+      # Discovered Labels
+      #   __address__="10.69.0.204:9100"
+      # Expected Target Labels
+      #   instance="10.69.0.204"
+      #   __address__="10.69.0.204:9105"
       - source_labels: [__meta_kubernetes_endpoints_name]
         action: keep
         regex: prometheus-node-targets
@@ -202,6 +243,11 @@ scrape_configs:
         action: replace
         regex: ([^:]+)(?::\d+)?
         replacement: ${1}
+        target_label: instance
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:9105
         target_label: __address__
   - job_name: "contour"
     kubernetes_sd_configs:
@@ -235,11 +281,23 @@ scrape_configs:
         namespaces:
           names: ["ingress"]
     relabel_configs:
+      # Discovered Labels
+      #   __address__="10.64.17.66"
+      #   __meta_kubernetes_pod_annotation_prometheus_io_path="/stats/prometheus"
+      #   __meta_kubernetes_pod_annotation_prometheus_io_format="prometheus"
+      # Expected Target Labels
+      #   __address__="10.64.17.66:8002"
+      #   instance="10.64.17.66"
+      #    __metrics_path__="/stats/prometheus"
+      #    __param_format="prometheus"
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}
+        replacement: ${1}:${2}
         target_label: __address__
+      - source_labels: [__address__]
+        action: keep
+        target_label: instance
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
         target_label: __metrics_path__
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_format]
@@ -259,8 +317,21 @@ scrape_configs:
         namespaces:
           names: ["teleport"]
     relabel_configs:
+      # Discovered Labels
+      #   __address__="10.64.15.33:3025"
+      #   __meta_kubernetes_pod_label_app_kubernetes_io_name="teleport"
+      #   __meta_kubernetes_pod_annotation_prometheus_io_port="3020"
+      # Expected Target Labels
+      #   __address__="10.64.15.33:3020"
+      #   job="teleport"
+      #   instance="10.64.15.33"
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: ${1}
+        replacement: ${1}:${2}
         target_label: __address__
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance

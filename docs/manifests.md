@@ -15,6 +15,8 @@ Directory tree
 │       └── stage
 │           ├── kustumization.yaml # Argo CD CRD deployment for stage.
 │           └── monitoring.yaml    # overlays for base/monitoring.yaml.
+├─── namespaces # App "namespaces". All namespaces for neco-apps application is managed in this App.
+├─── secrets # App "secrets". This is dummy secrets for testing. Real secret is located in the private repository.
 ├─── monitoring # App "monitoring" deployment manifests.
 |   ├── base
 |   │   ├── deployment.yaml    # Plain manifest files of each K8s object name
@@ -76,3 +78,9 @@ resources:   # It includes all K8s objects for monitoring.
 - deployment.yaml
 - service.yaml
 ```
+
+Caveats
+-------
+
+- Please do not add sensitive secrets in this repository.
+- When you add `Namespace` manifest for new applications except `team-management` App, please put in `namespaces` App, not in new application tree.

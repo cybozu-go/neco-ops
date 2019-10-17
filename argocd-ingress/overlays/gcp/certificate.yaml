@@ -1,0 +1,49 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Issuer
+metadata:
+  name: argocd-server-selfsign
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd
+spec:
+  selfSigned: {}
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: argocd-server-ca
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd
+spec:
+  secretName: argocd-server-ca
+  duration: 87600h0m0s # 10y
+  issuerRef:
+    name: argocd-server-selfsign
+  commonName: "ca.server.argocd"
+  isCA: true
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Issuer
+metadata:
+  name: argocd-server-ca
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd
+spec:
+  ca:
+    secretName: argocd-server-ca
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: argocd-server-tls
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd
+spec:
+  secretName: argocd-server-tls
+  duration: 8760h0m0s # 1y
+  issuerRef:
+    name: argocd-server-ca
+  commonName: argocd.gcp0.dev-ne.co

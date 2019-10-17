@@ -78,7 +78,7 @@ metadata:
     app.kubernetes.io/part-of: argocd
   name: argocd-server
   annotations:
-    metallb.universe.tf/address-pool: bastion
+    contour.heptio.com/upstream-protocol.h2: 443,https
 spec:
   ports:
     - name: http
@@ -91,4 +91,4 @@ spec:
       targetPort: 8080
   selector:
     app.kubernetes.io/name: argocd-server
-  type: LoadBalancer
+  type: NodePort

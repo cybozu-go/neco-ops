@@ -81,4 +81,3 @@ metadata:
   name: argocd-tls-certs-cm
   namespace: argocd
 data: {}
----

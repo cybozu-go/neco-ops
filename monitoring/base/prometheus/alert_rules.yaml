@@ -68,13 +68,73 @@ groups:
         annotations:
           summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space increases {{ $value | humanize }}B/h"
           runbook: "Please consider to find root causes, and solve the problems"
-      - alert: CKEEtcdMissing
-        expr: absent(up{job="cke-etcd"} == 1)
+      - alert: ArgoCDDown
+        expr: |
+          absent(up{job="argocd"} == 1)
         labels:
           severity: critical
         for: 10m
       - alert: BootserverEtcdMissing
         expr: absent(up{job="bootserver-etcd"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: CalicoNodeDown
+        expr: |
+          absent(up{job="calico-node"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: CKEEtcdMissing
+        expr: absent(up{job="cke-etcd"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: ContourDown
+        expr: |
+          absent(up{job="contour"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: ExternalDNSDown
+        expr: |
+          absent(up{job="external-dns"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: IngressDown
+        expr: |
+          absent(up{job="ingress"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: KubernetesCAdvisorDown
+        expr: |
+          absent(up{job="kubernetes-cadvisor"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: KubernetesNodesDown
+        expr: |
+          absent(up{job="kubernetes-nodes"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: MetalLBDown
+        expr: |
+          absent(up{job="metallb"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: MonitorHWDown
+        expr: |
+          absent(up{job="metallb"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+      - alert: TeleportDown
+        expr: |
+          absent(up{job="teleport"} == 1)
         labels:
           severity: critical
         for: 10m

@@ -131,34 +131,7 @@ tests:
               runbook: "Please consider to find root causes, and solve the problems"
   - interval: 1m
     input_series:
-      - series: 'up{job="foo"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: CKEEtcdMissing
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="foo"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: BootserverEtcdMissing
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="foo"}'
-        values: '0+0x9'
-    alert_rule_test:
-      - eval_time: 9m
-        alertname: BootserverEtcdMissing
-  - interval: 1m
-    input_series:
-      - series: 'up{job="foo"}'
+      - series: 'up{job="alertmanager"}'
         values: '0+0x15'
     alert_rule_test:
       - eval_time: 15m
@@ -171,7 +144,94 @@ tests:
               runbook_url: TBD
   - interval: 1m
     input_series:
-      - series: 'up{job="foo"}'
+      - series: 'up{job="argocd"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="bootserver-etcd"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: BootserverEtcdMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="bootserver-etcd"}'
+        values: '0+0x9'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: BootserverEtcdMissing
+  - interval: 1m
+    input_series:
+      - series: 'up{job="calico-node"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CalicoNodeDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="cke-etcd"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CKEEtcdMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="calico-node"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CalicoNodeDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="contour"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ContourDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="external-dns"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ExternalDNSDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="ingress"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: IngressDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kube-state-metrics"}'
         values: '0+0x15'
     alert_rule_test:
       - eval_time: 15m
@@ -184,7 +244,47 @@ tests:
               runbook_url: TBD
   - interval: 1m
     input_series:
-      - series: 'up{job="foo"}'
+      - series: 'up{job="kubernetes-cadvisor"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KubernetesCAdvisorDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-nodes"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KubernetesNodesDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="metallb"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: MetalLBDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="monitor-hw"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: MonitorHWDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+  - interval: 1m
+    input_series:
+      - series: 'up{job="node-exporter"}'
         values: '0+0x15'
     alert_rule_test:
       - eval_time: 15m
@@ -197,7 +297,7 @@ tests:
               runbook_url: TBD
   - interval: 1m
     input_series:
-      - series: 'up{job="foo"}'
+      - series: 'up{job="prometheus"}'
         values: '0+0x15'
     alert_rule_test:
       - eval_time: 15m
@@ -208,6 +308,16 @@ tests:
             exp_annotations:
               message: Prometheus has disappeared from Prometheus target discovery.
               runbook_url: TBD
+  - interval: 1m
+    input_series:
+      - series: 'up{job="teleport"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: TeleportDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
   - interval: 1m
     input_series:
       - series: 'kube_pod_container_status_restarts_total{job="kube-state-metrics", namespace="kube-system", pod="calico-node", container="unbound"}'
