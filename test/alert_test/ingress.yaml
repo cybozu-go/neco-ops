@@ -1,0 +1,30 @@
+rule_files:
+  - ../../monitoring/base/prometheus/alert_rules/ingress.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="contour"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ContourDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Contour has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="ingress"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: IngressDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Ingress has disappeared from Prometheus target discovery.

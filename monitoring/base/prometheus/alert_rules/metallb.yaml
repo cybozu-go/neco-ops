@@ -1,0 +1,12 @@
+groups:
+  - name: metallb
+    rules:
+      - alert: MetalLBDown
+        expr: |
+          absent(up{job="metallb"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: MetalLB has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems

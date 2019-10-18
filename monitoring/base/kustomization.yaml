@@ -25,8 +25,21 @@ configMapGenerator:
   - name: prometheus-server-conf
     files:
       - prometheus/prometheus.yaml
-      - prometheus/alert_rules.yaml
-      - prometheus/kube_prometheus_alert_rules.yaml
+      - prometheus/record_rules.yaml
+      - prometheus/alert_rules/argocd.yaml
+      - prometheus/alert_rules/elastic.yaml
+      - prometheus/alert_rules/etcd.yaml
+      - prometheus/alert_rules/external-dns.yaml
+      - prometheus/alert_rules/gatekeeper.yaml
+      - prometheus/alert_rules/ingress.yaml
+      - prometheus/alert_rules/kubernetes.yaml
+      - prometheus/alert_rules/metallb.yaml
+      - prometheus/alert_rules/monitoring.yaml
+      - prometheus/alert_rules/network-policy.yaml
+      - prometheus/alert_rules/node.yaml
+      - prometheus/alert_rules/teleport.yaml
+      - prometheus/alert_rules/topolvm.yaml
+
   - name: alertmanager
     files:
       - alertmanager/neco.template

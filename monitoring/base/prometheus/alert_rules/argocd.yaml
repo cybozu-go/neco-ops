@@ -1,0 +1,20 @@
+groups:
+  - name: argocd-config
+    rules:
+      - alert: AppOutOfSync
+        expr: argocd_app_sync_status{sync_status="Synced"} == 0
+        for: 20m
+        labels:
+          severity: page
+        annotations:
+          summary: "{{ $labels.exported_name }} is out-of-sync."
+          runbook: "See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync"
+      - alert: ArgoCDDown
+        expr: |
+          absent(up{job="argocd"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: ArgoCD has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems

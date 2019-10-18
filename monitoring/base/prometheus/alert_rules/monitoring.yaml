@@ -1,0 +1,21 @@
+groups:
+  - name: monitoring
+    rules:
+      - alert: AlertmanagerDown
+        annotations:
+          summary: Alertmanager has disappeared from Prometheus target discovery.
+          runbook: TBD
+        expr: |
+          absent(up{job="alertmanager",namespace="monitoring"} == 1)
+        for: 15m
+        labels:
+          severity: critical
+      - alert: PrometheusDown
+        annotations:
+          summary: Prometheus has disappeared from Prometheus target discovery.
+          runbook: TBD
+        expr: |
+          absent(up{job="prometheus"} == 1)
+        for: 15m
+        labels:
+          severity: critical

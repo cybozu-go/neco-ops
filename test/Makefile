@@ -38,7 +38,7 @@ opa-test:
 	opa test -v $(REGO_FILES)
 
 test-alert-rules:
-	cd ../monitoring/base/prometheus && promtool test rules test_rules.yaml
+	promtool test rules alert_test/*.yaml
 
 kustomize-check:
 	./kustomize-check.sh

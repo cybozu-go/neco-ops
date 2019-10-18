@@ -1,0 +1,21 @@
+groups:
+  - name: ingress
+    rules:
+      - alert: ContourDown
+        expr: |
+          absent(up{job="contour"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: Contour has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems
+      - alert: IngressDown
+        expr: |
+          absent(up{job="ingress"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: Ingress has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems

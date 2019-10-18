@@ -1,0 +1,12 @@
+groups:
+  - name: network-policy
+    rules:
+      - alert: CalicoNodeDown
+        expr: |
+          absent(up{job="calico-node"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: CalicoNode has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems

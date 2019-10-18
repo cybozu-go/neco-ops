@@ -1,0 +1,43 @@
+rule_files:
+   - ../../monitoring/base/prometheus/alert_rules/argocd.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'argocd_app_sync_status{exported_name="monitoring",sync_status="Synced"}'
+        values: 0+0x20
+      - series: 'argocd_app_sync_status{exported_name="metallb",sync_status="Synced"}'
+        values: 0+0x20
+      - series: 'argocd_app_sync_status{exported_name="argocd",sync_status="Synced"}'
+        values: '0+0x10 1+0x10'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: AppOutOfSync
+        exp_alerts:
+          - exp_labels:
+              exported_name: monitoring
+              severity: page
+              sync_status: Synced
+            exp_annotations:
+              summary: monitoring is out-of-sync.
+              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
+          - exp_labels:
+              exported_name: metallb
+              severity: page
+              sync_status: Synced
+            exp_annotations:
+              summary: metallb is out-of-sync.
+              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
+  - interval: 1m
+    input_series:
+      - series: 'up{job="argocd"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: ArgoCD has disappeared from Prometheus target discovery.

@@ -1,0 +1,43 @@
+groups:
+  - name: etcd
+    rules:
+      - alert: DatabaseSpaceExceeded
+        expr: etcd_mvcc_db_total_size_in_bytes/etcd_server_quota_backend_bytes > 0.80
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space uses more than 80%"
+          runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
+      - alert: DatabaseSpaceExceeded
+        expr: etcd_mvcc_db_total_size_in_bytes/etcd_server_quota_backend_bytes > 0.90
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space uses more than 90%"
+          runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
+      - alert: LogicalDatabaseUsageIncreaseRapidly
+        expr: delta(etcd_mvcc_db_total_size_in_use_in_bytes[1h]) > 30000000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space increases {{ $value | humanize }}B/h"
+          runbook: "Please consider to find root causes, and solve the problems"
+      - alert: BootserverEtcdMissing
+        expr: absent(up{job="bootserver-etcd"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: BootserverEtcd has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems
+      - alert: CKEEtcdMissing
+        expr: absent(up{job="cke-etcd"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: CKEEtcd has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems

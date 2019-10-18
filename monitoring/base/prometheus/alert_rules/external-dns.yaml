@@ -1,0 +1,12 @@
+groups:
+  - name: external-dns
+    rules:
+      - alert: ExternalDNSDown
+        expr: |
+          absent(up{job="external-dns"} == 1)
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: ExternalDNS has disappeared from Prometheus target discovery.
+          runbook: Please consider to find root causes, and solve the problems

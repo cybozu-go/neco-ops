@@ -1,6 +1,8 @@
 rule_files:
-  - alert_rules.yaml
-  - kube_prometheus_alert_rules.yaml
+  # Record rules
+  - ../../monitoring/base/prometheus/record_rules.yaml
+  # Alert rules
+  - ../../monitoring/base/prometheus/alert_rules/kubernetes.yaml
 
 tests:
   - interval: 1m
@@ -19,6 +21,7 @@ tests:
               severity: critical
             exp_annotations:
               summary: No kube-apiserver is running.
+              runbook: Please consider to find root causes, and solve the problems
   - interval: 1m
     input_series:
       - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
@@ -35,6 +38,7 @@ tests:
               severity: warning
             exp_annotations:
               summary: The number of kube-apiserver is less than 3.
+              runbook: Please consider to find root causes, and solve the problems
   - interval: 1m
     input_series:
       - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
@@ -49,188 +53,6 @@ tests:
         exp_alerts: []
   - interval: 1m
     input_series:
-      - series: 'argocd_app_sync_status{exported_name="monitoring",sync_status="Synced"}'
-        values: 0+0x20
-      - series: 'argocd_app_sync_status{exported_name="metallb",sync_status="Synced"}'
-        values: 0+0x20
-      - series: 'argocd_app_sync_status{exported_name="argocd",sync_status="Synced"}'
-        values: '0+0x10 1+0x10'
-    alert_rule_test:
-      - eval_time: 20m
-        alertname: AppOutOfSync
-        exp_alerts:
-          - exp_labels:
-              exported_name: monitoring
-              severity: page
-              sync_status: Synced
-            exp_annotations:
-              summary: monitoring is out-of-sync.
-              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
-          - exp_labels:
-              exported_name: metallb
-              severity: page
-              sync_status: Synced
-            exp_annotations:
-              summary: metallb is out-of-sync.
-              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
-  - interval: 1m
-    input_series:
-      - series: 'etcd_mvcc_db_total_size_in_bytes{instance="10.0.0.1:2379", job="etcd"}'
-        values: '10+0x10 81+0x10'
-      - series: 'etcd_server_quota_backend_bytes{instance="10.0.0.1:2379", job="etcd"}'
-        values: '100+0x20'
-    alert_rule_test:
-      - eval_time: 20m
-        alertname: DatabaseSpaceExceeded
-        exp_alerts:
-          - exp_labels:
-              job: etcd
-              instance: 10.0.0.1:2379
-              severity: warning
-            exp_annotations:
-              summary: "10.0.0.1:2379, etcd of etcd DB space uses more than 80%"
-              runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
-  - interval: 1m
-    input_series:
-      - series: 'etcd_mvcc_db_total_size_in_bytes{instance="10.0.0.1:2379", job="etcd"}'
-        values: '10+0x10 91+0x10'
-      - series: 'etcd_server_quota_backend_bytes{instance="10.0.0.1:2379", job="etcd"}'
-        values: '100+0x20'
-    alert_rule_test:
-      - eval_time: 20m
-        alertname: DatabaseSpaceExceeded
-        exp_alerts:
-          - exp_labels:
-              job: etcd
-              instance: 10.0.0.1:2379
-              severity: warning
-            exp_annotations:
-              summary: "10.0.0.1:2379, etcd of etcd DB space uses more than 80%"
-              runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
-          - exp_labels:
-              job: etcd
-              instance: 10.0.0.1:2379
-              severity: critical
-            exp_annotations:
-              summary: "10.0.0.1:2379, etcd of etcd DB space uses more than 90%"
-              runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
-  - interval: 30m
-    input_series:
-      - series: 'etcd_mvcc_db_total_size_in_use_in_bytes{instance="10.0.0.1:2379", job="etcd", __name__="etcd"}'
-        values: '0+15000001x2'
-    alert_rule_test:
-      - eval_time: 60m
-        alertname: LogicalDatabaseUsageIncreaseRapidly
-        exp_alerts:
-          - exp_labels:
-              job: etcd
-              instance: 10.0.0.1:2379
-              severity: warning
-            exp_annotations:
-              summary: "10.0.0.1:2379, etcd of etcd DB space increases 30MB/h"
-              runbook: "Please consider to find root causes, and solve the problems"
-  - interval: 1m
-    input_series:
-      - series: 'up{job="alertmanager"}'
-        values: '0+0x15'
-    alert_rule_test:
-      - eval_time: 15m
-        alertname: AlertmanagerDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-            exp_annotations:
-              message: Alertmanager has disappeared from Prometheus target discovery.
-              runbook_url: TBD
-  - interval: 1m
-    input_series:
-      - series: 'up{job="argocd"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: ArgoCDDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="bootserver-etcd"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: BootserverEtcdMissing
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="bootserver-etcd"}'
-        values: '0+0x9'
-    alert_rule_test:
-      - eval_time: 9m
-        alertname: BootserverEtcdMissing
-  - interval: 1m
-    input_series:
-      - series: 'up{job="calico-node"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: CalicoNodeDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="cke-etcd"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: CKEEtcdMissing
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="calico-node"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: CalicoNodeDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="contour"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: ContourDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="external-dns"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: ExternalDNSDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="ingress"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: IngressDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
       - series: 'up{job="kube-state-metrics"}'
         values: '0+0x15'
     alert_rule_test:
@@ -240,8 +62,8 @@ tests:
           - exp_labels:
               severity: critical
             exp_annotations:
-              message: KubeStateMetrics has disappeared from Prometheus target discovery.
-              runbook_url: TBD
+              runbook: TBD
+              summary: KubeStateMetrics has disappeared from Prometheus target discovery.
   - interval: 1m
     input_series:
       - series: 'up{job="kubernetes-cadvisor"}'
@@ -252,6 +74,9 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: KubernetesCAdvisor has disappeared from Prometheus target discovery.
   - interval: 1m
     input_series:
       - series: 'up{job="kubernetes-nodes"}'
@@ -262,62 +87,9 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="metallb"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: MetalLBDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="monitor-hw"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: MonitorHWDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-  - interval: 1m
-    input_series:
-      - series: 'up{job="node-exporter"}'
-        values: '0+0x15'
-    alert_rule_test:
-      - eval_time: 15m
-        alertname: NodeExporterDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
             exp_annotations:
-              message: NodeExporter has disappeared from Prometheus target discovery.
-              runbook_url: TBD
-  - interval: 1m
-    input_series:
-      - series: 'up{job="prometheus"}'
-        values: '0+0x15'
-    alert_rule_test:
-      - eval_time: 15m
-        alertname: PrometheusDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-            exp_annotations:
-              message: Prometheus has disappeared from Prometheus target discovery.
-              runbook_url: TBD
-  - interval: 1m
-    input_series:
-      - series: 'up{job="teleport"}'
-        values: '0+0x10'
-    alert_rule_test:
-      - eval_time: 10m
-        alertname: TeleportDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
+              runbook: Please consider to find root causes, and solve the problems
+              summary: KubernetesNodes has disappeared from Prometheus target discovery.
   - interval: 1m
     input_series:
       - series: 'kube_pod_container_status_restarts_total{job="kube-state-metrics", namespace="kube-system", pod="calico-node", container="unbound"}'
@@ -333,8 +105,8 @@ tests:
               pod: calico-node
               container: unbound
             exp_annotations:
-              message: Pod kube-system/calico-node (unbound) is restarting 5.00 times / 5 minutes.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Pod kube-system/calico-node (unbound) is restarting 5.00 times / 5 minutes.
   - interval: 1m
     input_series:
       - series: 'kube_pod_owner{owner_kind="DaemonSet", job="kube-state-metrics", namespace="kube-system", pod="calico-node"}'
@@ -354,8 +126,8 @@ tests:
               namespace: kube-system
               pod: calico-node
             exp_annotations:
-              message: Pod kube-system/calico-node has been in a non-ready state for longer than 15 minutes.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Pod kube-system/calico-node has been in a non-ready state for longer than 15 minutes.
   - interval: 1m
     input_series:
       - series: 'kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="kube-system", deployment="a"}'
@@ -372,8 +144,8 @@ tests:
               namespace: kube-system
               deployment: a
             exp_annotations:
-              message: Deployment generation for kube-system/a does not match, this indicates that the Deployment has failed but has not been rolled back.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Deployment generation for kube-system/a does not match, this indicates that the Deployment has failed but has not been rolled back.
   - interval: 1m
     input_series:
       - series: 'kube_deployment_spec_replicas{job="kube-state-metrics", namespace="monitoring", deployment="alertmanager"}'
@@ -390,8 +162,8 @@ tests:
               namespace: monitoring
               deployment: alertmanager
             exp_annotations:
-              message: Deployment monitoring/alertmanager has not matched the expected number of replicas for longer than 15 minutes.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Deployment monitoring/alertmanager has not matched the expected number of replicas for longer than 15 minutes.
   - interval: 1m
     input_series:
       - series: 'kube_statefulset_status_replicas{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
@@ -408,8 +180,8 @@ tests:
               namespace: monitoring
               statefulset: prometheus
             exp_annotations:
-              message: StatefulSet monitoring/prometheus has not matched the expected number of replicas for longer than 15 minutes.
-              runbook_url: TBD
+              runbook: TBD
+              summary: StatefulSet monitoring/prometheus has not matched the expected number of replicas for longer than 15 minutes.
   - interval: 1m
     input_series:
       - series: 'kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
@@ -426,8 +198,8 @@ tests:
               namespace: monitoring
               statefulset: prometheus
             exp_annotations:
-              message: StatefulSet generation for monitoring/prometheus does not match, this indicates that the StatefulSet has failed but has not been rolled back.
-              runbook_url: TBD
+              runbook: TBD
+              summary: StatefulSet generation for monitoring/prometheus does not match, this indicates that the StatefulSet has failed but has not been rolled back.
   - interval: 1m
     input_series:
       - series: 'kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus", revision="prometheus-abc"}'
@@ -462,8 +234,8 @@ tests:
               namespace: monitoring
               statefulset: prometheus
             exp_annotations:
-              message: StatefulSet monitoring/prometheus update has not been rolled out.
-              runbook_url: TBD
+              runbook: TBD
+              summary: StatefulSet monitoring/prometheus update has not been rolled out.
   - interval: 1m
     input_series:
       - series: 'kube_daemonset_status_number_ready{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
@@ -480,8 +252,8 @@ tests:
               namespace: kube-system
               daemonset: calico-node
             exp_annotations:
-              message: Only 80% of the desired Pods of DaemonSet kube-system/calico-node are scheduled and ready.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Only 80% of the desired Pods of DaemonSet kube-system/calico-node are scheduled and ready.
   - interval: 1m
     input_series:
       - series: 'kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
@@ -498,8 +270,8 @@ tests:
               namespace: kube-system
               daemonset: calico-node
             exp_annotations:
-              message: '1 Pods of DaemonSet kube-system/calico-node are not scheduled.'
-              runbook_url: TBD
+              runbook: TBD
+              summary: 1 Pods of DaemonSet kube-system/calico-node are not scheduled.
   - interval: 1m
     input_series:
       - series: 'kube_daemonset_status_number_misscheduled{job="kube-state-metrics",namespace="default",daemonset="test-ds"}'
@@ -514,8 +286,8 @@ tests:
               job: kube-state-metrics
               daemonset: test-ds
             exp_annotations:
-              message: 2 Pods of DaemonSet default/test-ds are running where they are not supposed to run.
-              runbook_url: TBD
+              runbook: TBD
+              summary: 2 Pods of DaemonSet default/test-ds are running where they are not supposed to run.
   - interval: 1m
     input_series:
       - series: 'kube_cronjob_next_schedule_time{job="kube-state-metrics",namespace="default",cronjob="test-cronjob"}'
@@ -530,8 +302,8 @@ tests:
               job: kube-state-metrics
               cronjob: test-cronjob
             exp_annotations:
-              message: CronJob default/test-cronjob is taking more than 1h to complete.
-              runbook_url: TBD
+              runbook: TBD
+              summary: CronJob default/test-cronjob is taking more than 1h to complete.
   - interval: 1m
     input_series:
       - series: 'kube_job_spec_completions{job="kube-state-metrics",namespace="default",job_name="test-job"}'
@@ -548,8 +320,8 @@ tests:
               job: kube-state-metrics
               job_name: test-job
             exp_annotations:
-              message: Job default/test-job is taking more than one hour to complete.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Job default/test-job is taking more than one hour to complete.
   - interval: 1m
     input_series:
       - series: 'kube_job_failed{job="kube-state-metrics",namespace="default",job_name="test-job"}'
@@ -564,8 +336,8 @@ tests:
               job: kube-state-metrics
               job_name: test-job
             exp_annotations:
-              message: Job default/test-job failed to complete.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Job default/test-job failed to complete.
   - interval: 1m
     input_series:
       - series: 'kube_node_status_condition{job="kube-state-metrics", condition="Ready", status="true", node="10.0.0.1"}'
@@ -581,8 +353,8 @@ tests:
               node: 10.0.0.1
               status: true
             exp_annotations:
-              message: '10.0.0.1 has been unready for more than 15 minutes.'
-              runbook_url: TBD
+              runbook: TBD
+              summary: 10.0.0.1 has been unready for more than 15 minutes.
   - interval: 1m
     input_series:
       - series: 'kubernetes_build_info{job="kubernetes-nodes", gitVersion="v1.99.9", instance="10.0.0.1"}'
@@ -598,8 +370,8 @@ tests:
           - exp_labels:
               severity: warning
             exp_annotations:
-              message: There are 2 different semantic versions of Kubernetes components running.
-              runbook_url: TBD
+              runbook: TBD
+              summary: There are 2 different semantic versions of Kubernetes components running.
   - interval: 1m
     input_series:
       - series: 'rest_client_requests_total{job="kubernetes-apiservers", instance="10.0.0.1", code="502"}'
@@ -617,8 +389,8 @@ tests:
               instance: 10.0.0.1
               severity: warning
             exp_annotations:
-              message: Kubernetes API server client 'kubernetes-apiservers/10.0.0.1' is experiencing 33% errors.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Kubernetes API server client 'kubernetes-apiservers/10.0.0.1' is experiencing 33% errors.
   - interval: 1m
     input_series:
       - series: 'kubelet_running_pod_count{job="kubernetes-nodes", instance="10.0.0.1"}'
@@ -635,8 +407,8 @@ tests:
               node: node-a
               severity: warning
             exp_annotations:
-              message: Kubelet 'node-a' is running at 96% of its Pod capacity.
-              runbook_url: TBD
+              runbook: TBD
+              summary: Kubelet 'node-a' is running at 96% of its Pod capacity.
   - interval: 1m
     input_series:
       - series: 'cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99",verb="GET",resource="foo"}'
@@ -652,8 +424,8 @@ tests:
               resource: foo
               severity: warning
             exp_annotations:
-              message: The API server has a 99th percentile latency of 1.1 seconds for GET foo.
-              runbook_url: TBD
+              runbook: TBD
+              summary: The API server has a 99th percentile latency of 1.1 seconds for GET foo.
   - interval: 1m
     input_series:
       - series: 'cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99",verb="GET",resource="foo"}'
@@ -669,8 +441,8 @@ tests:
               resource: foo
               severity: critical
             exp_annotations:
-              message: The API server has a 99th percentile latency of 4.1 seconds for GET foo.
-              runbook_url: TBD
+              runbook: TBD
+              summary: The API server has a 99th percentile latency of 4.1 seconds for GET foo.
           - exp_labels:
               job: kubernetes-apiservers
               quantile: 0.99
@@ -678,8 +450,8 @@ tests:
               resource: foo
               severity: warning
             exp_annotations:
-              message: The API server has a 99th percentile latency of 4.1 seconds for GET foo.
-              runbook_url: TBD
+              runbook: TBD
+              summary: The API server has a 99th percentile latency of 4.1 seconds for GET foo.
   - interval: 1m
     input_series:
       - series: apiserver_request_total{job="kubernetes-apiservers",code="500",verb="GET",resource="foo",subresource="bar"}
@@ -693,8 +465,8 @@ tests:
           - exp_labels:
               severity: warning
             exp_annotations:
-              message: API server is returning errors for 2% of requests.
-              runbook_url: TBD
+              runbook: TBD
+              summary: API server is returning errors for 2% of requests.
   - interval: 1m
     input_series:
       - series: apiserver_request_total{job="kubernetes-apiservers",code="500",verb="GET",resource="foo",subresource="bar"}
@@ -708,29 +480,29 @@ tests:
           - exp_labels:
               severity: critical
             exp_annotations:
-              message: API server is returning errors for 20% of requests.
-              runbook_url: TBD
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests.
           - exp_labels:
               severity: warning
             exp_annotations:
-              message: API server is returning errors for 20% of requests.
-              runbook_url: TBD
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests.
           - exp_labels:
               verb: GET
               resource: foo
               subresource: bar
               severity: warning
             exp_annotations:
-              message: API server is returning errors for 20% of requests for GET foo bar.
-              runbook_url: TBD
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests for GET foo bar.
           - exp_labels:
               verb: GET
               resource: foo
               subresource: bar
               severity: critical
             exp_annotations:
-              message: API server is returning errors for 20% of requests for GET foo bar.
-              runbook_url: TBD
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests for GET foo bar.
   - interval: 1m
     input_series:
       - series: apiserver_client_certificate_expiration_seconds_count{job="kubernetes-apiservers"}
@@ -757,11 +529,11 @@ tests:
               severity: warning
               job: kubernetes-apiservers
             exp_annotations:
-              message: A client certificate used to authenticate to the apiserver is expiring in less than 7.0 days.
-              runbook_url: TBD
+              runbook: TBD
+              summary: A client certificate used to authenticate to the apiserver is expiring in less than 7.0 days.
           - exp_labels:
               severity: critical
               job: kubernetes-apiservers
             exp_annotations:
-              message: A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours.
-              runbook_url: TBD
+              runbook: TBD
+              summary: A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours.
