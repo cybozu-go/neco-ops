@@ -178,6 +178,11 @@ scrape_configs:
         regex: ([^:]+)(?::\d+)?;(\d+)
         replacement: ${1}:${2}
         target_label: __address__
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance
   - job_name: "argocd"
     kubernetes_sd_configs:
       - role: service
@@ -265,16 +270,21 @@ scrape_configs:
         target_label: __address__
   - job_name: "contour"
     kubernetes_sd_configs:
-      - role: service
+      - role: endpoints
         namespaces:
           names: ["ingress"]
     relabel_configs:
       - source_labels: [__meta_kubernetes_service_name]
         action: keep
         regex: contour-metrics
-      - source_labels: [__meta_kubernetes_service_port_name]
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
         action: keep
         regex: contour-metrics
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance
   - job_name: "envoy"
     kubernetes_sd_configs:
       - role: endpoints
@@ -284,11 +294,16 @@ scrape_configs:
       - source_labels: [__meta_kubernetes_service_name]
         action: keep
         regex: contour-metrics
-      - source_labels: [__meta_kubernetes_service_port_name]
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
         action: keep
         regex: envoy-metrics
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
         target_label: __metrics_path__
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance
   - job_name: "ingress"
     kubernetes_sd_configs:
       - role: pod
@@ -339,6 +354,25 @@ scrape_configs:
       #   __address__="10.64.15.33:3020"
       #   job="teleport"
       #   instance="10.64.15.33"
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: ${1}:${2}
+        target_label: __address__
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance
+  - job_name: "topolvm"
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: ["topolvm-system"]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: node
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)

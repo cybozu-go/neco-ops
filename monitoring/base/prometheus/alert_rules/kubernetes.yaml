@@ -528,3 +528,19 @@ groups:
         annotations:
           summary: No kube-apiserver is running.
           runbook: Please consider to find root causes, and solve the problems
+      - alert: PersistentVolumeSpaceExceeded
+        expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.90
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Disk usage of `{{ $labels.persistentvolumeclaim }}, {{ $labels.namespace }}` is more than 90%.
+          runbook: Please consider resizing volume
+      - alert: PersistentVolumeUsageRapidIncrease
+        expr: delta(kubelet_volume_stats_used_bytes[10m]) / (1024 * 1024 * 1024) > 10
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Disk usage of `{{ $labels.persistentvolumeclaim }}, {{ $labels.namespace }}` increases rapidly over 10GiB in 10 minutes.
+          runbook: TBD

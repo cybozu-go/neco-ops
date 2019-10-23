@@ -6,7 +6,7 @@ groups:
           summary: Alertmanager has disappeared from Prometheus target discovery.
           runbook: TBD
         expr: |
-          absent(up{job="alertmanager",namespace="monitoring"} == 1)
+          absent(up{job="alertmanager"} == 1)
         for: 15m
         labels:
           severity: critical
