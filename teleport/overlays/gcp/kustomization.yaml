@@ -10,4 +10,4 @@ patchesStrategicMerge:
 images:
   - name: quay.io/gravitational/teleport-ent
     newName: quay.io/gravitational/teleport
-    newTag: "4.0.9"
+    newTag: "4.1.3"

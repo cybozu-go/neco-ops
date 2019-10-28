@@ -27,7 +27,7 @@ spec:
       automountServiceAccountToken: true
       containers:
       - name: teleport-proxy
-        image: "quay.io/gravitational/teleport-ent:4.0.9"
+        image: "quay.io/gravitational/teleport-ent:4.1.3"
         imagePullPolicy: IfNotPresent
         args:
         - --roles=proxy

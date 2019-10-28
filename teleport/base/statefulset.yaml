@@ -26,7 +26,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: teleport-auth
-        image: "quay.io/gravitational/teleport-ent:4.0.9"
+        image: "quay.io/gravitational/teleport-ent:4.1.3"
         imagePullPolicy: IfNotPresent
         env:
         - name: NO_PROXY
