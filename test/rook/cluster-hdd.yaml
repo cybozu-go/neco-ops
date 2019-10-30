@@ -1,0 +1,40 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 1
+    allowMultiplePerNode: false
+  cephVersion:
+    image: ceph/ceph:v14.2.4-20190917
+    allowUnsupported: false
+  dashboard:
+    enabled: false
+    ssl: true
+  network:
+    hostNetwork: false
+  placement:
+    osd:
+      tolerations:
+      - key: cke.cybozu.com/role
+        operator: Equal
+        value: storage
+        effect: NoExecute
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cke.cybozu.com/role
+              operator: In
+              values:
+              - ss
+  storage:
+    useAllNodes: true
+    useAllDevices: false
+    deviceFilter: "^dm-[23]"
+    config:
+      databaseSizeMB: "1024"
+      journalSizeMB: "1024"
