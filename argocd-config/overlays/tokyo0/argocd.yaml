@@ -5,5 +5,4 @@ metadata:
   namespace: argocd
 spec:
   source:
-    path: argocd/overlays/stage0
-    targetRevision: stage
+    path: argocd/overlays/tokyo0

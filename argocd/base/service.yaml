@@ -92,3 +92,49 @@ spec:
   selector:
     app.kubernetes.io/name: argocd-server
   type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/name: argocd-server-https
+    app.kubernetes.io/part-of: argocd
+  name: argocd-server-https
+  namespace: argocd
+  annotations:
+    contour.heptio.com/upstream-protocol.tls: 443,https
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: argocd-server
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-dex-server
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/component: dex-server
+  name: argocd-dex-server
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5556
+    targetPort: 5556
+  - name: grpc
+    protocol: TCP
+    port: 5557
+    targetPort: 5557
+  selector:
+    app.kubernetes.io/name: argocd-dex-server
