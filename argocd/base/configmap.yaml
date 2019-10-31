@@ -7,6 +7,17 @@ metadata:
   name: argocd-cm
   namespace: argocd
 data:
+  url: https://argocd.gcp0.dev-ne.co
+  dex.config: |
+    connectors:
+      - type: github
+        id: github
+        name: GitHub
+        config:
+          clientID: $dex.github.clientID
+          clientSecret: $dex.github.clientSecret
+          orgs:
+          - name: cybozu-private
   resource.customizations: |
     certmanager.k8s.io/Certificate:
       health.lua: |

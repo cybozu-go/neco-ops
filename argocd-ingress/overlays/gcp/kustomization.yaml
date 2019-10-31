@@ -4,4 +4,3 @@ bases:
   - ../../base
 resources:
   - certificate.yaml
-  - ingressroute.yaml

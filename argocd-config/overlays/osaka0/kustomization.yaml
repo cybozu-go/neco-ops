@@ -3,6 +3,7 @@ kind: Kustomization
 bases:
 - ../../base
 patchesStrategicMerge:
+- argocd.yaml
 - argocd-ingress.yaml
 - external-dns.yaml
 - metallb.yaml
