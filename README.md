@@ -1,37 +1,27 @@
+[![CircleCI](https://circleci.com/gh/cybozu-go/neco-apps.svg?style=svg)](https://circleci.com/gh/cybozu-go/neco-apps)
+
 Neco Apps
 =========
 
-[![CircleCI](https://circleci.com/gh/cybozu-go/neco-apps.svg?style=svg)](https://circleci.com/gh/cybozu-go/neco-apps)
+A collection of Kubernetes applications to make a vanilla Kubernetes useful for soft multi-tenancy environments.
 
-This repository contains GitOps resources for Neco. It mostly contains Kubernetes deployment resources.
+This repository is a part of [Neco project](https://github.com/cybozu-go/neco/).
+The application manifests are organized for [Kustomize](https://github.com/kubernetes-sigs/kustomize) and [Argo CD](https://argoproj.github.io/argo-cd/).
 
-Requirements
+Environments
 ------------
 
-- [Kubernetes][]
-- [Argo CD][]
-- [Kustomize][]
+Currently, the following environments are defined:
 
-CI/CD
------
+- `kind`: A light-weight testing environment on [Kubernetes IN Docker (kind)](https://kind.sigs.k8s.io/).
+- `gcp`: A fully virtualized data center built with [neco/dctest](https://github.com/cybozu-go/neco/tree/master/dctest).
+- `stage0`: A real data center of Neco project for staging usage.
+- `tokyo0`, `osaka0`: Real data centers of Neco project for production usage.
 
-See [docs/cicd.md](docs/cicd.md)
+Development
+-----------
 
-Kubernetes Manifest development
--------------------------------
-
-See [docs/manifests.md](docs/manifests.md)
-
-Deployment procedure
---------------------
-
-See [docs/deploy.md](docs/deploy.md)
-
-License
--------
-
-MIT
-
-[Kubernetes]: https://kubernetes.io/
-[Argo CD]: https://github.com/argoproj/argo-cd
-[Kustomize]: https://github.com/kubernetes-sigs/kustomize
+- CI/CD: read [docs/cicd.md](docs/cicd.md).
+- Manifests: read [docs/manifests.md](docs/manifests.md).
+- Deploy: read [docs/deploy.md](docs/deploy.md).
+- Tests: read [test/README.md](test/README.md).

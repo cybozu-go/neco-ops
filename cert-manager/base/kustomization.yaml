@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
 - apiservice.yaml
 - common.yaml
-- clusterissuer.yaml
 - deployment.yaml
 - mutatingwebhookconfiguration.yaml
 - rbac.yaml

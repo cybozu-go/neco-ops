@@ -1,16 +1,22 @@
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: ClusterIssuer
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
   name: clouddns
 spec:
   acme:
+    email: neco@cybozu.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
     solvers:
-    - selector:
-        dnsZones:
-        - stage0.cybozu-ne.co
-      dns01:
-        clouddns:
-          project: cybozu-neco
-          serviceAccountSecretRef:
-            name: clouddns
-            key: account.json
+      - dns01:
+          clouddns:
+            project: cybozu-neco
+            serviceAccountSecretRef:
+              key: account.json
+              name: clouddns
+        selector:
+          dnsZones:
+            - stage0.cybozu-ne.co
