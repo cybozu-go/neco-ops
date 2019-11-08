@@ -44,7 +44,7 @@ func testCertManager() {
 			issuerName = "self-signed-issuer"
 		}
 		certificate := fmt.Sprintf(`
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: test-certificate
