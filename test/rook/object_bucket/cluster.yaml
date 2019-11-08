@@ -26,7 +26,7 @@ spec:
   storage:
     useAllNodes: true
     useAllDevices: false
-    deviceFilter: "^dm-[23]"
+    devLinksFilter: "^/dev/mapper/crypt-vd[cd]"
     config:
       databaseSizeMB: "1024"
       journalSizeMB: "1024"
