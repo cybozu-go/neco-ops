@@ -1,4 +1,4 @@
-# Source: cert-manager/charts/webhook/templates/validating-webhook.yaml
+# Source: cert-manager/templates/webhook-validating-webhook.yaml
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -9,18 +9,22 @@ metadata:
     certmanager.k8s.io/inject-apiserver-ca: "true"
     argocd.argoproj.io/sync-wave: "1"
 webhooks:
-  - name: webhook.certmanager.k8s.io
+  - name: webhook.cert-manager.io
     namespaceSelector:
       matchExpressions:
-      - key: "certmanager.k8s.io/disable-validation"
-        operator: "NotIn"
-        values:
-        - "true"
+        - key: "cert-manager.io/disable-validation"
+          operator: "NotIn"
+          values:
+            - "true"
+        - key: "name"
+          operator: "NotIn"
+          values:
+            - cert-manager
     rules:
       - apiGroups:
-          - "certmanager.k8s.io"
+          - "cert-manager.io"
         apiVersions:
-          - v1alpha1
+          - v1alpha2
         operations:
           - CREATE
           - UPDATE
@@ -30,8 +34,9 @@ webhooks:
           - clusterissuers
           - certificaterequests
     failurePolicy: Fail
+    sideEffects: None
     clientConfig:
       service:
         name: kubernetes
         namespace: default
-        path: /apis/webhook.certmanager.k8s.io/v1beta1/validations
+        path: /apis/webhook.cert-manager.io/v1beta1/validations
