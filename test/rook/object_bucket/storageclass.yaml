@@ -3,11 +3,10 @@ kind: StorageClass
 metadata:
   name: rook-ceph-bucket
   labels:
-    aws-s3/object
+    aws-s3/object: ""
 provisioner: ceph.rook.io/bucket
 parameters:
   objectStoreName: my-store
   objectStoreNamespace: rook-ceph
   region: us-west-1
-  bucketName: ceph-bucket
 reclaimPolicy: Delete

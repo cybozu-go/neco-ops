@@ -22,7 +22,7 @@ apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
   name: ceph-bucket
-  namespace: rook-ceph
+  namespace: default
 spec:
   generateBucketName: obc-poc
   storageClassName: rook-ceph-bucket
