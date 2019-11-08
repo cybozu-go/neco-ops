@@ -61,8 +61,8 @@ spec:
               operator: Equal
               value: storage
         # (Optional) Rook Agent NodeAffinity.
-        - name: AGENT_NODE_AFFINITY
-          value: "cke.cybozu.com/role=ss"
+        # - name: AGENT_NODE_AFFINITY
+        #   value: "cke.cybozu.com/role=ss"
         # (Optional) Rook Agent mount security mode. Can by `Any` or `Restricted`.
         # `Any` uses Ceph admin credentials by default/fallback.
         # For using `Restricted` you must have a Ceph secret in each namespace storage should be consumed from and
@@ -94,8 +94,8 @@ spec:
               operator: Equal
               value: storage
         # (Optional) Discover Agent NodeAffinity.
-        - name: DISCOVER_AGENT_NODE_AFFINITY
-          value: "cke.cybozu.com/role=ss"
+        # - name: DISCOVER_AGENT_NODE_AFFINITY
+        #   value: "cke.cybozu.com/role=ss"
         # Allow rook to create multiple file systems. Note: This is considered
         # an experimental feature in Ceph as described at
         # http://docs.ceph.com/docs/master/cephfs/experimental-features/#multiple-filesystems-within-a-ceph-cluster
@@ -192,8 +192,8 @@ spec:
               operator: Equal
               value: storage
         # (Optional) Ceph CSI plugin NodeAffinity.
-        - name: CSI_PLUGIN_NODE_AFFINITY
-          value: "cke.cybozu.com/role=ss"
+        # - name: CSI_PLUGIN_NODE_AFFINITY
+        #   value: "cke.cybozu.com/role=ss"
         # (Optional) CEPH CSI plugin tolerations list. Put here list of taints you want to tolerate in YAML format.
         # CSI plugins need to be started on all the nodes where the clients need to mount the storage.
         - name: CSI_PLUGIN_TOLERATIONS

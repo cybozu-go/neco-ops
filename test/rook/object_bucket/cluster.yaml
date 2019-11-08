@@ -23,14 +23,6 @@ spec:
         operator: Equal
         value: storage
         effect: NoExecute
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: cke.cybozu.com/role
-              operator: In
-              values:
-              - ss
   storage:
     useAllNodes: true
     useAllDevices: false
