@@ -1,8 +1,11 @@
 module github.com/cybozu-go/neco-apps
 
-go 1.12
+go 1.13
 
-replace launchpad.net/gocheck => github.com/go-check/check v0.0.0-20180628173108-788fd7840127
+replace (
+	k8s.io/client-go => k8s.io/client-go v0.0.0-20190805141520-2fe0317bcee0
+	launchpad.net/gocheck => github.com/go-check/check v0.0.0-20180628173108-788fd7840127
+)
 
 require (
 	github.com/argoproj/argo-cd v1.1.0-rc7
