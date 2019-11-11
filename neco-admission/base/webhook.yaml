@@ -3,7 +3,7 @@ kind: ValidatingWebhookConfiguration
 metadata:
   name: neco-admission
   annotations:
-    certmanager.k8s.io/inject-ca-from: kube-system/neco-admission
+    cert-manager.io/inject-ca-from: kube-system/neco-admission
 webhooks:
 - name: vnetworkpolicy.kb.io
   namespaceSelector:

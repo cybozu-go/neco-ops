@@ -161,7 +161,7 @@ rules:
   - delete
   - deletecollection
 - apiGroups:
-  - certmanager.k8s.io
+  - cert-manager.io
   resources:
   - certificates
   - issuers
@@ -175,7 +175,7 @@ rules:
   - delete
   - deletecollection
 - apiGroups:
-  - certmanager.k8s.io
+  - cert-manager.io
   resources:
   - challenges
   - orders

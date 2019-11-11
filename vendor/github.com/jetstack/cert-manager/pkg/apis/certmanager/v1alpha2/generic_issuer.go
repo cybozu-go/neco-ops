@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
 import (
-	"fmt"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime"
+
+	cmacme "github.com/jetstack/cert-manager/pkg/apis/acme/v1alpha2"
 )
 
 type GenericIssuer interface {
@@ -73,36 +73,13 @@ func (c *Issuer) Copy() GenericIssuer {
 }
 
 // TODO: refactor these functions away
-func (i *IssuerStatus) ACMEStatus() *ACMEIssuerStatus {
+func (i *IssuerStatus) ACMEStatus() *cmacme.ACMEIssuerStatus {
 	// this is an edge case, but this will prevent panics
 	if i == nil {
-		return &ACMEIssuerStatus{}
+		return &cmacme.ACMEIssuerStatus{}
 	}
 	if i.ACME == nil {
-		i.ACME = &ACMEIssuerStatus{}
+		i.ACME = &cmacme.ACMEIssuerStatus{}
 	}
 	return i.ACME
-}
-
-func (a *ACMEIssuerDNS01Config) Provider(name string) (*ACMEIssuerDNS01Provider, error) {
-	if a == nil {
-		return nil, fmt.Errorf("issuer does not contain DNS01 configuration for provider named %q", name)
-	}
-	for _, p := range a.Providers {
-		if p.Name == name {
-			return &(*&p), nil
-		}
-	}
-	return nil, fmt.Errorf("issuer does not contain DNS01 configuration for provider named %q", name)
-}
-
-func ConfigForDomain(cfgs []DomainSolverConfig, domain string) *DomainSolverConfig {
-	for _, cfg := range cfgs {
-		for _, d := range cfg.Domains {
-			if d == domain {
-				return &cfg
-			}
-		}
-	}
-	return &DomainSolverConfig{}
 }

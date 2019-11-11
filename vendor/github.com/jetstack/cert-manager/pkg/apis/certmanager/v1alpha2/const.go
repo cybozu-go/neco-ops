@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
 import "time"
 
@@ -33,5 +33,10 @@ const (
 )
 
 const (
-	ACMEFinalizer = "finalizer.acme.cert-manager.io"
+	// Default index key for the Secret reference for Token authentication
+	DefaultVaultTokenAuthSecretKey = "token"
+
+	// Default mount path location for Kubernetes ServiceAccount authentication
+	// (/v1/auth/kubernetes/login)
+	DefaultVaultKubernetesAuthMountPath = "kubernetes"
 )

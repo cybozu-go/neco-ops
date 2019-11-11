@@ -3,5 +3,5 @@ kind: Namespace
 metadata:
   name: cert-manager
   labels:
-    certmanager.k8s.io/disable-validation: "true"
+    cert-manager.io/disable-validation: "true"
     control-plane: "true"

@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 )
 
 // TODO: these types should be moved into their own API group once we have a loose
@@ -32,13 +34,14 @@ import (
 // +kubebuilder:printcolumn:name="Issuer",type="string",JSONPath=".spec.issuerRef.name",description="",priority=1
 // +kubebuilder:printcolumn:name="Reason",type="string",JSONPath=".status.reason",description="",priority=1
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC."
+// +kubebuilder:subresource:status
 // +kubebuilder:resource:path=orders
 type Order struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   OrderSpec   `json:"spec"`
-	Status OrderStatus `json:"status"`
+	Spec   OrderSpec   `json:"spec,omitempty"`
+	Status OrderStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -62,7 +65,7 @@ type OrderSpec struct {
 	// If the Issuer does not exist, processing will be retried.
 	// If the Issuer is not an 'ACME' Issuer, an error will be returned and the
 	// Order will be marked as failed.
-	IssuerRef ObjectReference `json:"issuerRef"`
+	IssuerRef cmmeta.ObjectReference `json:"issuerRef"`
 
 	// CommonName is the common name as specified on the DER encoded CSR.
 	// If CommonName is not specified, the first DNSName specified will be used
@@ -80,19 +83,6 @@ type OrderSpec struct {
 	// This field must match the corresponding field on the DER encoded CSR.
 	// +optional
 	DNSNames []string `json:"dnsNames,omitempty"`
-
-	// Config specifies a mapping from DNS identifiers to how those identifiers
-	// should be solved when performing ACME challenges.
-	// A config entry must exist for each domain listed in DNSNames and CommonName.
-	// Only **one** of 'config' or 'solvers' may be specified, and if both are
-	// specified then no action will be performed on the Order resource.
-	//
-	// This field will be removed when support for solver config specified on
-	// the Certificate under certificate.spec.acme has been removed.
-	// DEPRECATED: this field will be removed in future. Solver configuration
-	// must instead be provided on ACME Issuer resources.
-	// +optional
-	Config []DomainSolverConfig `json:"config,omitempty"`
 }
 
 type OrderStatus struct {
@@ -108,6 +98,12 @@ type OrderStatus struct {
 	// +optional
 	FinalizeURL string `json:"finalizeURL,omitempty"`
 
+	// Authorizations contains data returned from the ACME server on what
+	// authoriations must be completed in order to validate the DNS names
+	// specified on the Order.
+	// +optional
+	Authorizations []ACMEAuthorization `json:"authorizations,omitempty"`
+
 	// Certificate is a copy of the PEM encoded certificate for this Order.
 	// This field will be populated after the order has been successfully
 	// finalized with the ACME server, and the order has transitioned to the
@@ -117,7 +113,6 @@ type OrderStatus struct {
 
 	// State contains the current state of this Order resource.
 	// States 'success' and 'expired' are 'final'
-	// +kubebuilder:validation:Enum=,valid,ready,pending,processing,invalid,expired,errored
 	// +optional
 	State State `json:"state,omitempty"`
 
@@ -126,16 +121,65 @@ type OrderStatus struct {
 	// +optional
 	Reason string `json:"reason,omitempty"`
 
-	// Challenges is a list of ChallengeSpecs for Challenges that must be created
-	// in order to complete this Order.
-	// +optional
-	Challenges []ChallengeSpec `json:"challenges,omitempty"`
-
 	// FailureTime stores the time that this order failed.
 	// This is used to influence garbage collection and back-off.
 	// +optional
 	FailureTime *metav1.Time `json:"failureTime,omitempty"`
 }
+
+// ACMEAuthorization contains data returned from the ACME server on an
+// authorization that must be completed in order validate a DNS name on an ACME
+// Order resource.
+type ACMEAuthorization struct {
+	// URL is the URL of the Authorization that must be completed
+	URL string `json:"url"`
+
+	// Identifier is the DNS name to be validated as part of this authorization
+	// +optional
+	Identifier string `json:"identifier,omitempty"`
+
+	// Wildcard will be true if this authorization is for a wildcard DNS name.
+	// If this is true, the identifier will be the *non-wildcard* version of
+	// the DNS name.
+	// For example, if '*.example.com' is the DNS name being validated, this
+	// field will be 'true' and the 'identifier' field will be 'example.com'.
+	// +optional
+	Wildcard bool `json:"wildcard,omitempty"`
+
+	// Challenges specifies the challenge types offered by the ACME server.
+	// One of these challenge types will be selected when validating the DNS
+	// name and an appropriate Challenge resource will be created to perform
+	// the ACME challenge process.
+	// +optional
+	Challenges []ACMEChallenge `json:"challenges,omitempty"`
+}
+
+// Challenge specifies a challenge offered by the ACME server for an Order.
+// An appropriate Challenge resource can be created to perform the ACME
+// challenge process.
+type ACMEChallenge struct {
+	// URL is the URL of this challenge. It can be used to retrieve additional
+	// metadata about the Challenge from the ACME server.
+	URL string `json:"url"`
+
+	// Token is the token that must be presented for this challenge.
+	// This is used to compute the 'key' that must also be presented.
+	Token string `json:"token"`
+
+	// Type is the type of challenge being offered, e.g. http-01, dns-01
+	Type ACMEChallengeType `json:"type"`
+}
+
+// ACMEChallengeType denotes a type of ACME challenge
+type ACMEChallengeType string
+
+const (
+	// ACMEChallengeTypeHTTP01 denotes a Challenge is of type http-01
+	ACMEChallengeTypeHTTP01 ACMEChallengeType = "http-01"
+
+	// ACMEChallengeTypeDNS01 denotes a Challenge is of type dns-01
+	ACMEChallengeTypeDNS01 ACMEChallengeType = "dns-01"
+)
 
 // State represents the state of an ACME resource, such as an Order.
 // The possible options here map to the corresponding values in the
@@ -143,6 +187,7 @@ type OrderStatus struct {
 // Full details of these values can be found here: https://tools.ietf.org/html/draft-ietf-acme-acme-15#section-7.1.6
 // Clients utilising this type must also gracefully handle unknown
 // values, as the contents of this enumeration may be added to over time.
+// +kubebuilder:validation:Enum=valid;ready;pending;processing;invalid;expired;errored
 type State string
 
 const (
@@ -190,54 +235,3 @@ const (
 	// This is a final state.
 	Errored State = "errored"
 )
-
-// SolverConfig is a container type holding the configuration for either a
-// HTTP01 or DNS01 challenge.
-// Only one of HTTP01 or DNS01 should be non-nil.
-type SolverConfig struct {
-	// HTTP01 contains HTTP01 challenge solving configuration
-	// +optional
-	HTTP01 *HTTP01SolverConfig `json:"http01,omitempty"`
-
-	// DNS01 contains DNS01 challenge solving configuration
-	// +optional
-	DNS01 *DNS01SolverConfig `json:"dns01,omitempty"`
-}
-
-// HTTP01SolverConfig contains solver configuration for HTTP01 challenges.
-type HTTP01SolverConfig struct {
-	// Ingress is the name of an Ingress resource that will be edited to include
-	// the ACME HTTP01 'well-known' challenge path in order to solve HTTP01
-	// challenges.
-	// If this field is specified, 'ingressClass' **must not** be specified.
-	// +optional
-	Ingress string `json:"ingress,omitempty"`
-
-	// IngressClass is the ingress class that should be set on new ingress
-	// resources that are created in order to solve HTTP01 challenges.
-	// This field should be used when using an ingress controller such as nginx,
-	// which 'flattens' ingress configuration instead of maintaining a 1:1
-	// mapping between loadbalancer IP:ingress resources.
-	// If this field is not set, and 'ingress' is not set, then ingresses
-	// without an ingress class set will be created to solve HTTP01 challenges.
-	// If this field is specified, 'ingress' **must not** be specified.
-	// +optional
-	IngressClass *string `json:"ingressClass,omitempty"`
-}
-
-// DNS01SolverConfig contains solver configuration for DNS01 challenges.
-type DNS01SolverConfig struct {
-	// Provider is the name of the DNS01 challenge provider to use, as configure
-	// on the referenced Issuer or ClusterIssuer resource.
-	Provider string `json:"provider"`
-}
-
-// DomainSolverConfig contains solver configuration for a set of domains.
-type DomainSolverConfig struct {
-	// Domains is the list of domains that this SolverConfig applies to.
-	Domains []string `json:"domains"`
-
-	// SolverConfig contains the actual solver configuration to use for the
-	// provided set of domains.
-	SolverConfig `json:",inline"`
-}

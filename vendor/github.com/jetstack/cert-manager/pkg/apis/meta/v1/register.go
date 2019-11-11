@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1
 
 import (
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta"
 )
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: certmanager.GroupName, Version: "v1alpha1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: cmmeta.GroupName, Version: "v1"}
 
 // Resource takes an unqualified resource and returns a Group qualified GroupResource
 func Resource(resource string) schema.GroupResource {
@@ -32,8 +32,6 @@ func Resource(resource string) schema.GroupResource {
 }
 
 var (
-	// TODO: move SchemeBuilder with zz_generated.deepcopy.go to k8s.io/api.
-	// localSchemeBuilder and AddToScheme will stay in k8s.io/kubernetes.
 	SchemeBuilder      runtime.SchemeBuilder
 	localSchemeBuilder = &SchemeBuilder
 	AddToScheme        = localSchemeBuilder.AddToScheme
@@ -43,23 +41,11 @@ func init() {
 	// We only register manually written functions here. The registration of the
 	// generated functions takes place in the generated files. The separation
 	// makes the code compile even when the generated files are missing.
-	localSchemeBuilder.Register(addKnownTypes, addDefaultingFuncs, addConversionFuncs)
+	localSchemeBuilder.Register(addKnownTypes)
 }
 
 // Adds the list of known types to api.Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
-	scheme.AddKnownTypes(SchemeGroupVersion,
-		&Certificate{},
-		&CertificateList{},
-		&Issuer{},
-		&IssuerList{},
-		&ClusterIssuer{},
-		&ClusterIssuerList{},
-		&Order{},
-		&OrderList{},
-		&Challenge{},
-		&ChallengeList{},
-	)
-	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
+	// No types to register in the meta group
 	return nil
 }
