@@ -15,7 +15,7 @@ func testCertManager() {
 	It("should be deployed successfully", func() {
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=cert-manager",
-				"get", "deployment", "--selector=app.kubernetes.io/component=cert-manager", "-o=json")
+				"get", "deployment", "--selector=app.kubernetes.io/instance=cert-manager", "-o=json")
 			if err != nil {
 				return err
 			}

@@ -4,3 +4,8 @@ bases:
   - ../upstream
 patches:
   - apiservice.yaml
+  - deployment.yaml
+  - mutatingwebhookconfiguration.yaml
+  - rbac.yaml
+  - service.yaml
+  - validatingwebhookconfiguration.yaml
