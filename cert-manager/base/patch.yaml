@@ -1,0 +1,6 @@
+- op: remove
+  path: /metadata/creationTimestamp
+- op: remove
+  path: /spec/subresources/status
+- op: remove
+  path: /status

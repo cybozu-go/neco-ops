@@ -9,3 +9,40 @@ patches:
   - rbac.yaml
   - service.yaml
   - validatingwebhookconfiguration.yaml
+patchesJson6902:
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: challenges.acme.cert-manager.io
+    path: patch.yaml
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: orders.acme.cert-manager.io
+    path: patch.yaml
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: certificaterequests.cert-manager.io
+    path: patch.yaml
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: certificates.cert-manager.io
+    path: patch.yaml
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: clusterissuers.cert-manager.io
+    path: patch.yaml
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: issuers.cert-manager.io
+    path: patch.yaml
