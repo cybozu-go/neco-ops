@@ -1,6 +1,9 @@
+# off-the-shelf from https://github.com/projectcontour/contour/blob/44d2aa6b02f91c8468be0369dcfa58c5a7388523/examples/contour/01-crds.yaml
+
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
+  creationTimestamp: null
   name: httpproxies.projectcontour.io
 spec:
   additionalPrinterColumns:
@@ -400,10 +403,17 @@ spec:
     - name: v1
       served: true
       storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
+  creationTimestamp: null
   name: tlscertificatedelegations.projectcontour.io
 spec:
   group: projectcontour.io
@@ -469,3 +479,9 @@ spec:
     - name: v1
       served: true
       storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
