@@ -5,3 +5,4 @@ metadata:
   labels:
     cert-manager.io/disable-validation: "true"
     control-plane: "true"
+    topolvm.cybozu.com/webhook: ignore
