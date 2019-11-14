@@ -37,7 +37,7 @@ test-alert-rules:
 kustomize-check:
 	./kustomize-check.sh
 
-test: install.yaml validation test-alert-rules kustomize-check
+test: install.yaml test-alert-rules kustomize-check validation
 	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"
 	test -z "$$(golint $$(go list ./... | grep -v /vendor/) | grep -v '/mtest/.*: should not use dot imports' | tee /dev/stderr)"
 	test -z "$$(nilerr ./... 2>&1 | tee /dev/stderr)"
