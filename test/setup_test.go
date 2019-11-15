@@ -238,6 +238,15 @@ func testSetup() {
 
 				return nil
 			}).Should(Succeed())
+
+			By("deleting the CRDs")
+			ExecSafeAt(boot0, "kubectl", "delete", "crd",
+				"certificaterequests.certmanager.k8s.io",
+				"certificates.certmanager.k8s.io",
+				"challenges.certmanager.k8s.io",
+				"clusterissuers.certmanager.k8s.io",
+				"issuers.certmanager.k8s.io",
+				"orders.certmanager.k8s.io")
 		})
 	}
 
