@@ -221,6 +221,24 @@ func testSetup() {
 		})
 	}
 
+	// TODO: delete this block after upgrading cert-manager
+	if doUpgrade {
+		It("should delete cert-manager before upgrading", func() {
+			By("checking the existence of old version CRD")
+			_, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "certificates.certmanager.k8s.io")
+			if strings.Contains(string(stderr), "NotFound") {
+				// cert-manager is already upgraded
+				return
+			}
+			if err != nil {
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			By("deleting the old version cert-manager")
+			ExecSafeAt(boot0, "argocd", "app", "delete", "cert-manager", "--cascade")
+		})
+	}
+
 	It("should checkout neco-apps repository@"+commitID, func() {
 		ExecSafeAt(boot0, "rm", "-rf", "neco-apps")
 		if !withKind {

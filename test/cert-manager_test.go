@@ -55,7 +55,9 @@ spec:
     kind: ClusterIssuer
     name: %s
   commonName: %s
-`, issuerName, domainName)
+  dnsNames:
+    - %s
+`, issuerName, domainName, domainName)
 		_, stderr, err := ExecAtWithInput(boot0, []byte(certificate), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 
