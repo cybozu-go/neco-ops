@@ -205,18 +205,16 @@ func testSetup() {
 
 	// TODO: delete this block after upgrading cert-manager
 	if doUpgrade {
-		It("should delete cert-manager before upgrading", func() {
+		It("should delete the old version cert-manager before upgrading if exists", func() {
 			By("checking the existence of old version CRD")
 			_, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "certificates.certmanager.k8s.io")
 			if strings.Contains(string(stderr), "NotFound") {
 				// cert-manager is already upgraded
 				return
 			}
-			if err != nil {
-				Expect(err).NotTo(HaveOccurred())
-			}
+			Expect(err).NotTo(HaveOccurred())
 
-			By("deleting the old version cert-manager")
+			By("deleting the application")
 			ExecSafeAt(boot0, "argocd", "app", "delete", "cert-manager", "--cascade")
 		})
 	}
