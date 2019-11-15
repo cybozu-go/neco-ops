@@ -216,24 +216,28 @@ func testSetup() {
 
 			By("deleting the application")
 			ExecSafeAt(boot0, "argocd", "app", "delete", "cert-manager", "--cascade")
-		})
-	}
 
-	// TODO: delete this block after upgrading cert-manager
-	if doUpgrade {
-		It("should delete cert-manager before upgrading", func() {
-			By("checking the existence of old version CRD")
-			_, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "certificates.certmanager.k8s.io")
-			if strings.Contains(string(stderr), "NotFound") {
-				// cert-manager is already upgraded
-				return
-			}
-			if err != nil {
-				Expect(err).NotTo(HaveOccurred())
-			}
+			By("waiting the deletion")
+			Eventually(func() error {
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "argocd", "get", "application", "-o", "json")
+				if err != nil {
+					return fmt.Errorf("stdout: %v, stderr: %v, err: %v", stdout, stderr, err)
+				}
 
-			By("deleting the old version cert-manager")
-			ExecSafeAt(boot0, "argocd", "app", "delete", "cert-manager", "--cascade")
+				var appList argocd.ApplicationList
+				err = json.Unmarshal(stdout, &appList)
+				if err != nil {
+					return err
+				}
+
+				for _, app := range appList.Items {
+					if app.GetName() == "cert-manager" {
+						return errors.New("cert-manager app still exists")
+					}
+				}
+
+				return nil
+			}).Should(Succeed())
 		})
 	}
 
