@@ -14,18 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
-
-const (
-	AltNamesAnnotationKey   = "certmanager.k8s.io/alt-names"
-	IPSANAnnotationKey      = "certmanager.k8s.io/ip-sans"
-	CommonNameAnnotationKey = "certmanager.k8s.io/common-name"
-	IssuerNameAnnotationKey = "certmanager.k8s.io/issuer-name"
-	IssuerKindAnnotationKey = "certmanager.k8s.io/issuer-kind"
-	CertificateNameKey      = "certmanager.k8s.io/certificate-name"
-)
+package v1
 
 // ConditionStatus represents a condition's status.
+// +kubebuilder:validation:Enum=True;False;Unknown
 type ConditionStatus string
 
 // These are valid condition statuses. "ConditionTrue" means a resource is in
@@ -51,19 +43,14 @@ type LocalObjectReference struct {
 	Name string `json:"name"`
 }
 
-// ObjectReference is a reference to an object with a given name and kind.
+// ObjectReference is a reference to an object with a given name, kind and group.
 type ObjectReference struct {
 	Name string `json:"name"`
 	// +optional
 	Kind string `json:"kind,omitempty"`
+	// +optional
+	Group string `json:"group,omitempty"`
 }
-
-const (
-	ClusterIssuerKind = "ClusterIssuer"
-	IssuerKind        = "Issuer"
-	CertificateKind   = "Certificate"
-	OrderKind         = "Order"
-)
 
 type SecretKeySelector struct {
 	// The name of the secret in the pod's namespace to select from.
@@ -72,3 +59,7 @@ type SecretKeySelector struct {
 	// +optional
 	Key string `json:"key,omitempty"`
 }
+
+const (
+	TLSCAKey = "ca.crt"
+)

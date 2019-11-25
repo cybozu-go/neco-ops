@@ -203,6 +203,53 @@ func testSetup() {
 		})
 	}
 
+	// TODO: delete this block after upgrading cert-manager
+	if doUpgrade {
+		It("should delete the old version cert-manager before upgrading if exists", func() {
+			By("checking the existence of old version CRD")
+			_, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "certificates.certmanager.k8s.io")
+			if strings.Contains(string(stderr), "NotFound") {
+				// cert-manager is already upgraded
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+
+			By("deleting the application")
+			ExecSafeAt(boot0, "argocd", "app", "delete", "cert-manager", "--cascade")
+
+			By("waiting the deletion")
+			Eventually(func() error {
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "argocd", "get", "application", "-o", "json")
+				if err != nil {
+					return fmt.Errorf("stdout: %v, stderr: %v, err: %v", stdout, stderr, err)
+				}
+
+				var appList argocd.ApplicationList
+				err = json.Unmarshal(stdout, &appList)
+				if err != nil {
+					return err
+				}
+
+				for _, app := range appList.Items {
+					if app.GetName() == "cert-manager" {
+						return errors.New("cert-manager app still exists")
+					}
+				}
+
+				return nil
+			}).Should(Succeed())
+
+			By("deleting the CRDs")
+			ExecSafeAt(boot0, "kubectl", "delete", "crd",
+				"certificaterequests.certmanager.k8s.io",
+				"certificates.certmanager.k8s.io",
+				"challenges.certmanager.k8s.io",
+				"clusterissuers.certmanager.k8s.io",
+				"issuers.certmanager.k8s.io",
+				"orders.certmanager.k8s.io")
+		})
+	}
+
 	It("should checkout neco-apps repository@"+commitID, func() {
 		ExecSafeAt(boot0, "rm", "-rf", "neco-apps")
 		if !withKind {

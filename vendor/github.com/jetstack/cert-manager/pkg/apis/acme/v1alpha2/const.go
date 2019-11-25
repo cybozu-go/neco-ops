@@ -14,12 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
-import (
-	"k8s.io/apimachinery/pkg/runtime"
+const (
+	ACMEFinalizer = "finalizer.acme.cert-manager.io"
 )
-
-func addDefaultingFuncs(scheme *runtime.Scheme) error {
-	return RegisterDefaults(scheme)
-}

@@ -14,13 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+// +groupName=meta.cert-manager.io
 
-import (
-	"k8s.io/apimachinery/pkg/runtime"
-)
+// Package meta contains meta types for cert-manager APIs
+package meta
 
-func addConversionFuncs(scheme *runtime.Scheme) error {
-	// Add non-generated conversion functions
-	return scheme.AddConversionFuncs()
-}
+const GroupName = "meta.cert-manager.io"

@@ -3,6 +3,6 @@ kind: Namespace
 metadata:
   name: external-dns
   labels:
-    certmanager.k8s.io/disable-validation: "true"
+    cert-manager.io/disable-validation: "true"
     control-plane: "true"
     topolvm.cybozu.com/webhook: ignore

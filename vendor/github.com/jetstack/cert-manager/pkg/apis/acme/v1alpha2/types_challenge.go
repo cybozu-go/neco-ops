@@ -14,14 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
 
-// TODO: these types should be moved into their own API group once we have a loose
-// coupling between ACME Issuers and their solver configurations (see: Solver proposal)
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+)
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -32,13 +31,14 @@ import (
 // +kubebuilder:printcolumn:name="Domain",type="string",JSONPath=".spec.dnsName"
 // +kubebuilder:printcolumn:name="Reason",type="string",JSONPath=".status.reason",description="",priority=1
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC."
+// +kubebuilder:subresource:status
 // +kubebuilder:resource:path=challenges
 type Challenge struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   ChallengeSpec   `json:"spec"`
-	Status ChallengeStatus `json:"status"`
+	Spec   ChallengeSpec   `json:"spec,omitempty"`
+	Status ChallengeStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -58,7 +58,7 @@ type ChallengeSpec struct {
 
 	// Type is the type of ACME challenge this resource represents, e.g. "dns01"
 	// or "http01"
-	Type string `json:"type"`
+	Type ACMEChallengeType `json:"type"`
 
 	// URL is the URL of the ACME Challenge resource for this challenge.
 	// This can be used to lookup details about the status of this challenge.
@@ -78,13 +78,6 @@ type ChallengeSpec struct {
 	// +optional
 	Wildcard bool `json:"wildcard"`
 
-	// Config specifies the solver configuration for this challenge.
-	// Only **one** of 'config' or 'solver' may be specified, and if both are
-	// specified then no action will be performed on the Challenge resource.
-	// DEPRECATED: the 'solver' field should be specified instead
-	// +optional
-	Config *SolverConfig `json:"config,omitempty"`
-
 	// Solver contains the domain solving configuration that should be used to
 	// solve this challenge resource.
 	// Only **one** of 'config' or 'solver' may be specified, and if both are
@@ -97,7 +90,7 @@ type ChallengeSpec struct {
 	// If the Issuer does not exist, processing will be retried.
 	// If the Issuer is not an 'ACME' Issuer, an error will be returned and the
 	// Challenge will be marked as failed.
-	IssuerRef ObjectReference `json:"issuerRef"`
+	IssuerRef cmmeta.ObjectReference `json:"issuerRef"`
 }
 
 type ChallengeStatus struct {
@@ -127,7 +120,6 @@ type ChallengeStatus struct {
 
 	// State contains the current 'state' of the challenge.
 	// If not set, the state of the challenge is unknown.
-	// +kubebuilder:validation:Enum=,valid,ready,pending,processing,invalid,expired,errored
 	// +optional
 	State State `json:"state,omitempty"`
 }

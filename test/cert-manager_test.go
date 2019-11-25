@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	certmanagerv1alpha1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	certmanagerv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -15,7 +15,7 @@ func testCertManager() {
 	It("should be deployed successfully", func() {
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=cert-manager",
-				"get", "deployment", "--selector=app.kubernetes.io/component=cert-manager", "-o=json")
+				"get", "deployment", "--selector=app.kubernetes.io/instance=cert-manager", "-o=json")
 			if err != nil {
 				return err
 			}
@@ -44,7 +44,7 @@ func testCertManager() {
 			issuerName = "self-signed-issuer"
 		}
 		certificate := fmt.Sprintf(`
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: test-certificate
@@ -55,7 +55,9 @@ spec:
     kind: ClusterIssuer
     name: %s
   commonName: %s
-`, issuerName, domainName)
+  dnsNames:
+    - %s
+`, issuerName, domainName, domainName)
 		_, stderr, err := ExecAtWithInput(boot0, []byte(certificate), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 
@@ -66,7 +68,7 @@ spec:
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
 
-			var ci certmanagerv1alpha1.ClusterIssuer
+			var ci certmanagerv1alpha2.ClusterIssuer
 			err = json.Unmarshal(stdout, &ci)
 			if err != nil {
 				return err
@@ -77,7 +79,7 @@ spec:
 			}
 
 			status := ci.Status.Conditions[0]
-			if status.Status != certmanagerv1alpha1.ConditionTrue {
+			if status.Status != "True" {
 				return fmt.Errorf("Certificate status is not True: %s", status.Status)
 			}
 			desiredReason := "ACMEAccountRegistered"
@@ -98,7 +100,7 @@ spec:
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
 
-			var cert certmanagerv1alpha1.Certificate
+			var cert certmanagerv1alpha2.Certificate
 			err = json.Unmarshal(stdout, &cert)
 			if err != nil {
 				return err
@@ -109,10 +111,10 @@ spec:
 			}
 
 			for _, st := range cert.Status.Conditions {
-				if st.Type != certmanagerv1alpha1.CertificateConditionReady {
+				if st.Type != certmanagerv1alpha2.CertificateConditionReady {
 					continue
 				}
-				if st.Status == certmanagerv1alpha1.ConditionTrue {
+				if st.Status == "True" {
 					return nil
 				}
 			}

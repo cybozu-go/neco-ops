@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -34,7 +35,10 @@ var (
 )
 
 type crdValidation struct {
-	Kind   string                                               `json:"kind"`
+	Kind     string `json:"kind"`
+	Metadata struct {
+		Name string `json:"name"`
+	} `json:"metadata"`
 	Status *apiextensionsv1beta1.CustomResourceDefinitionStatus `json:"status"`
 }
 
@@ -44,9 +48,27 @@ type secret struct {
 	} `json:"metadata"`
 }
 
+func isKustomizationFile(name string) bool {
+	if name == "kustomization.yaml" || name == "kustomization.yml" || name == "Kustomization" {
+		return true
+	}
+	return false
+}
+
+func kustomizeBuild(dir string) ([]byte, []byte, error) {
+	outBuf := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
+	cmd := exec.Command("kustomize", "build", dir)
+	cmd.Stdout = outBuf
+	cmd.Stderr = errBuf
+	err := cmd.Run()
+	return outBuf.Bytes(), errBuf.Bytes(), err
+}
+
 func testCRDStatus(t *testing.T) {
 	t.Parallel()
 
+	targets := []string{}
 	err := filepath.Walk(manifestDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -60,44 +82,49 @@ func testCRDStatus(t *testing.T) {
 				return filepath.SkipDir
 			}
 		}
-
-		f, err := os.Open(path)
-		if err != nil {
-			return err
+		if !isKustomizationFile(info.Name()) {
+			return nil
 		}
-		defer f.Close()
-
-		y := k8sYaml.NewYAMLReader(bufio.NewReader(f))
-		for {
-			data, err := y.Read()
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				return err
-			}
-
-			var crd crdValidation
-			err = yaml.Unmarshal(data, &crd)
-			if err != nil {
-				// return nil
-				// Skip because this YAML might not be custom resource definition
-				return nil
-			}
-
-			if crd.Kind != "CustomResourceDefinition" {
-				// Skip because this YAML is not custom resource definition
-				return nil
-			}
-
-			if crd.Status != nil {
-				return errors.New(".status(Status) exists in " + path + ", remove it to prevent occurring OutOfSync by Argo CD")
-			}
-		}
-
-		return nil
+		targets = append(targets, filepath.Dir(path))
+		// Skip other files in the directory
+		return filepath.SkipDir
 	})
 	if err != nil {
 		t.Error(err)
+	}
+
+	for _, path := range targets {
+		t.Run(path, func(t *testing.T) {
+			stdout, stderr, err := kustomizeBuild(path)
+			if err != nil {
+				t.Error(fmt.Errorf("kustomize build faled. path: %s, stderr: %s, err: %v", path, stderr, err))
+			}
+
+			y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(stdout)))
+			for {
+				data, err := y.Read()
+				if err == io.EOF {
+					break
+				} else if err != nil {
+					t.Error(err)
+				}
+
+				var crd crdValidation
+				err = yaml.Unmarshal(data, &crd)
+				if err != nil {
+					// Skip because this YAML might not be custom resource definition
+					continue
+				}
+
+				if crd.Kind != "CustomResourceDefinition" {
+					// Skip because this YAML is not custom resource definition
+					continue
+				}
+				if crd.Status != nil {
+					t.Error(errors.New(".status(Status) exists in " + crd.Metadata.Name + ", remove it to prevent occurring OutOfSync by Argo CD"))
+				}
+			}
+		})
 	}
 }
 

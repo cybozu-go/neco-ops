@@ -14,20 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+)
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Certificate is a type to represent a Certificate from ACME
 // +k8s:openapi-gen=true
-// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type=="Ready")].status",description=""
+// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Secret",type="string",JSONPath=".spec.secretName",description=""
 // +kubebuilder:printcolumn:name="Issuer",type="string",JSONPath=".spec.issuerRef.name",description="",priority=1
-// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type=="Ready")].message",priority=1
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",priority=1
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC."
+// +kubebuilder:subresource:status
 // +kubebuilder:resource:path=certificates,shortName=cert;certs
 type Certificate struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -47,6 +52,7 @@ type CertificateList struct {
 	Items []Certificate `json:"items"`
 }
 
+// +kubebuilder:validation:Enum=rsa;ecdsa
 type KeyAlgorithm string
 
 const (
@@ -54,9 +60,21 @@ const (
 	ECDSAKeyAlgorithm KeyAlgorithm = "ecdsa"
 )
 
-// CertificateSpec defines the desired state of Certificate
+// +kubebuilder:validation:Enum=pkcs1;pkcs8
+type KeyEncoding string
+
+const (
+	PKCS1 KeyEncoding = "pkcs1"
+	PKCS8 KeyEncoding = "pkcs8"
+)
+
+// CertificateSpec defines the desired state of Certificate.
+// A valid Certificate requires at least one of a CommonName, DNSName, or
+// URISAN to be valid.
 type CertificateSpec struct {
-	// CommonName is a common name to be used on the Certificate
+	// CommonName is a common name to be used on the Certificate.
+	// The CommonName should have a length of 64 characters or fewer to avoid
+	// generating invalid CSRs.
 	// +optional
 	CommonName string `json:"commonName,omitempty"`
 
@@ -72,13 +90,18 @@ type CertificateSpec struct {
 	// +optional
 	RenewBefore *metav1.Duration `json:"renewBefore,omitempty"`
 
-	// DNSNames is a list of subject alt names to be used on the Certificate
+	// DNSNames is a list of subject alt names to be used on the Certificate.
 	// +optional
 	DNSNames []string `json:"dnsNames,omitempty"`
 
 	// IPAddresses is a list of IP addresses to be used on the Certificate
 	// +optional
 	IPAddresses []string `json:"ipAddresses,omitempty"`
+
+	// URISANs is a list of URI Subject Alternative Names to be set on this
+	// Certificate.
+	// +optional
+	URISANs []string `json:"uriSANs,omitempty"`
 
 	// SecretName is the name of the secret resource to store this secret in
 	SecretName string `json:"secretName"`
@@ -89,19 +112,16 @@ type CertificateSpec struct {
 	// If the 'kind' field is set to 'ClusterIssuer', a ClusterIssuer with the
 	// provided name will be used.
 	// The 'name' field in this stanza is required at all times.
-	IssuerRef ObjectReference `json:"issuerRef"`
+	IssuerRef cmmeta.ObjectReference `json:"issuerRef"`
 
 	// IsCA will mark this Certificate as valid for signing.
-	// This implies that the 'signing' usage is set
+	// This implies that the 'cert sign' usage is set
 	// +optional
 	IsCA bool `json:"isCA,omitempty"`
 
-	// ACME contains configuration specific to ACME Certificates.
-	// Notably, this contains details on how the domain names listed on this
-	// Certificate resource should be 'solved', i.e. mapping HTTP01 and DNS01
-	// providers to DNS names.
+	// Usages is the set of x509 actions that are enabled for a given key. Defaults are ('digital signature', 'key encipherment') if empty
 	// +optional
-	ACME *ACMECertificateConfig `json:"acme,omitempty"`
+	Usages []KeyUsage `json:"usages,omitempty"`
 
 	// KeySize is the key bit size of the corresponding private key for this certificate.
 	// If provided, value must be between 2048 and 8192 inclusive when KeyAlgorithm is
@@ -115,14 +135,14 @@ type CertificateSpec struct {
 	// If KeyAlgorithm is specified and KeySize is not provided,
 	// key size of 256 will be used for "ecdsa" key algorithm and
 	// key size of 2048 will be used for "rsa" key algorithm.
-	// +kubebuilder:validation:Enum=rsa,ecdsa
 	// +optional
 	KeyAlgorithm KeyAlgorithm `json:"keyAlgorithm,omitempty"`
-}
 
-// ACMECertificateConfig contains the configuration for the ACME certificate provider
-type ACMECertificateConfig struct {
-	Config []DomainSolverConfig `json:"config"`
+	// KeyEncoding is the private key cryptography standards (PKCS)
+	// for this certificate's private key to be encoded in. If provided, allowed
+	// values are "pkcs1" and "pkcs8" standing for PKCS#1 and PKCS#8, respectively.
+	// If KeyEncoding is not specified, then PKCS#1 will be used by default.
+	KeyEncoding KeyEncoding `json:"keyEncoding,omitempty"`
 }
 
 // CertificateStatus defines the observed state of Certificate
@@ -145,8 +165,7 @@ type CertificateCondition struct {
 	Type CertificateConditionType `json:"type"`
 
 	// Status of the condition, one of ('True', 'False', 'Unknown').
-	// +kubebuilder:validation:Enum=True,False,Unknown
-	Status ConditionStatus `json:"status"`
+	Status cmmeta.ConditionStatus `json:"status"`
 
 	// LastTransitionTime is the timestamp corresponding to the last status
 	// change of this condition.
