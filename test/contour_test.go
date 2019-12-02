@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	certmanagerv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -221,6 +222,47 @@ spec:
 				}
 				return nil
 			}).Should(Succeed())
+
+			By("confirming created Certificate")
+			Eventually(func() error {
+				// return checkCertificate("tls", "test-ingress", certificate)
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "-n", "test-ingress", "certificate", "tls", "-o", "json")
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+
+				var cert certmanagerv1alpha2.Certificate
+				err = json.Unmarshal(stdout, &cert)
+				if err != nil {
+					return err
+				}
+
+				if len(cert.Status.Conditions) == 0 {
+					return errors.New("status not found")
+				}
+
+				for _, st := range cert.Status.Conditions {
+					if st.Type != certmanagerv1alpha2.CertificateConditionReady {
+						// Check if recreate Certificate resource is necessary
+						failed, err := isCertificateRequestFailed(cert)
+						if err != nil {
+							return err
+						}
+						if failed {
+							ExecAt(boot0, "kubectl", "delete", "-n", "test-ingress", "certificate", "tls", "-o", "json")
+							if err != nil {
+								return err
+							}
+							return fmt.Errorf("recreate Certificate")
+						}
+						return fmt.Errorf("CertificateRequest is not ready")
+					}
+					if st.Status == "True" {
+						return nil
+					}
+				}
+				return errors.New("certificate is not ready")
+			})
 		}
 
 		By("accessing with curl: http")
