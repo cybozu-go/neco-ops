@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/cybozu-go/log"
 	certmanagerv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -168,6 +169,10 @@ OUTER:
 
 	reason := targetCertReq.Status.Conditions[0].Reason
 	if reason == "Failed" {
+		log.Error("CertificateRequest failed", map[string]interface{}{
+			"certificate name":         cert.Name,
+			"certificate request name": targetCertReq.Name,
+		})
 		return true, nil
 	}
 	return false, fmt.Errorf("CertificateRequest is not ready")

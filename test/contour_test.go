@@ -225,7 +225,6 @@ spec:
 
 			By("confirming created Certificate")
 			Eventually(func() error {
-				// return checkCertificate("tls", "test-ingress", certificate)
 				stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "-n", "test-ingress", "certificate", "tls", "-o", "json")
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
