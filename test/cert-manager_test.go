@@ -112,8 +112,7 @@ spec:
 			}
 
 			for _, st := range cert.Status.Conditions {
-				if st.Type != certmanagerv1alpha2.CertificateConditionReady {
-					// Check if recreate Certificate resource is necessary
+				if st.Reason != "Ready" {
 					failed, err := isCertificateRequestFailed(cert)
 					if err != nil {
 						return err
@@ -127,9 +126,7 @@ spec:
 					}
 					continue
 				}
-				if st.Status == "True" {
-					return nil
-				}
+				return nil
 			}
 			return errors.New("certificate is not ready")
 		}).Should(Succeed())
@@ -142,7 +139,7 @@ spec:
 
 func isCertificateRequestFailed(cert certmanagerv1alpha2.Certificate) (bool, error) {
 	var certReqList certmanagerv1alpha2.CertificateRequestList
-	var targetCertReq certmanagerv1alpha2.CertificateRequest
+	var targetCertReq *certmanagerv1alpha2.CertificateRequest
 
 	stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "-n=cert-manager", "certificaterequest", "-o", "json")
 	if err != nil {
@@ -157,13 +154,13 @@ OUTER:
 	for _, cr := range certReqList.Items {
 		for _, or := range cr.OwnerReferences {
 			if or.Name == cert.Name {
-				targetCertReq = cr
+				targetCertReq = &cr
 				break OUTER
 			}
 		}
 	}
 
-	if targetCertReq.Name == "" {
+	if targetCertReq == nil {
 		return false, nil
 	}
 
