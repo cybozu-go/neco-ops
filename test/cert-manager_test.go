@@ -112,6 +112,9 @@ spec:
 			}
 
 			for _, st := range cert.Status.Conditions {
+				if st.Type != certmanagerv1alpha2.CertificateConditionReady {
+					continue
+				}
 				if st.Reason != "Ready" {
 					failed, err := isCertificateRequestFailed(cert)
 					if err != nil {
@@ -122,9 +125,9 @@ spec:
 						if err != nil {
 							return err
 						}
-						return fmt.Errorf("recreate Certificate")
+						return fmt.Errorf("Certificate is recreated")
 					}
-					continue
+					return fmt.Errorf("Certificate is not ready")
 				}
 				return nil
 			}
