@@ -13,7 +13,7 @@ import (
 )
 
 func testArgoCDIngress() {
-	It("should login via IngressRoute as admin", func() {
+	It("should login via HTTPProxy as admin", func() {
 		By("getting the ip address of the contour LoadBalancer")
 		stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=ingress", "get", "service/contour-bastion", "-o=json")
 		Expect(err).ShouldNot(HaveOccurred())
@@ -63,7 +63,7 @@ func testArgoCDIngress() {
 		Expect(s[1]).To(Equal("application/json"))
 
 		By("requesting to argocd-server with grpc")
-		// They are configured as routes in IngressRoute individually to communicate with grpc and should be tested.
+		// They are configured as routes in HTTPProxy individually to communicate with grpc and should be tested.
 		endpoints := []string{
 			"/account.AccountService",
 			"/application.ApplicationService",

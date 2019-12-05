@@ -2,3 +2,6 @@
   path: /metadata/creationTimestamp
 - op: remove
   path: /status
+- op: replace
+  path: /spec/scope
+  value: Namespaced

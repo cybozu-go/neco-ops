@@ -1,23 +1,64 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - contour/upstream/01-crds.yaml
+  - contour/upstream/02-rbac.yaml
+  - contour/upstream/02-service-contour.yaml
+  - contour/certificate.yaml
   - contour/common.yaml
-  - contour/projectcontour-common.yaml
   - contour/contour-config.yaml
   - contour/deployment.yaml
-  - contour/rbac.yaml
-  - contour/service.yaml
   - contour/pdb.yaml
+  - contour/rbac_contour-plus.yaml
+  - contour/service.yaml
 patchesJson6902:
   - target:
       group: apiextensions.k8s.io
       version: v1beta1
       kind: CustomResourceDefinition
-      name: tlscertificatedelegations.projectcontour.io
-    path: contour/patch.yaml
+      name: httpproxies.projectcontour.io
+    path: contour/jsonpatch/crd.yaml
   - target:
       group: apiextensions.k8s.io
       version: v1beta1
       kind: CustomResourceDefinition
-      name: httpproxies.projectcontour.io
-    path: contour/patch.yaml
+      name: ingressroutes.contour.heptio.com
+    path:  contour/jsonpatch/crd.yaml
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: tlscertificatedelegations.contour.heptio.com
+    path:  contour/jsonpatch/crd.yaml
+  - target:
+      group: apiextensions.k8s.io
+      version: v1beta1
+      kind: CustomResourceDefinition
+      name: tlscertificatedelegations.projectcontour.io
+    path:  contour/jsonpatch/crd.yaml
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1beta1
+      kind: ClusterRoleBinding
+      name: contour
+    path: contour/jsonpatch/clusterrolebinding.yaml
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1beta1
+      kind: Role
+      name: contour-leaderelection
+      namespace: projectcontour
+    path: contour/jsonpatch/role.yaml
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1beta1
+      kind: RoleBinding
+      name: contour-leaderelection
+      namespace: projectcontour
+    path: contour/jsonpatch/rolebinding.yaml
+  - target:
+      version: v1
+      kind: Service
+      name: contour
+      namespace: projectcontour
+    path: contour/jsonpatch/service_contour.yaml

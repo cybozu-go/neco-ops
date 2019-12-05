@@ -40,7 +40,7 @@ func testContour() {
 		}).Should(Succeed())
 	})
 
-	It("should deploy IngressRoute", func() {
+	It("should deploy HTTPProxy", func() {
 		By("deployment Pods")
 		deployYAML := `
 apiVersion: apps/v1
@@ -125,12 +125,21 @@ spec:
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(pdb.Status.CurrentHealthy).Should(Equal(int32(2)))
 
-		By("creating IngressRoute")
+		By("checking PodDisruptionBudget for envoy Deployment")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "poddisruptionbudgets", "envoy-pdb", "-n", "ingress", "-o", "json")
+		if err != nil {
+			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		}
+		err = json.Unmarshal(stdout, &pdb)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(pdb.Status.CurrentHealthy).Should(Equal(int32(3)))
+
+		By("creating HTTPProxy")
 		fqdnHTTP := testID + "-http.test-ingress.gcp0.dev-ne.co"
 		fqdnHTTPS := testID + "-https.test-ingress.gcp0.dev-ne.co"
 		ingressRoute := fmt.Sprintf(`
-apiVersion: contour.heptio.com/v1beta1
-kind: IngressRoute
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
 metadata:
   name: tls
   namespace: test-ingress
@@ -142,18 +151,20 @@ spec:
     tls:
       secretName: testsecret
   routes:
-    - match: /
+    - conditions:
+        - prefix: /
       services:
         - name: testhttpd
           port: 80
-    - match: /insecure
+    - conditions:
+        - prefix: /insecure
       permitInsecure: true
       services:
         - name: testhttpd
           port: 80
 ---
-apiVersion: contour.heptio.com/v1beta1
-kind: IngressRoute
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
 metadata:
   name: root
   namespace: test-ingress
@@ -161,7 +172,8 @@ spec:
   virtualhost:
     fqdn: %s
   routes:
-    - match: /testhttpd
+    - conditions:
+        - prefix: /testhttpd
       services:
         - name: testhttpd
           port: 80

@@ -16,7 +16,7 @@ spec:
     protocol: TCP
     targetPort: 8443
   selector:
-    app.kubernetes.io/name: contour
+    app.kubernetes.io/name: envoy
   type: LoadBalancer
   externalTrafficPolicy: Local
 ---
@@ -36,7 +36,7 @@ spec:
     protocol: TCP
     targetPort: 8443
   selector:
-    app.kubernetes.io/name: contour
+    app.kubernetes.io/name: envoy
   type: LoadBalancer
   externalTrafficPolicy: Local
 ---
@@ -58,7 +58,7 @@ spec:
     protocol: TCP
     targetPort: 8443
   selector:
-    app.kubernetes.io/name: contour
+    app.kubernetes.io/name: envoy
   type: LoadBalancer
   externalTrafficPolicy: Local
 ---
@@ -75,9 +75,5 @@ spec:
       name: contour-metrics
       protocol: TCP
       targetPort: 8000
-    - port: 8002
-      name: envoy-metrics
-      protocol: TCP
-      targetPort: 8002
   selector:
     app.kubernetes.io/name: contour

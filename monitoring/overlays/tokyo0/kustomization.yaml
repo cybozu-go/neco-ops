@@ -3,7 +3,7 @@ kind: Kustomization
 bases:
   - ../../base
 resources:
-  - grafana/ingressroute.yaml
+  - grafana/httpproxy.yaml
 patches:
   - grafana/statefulset.yaml
   - prometheus/statefulset.yaml

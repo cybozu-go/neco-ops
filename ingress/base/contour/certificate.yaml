@@ -1,0 +1,67 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: contour-selfsign
+  namespace: ingress
+  labels:
+    app.kubernetes.io/name: contour
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: contour-ca
+  namespace: ingress
+  labels:
+    app.kubernetes.io/name: contour
+spec:
+  secretName: contourcert-ca
+  duration: 87600h0m0s # 10y
+  issuerRef:
+    name: contour-selfsign
+  commonName: "ca.server.contour"
+  isCA: true
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: contour-ca
+  namespace: ingress
+spec:
+  ca:
+    secretName: contourcert-ca
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: contour-tls
+  namespace: ingress
+  labels:
+    app.kubernetes.io/name: contour
+spec:
+  secretName: contourcert
+  duration: 8760h0m0s # 1y
+  issuerRef:
+    name: contour-ca
+  dnsNames:
+    - contour
+    - contour.ingress
+    - contour.ingress.svc
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: envoy-tls
+  namespace: ingress
+  labels:
+    app.kubernetes.io/name: envoy
+spec:
+  secretName: envoycert
+  duration: 8760h0m0s # 1y
+  issuerRef:
+    name: contour-ca
+  dnsNames:
+    - envoy
+    - envoy.ingress
+    - envoy.ingress.svc

@@ -8,3 +8,14 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: contour
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: envoy-pdb
+  namespace: ingress
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: envoy

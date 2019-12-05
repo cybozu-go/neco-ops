@@ -1,5 +1,5 @@
-apiVersion: contour.heptio.com/v1beta1
-kind: IngressRoute
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
 metadata:
   name: argocd-server
   namespace: argocd
@@ -12,76 +12,100 @@ spec:
       secretName: argocd-server-tls
   routes:
     # For static files
-    - match: /
+    - conditions:
+      - prefix: /
       services:
       - name: argocd-server-https
         port: 443
       timeoutPolicy:
-        request: 2m
+        response: 2m
+        idle: 5m
     # For gRPC API
-    - match: /account.AccountService
+    - conditions:
+      - prefix: /account.AccountService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /application.ApplicationService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /application.ApplicationService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /certificate.CertificateService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /certificate.CertificateService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /cluster.ClusterService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /cluster.ClusterService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /cluster.SettingsService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /cluster.SettingsService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /project.ProjectService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /project.ProjectService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /repocreds.RepoCredsService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /repocreds.RepoCredsService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /repository.RepoServerService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /repository.RepoServerService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /repository.RepositoryService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /repository.RepositoryService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /session.SessionService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /session.SessionService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
-    - match: /version.VersionService
+        response: 2m
+        idle: 5m
+    - conditions:
+      - prefix: /version.VersionService
       services:
       - name: argocd-server
         port: 443
       timeoutPolicy:
-        request: 2m
+        response: 2m
+        idle: 5m
