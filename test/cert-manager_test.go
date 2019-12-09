@@ -167,15 +167,24 @@ OUTER:
 		return false, nil
 	}
 
-	reason := targetCertReq.Status.Conditions[0].Reason
-	if reason == "Failed" {
-		log.Error("CertificateRequest failed", map[string]interface{}{
-			"certificate name":         cert.Name,
-			"certificate request name": targetCertReq.Name,
-		})
-		return true, nil
+	if len(targetCertReq.Status.Conditions) == 0 {
+		return false, errors.New("status not found")
 	}
-	return false, fmt.Errorf("CertificateRequest is not ready")
+
+	for _, st := range targetCertReq.Status.Conditions {
+		if st.Type != certmanagerv1alpha2.CertificateRequestConditionReady {
+			continue
+		}
+		reason := st.Reason
+		if reason == "Failed" {
+			log.Error("CertificateRequest failed", map[string]interface{}{
+				"certificate name":         cert.Name,
+				"certificate request name": targetCertReq.Name,
+			})
+			return true, nil
+		}
+	}
+	return false, fmt.Errorf("CertificateRequest is progressing")
 }
 
 func recreateCertificate(name, namespace, certificate string) error {
