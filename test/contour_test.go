@@ -248,10 +248,6 @@ spec:
 					return err
 				}
 
-				if len(cert.Status.Conditions) == 0 {
-					return errors.New("status not found")
-				}
-
 				for _, st := range cert.Status.Conditions {
 					if st.Type != certmanagerv1alpha2.CertificateConditionReady {
 						continue

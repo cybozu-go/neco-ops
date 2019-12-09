@@ -107,10 +107,6 @@ spec:
 				return err
 			}
 
-			if len(cert.Status.Conditions) == 0 {
-				return errors.New("status not found")
-			}
-
 			for _, st := range cert.Status.Conditions {
 				if st.Type != certmanagerv1alpha2.CertificateConditionReady {
 					continue
@@ -167,16 +163,11 @@ OUTER:
 		return false, nil
 	}
 
-	if len(targetCertReq.Status.Conditions) == 0 {
-		return false, errors.New("status not found")
-	}
-
 	for _, st := range targetCertReq.Status.Conditions {
 		if st.Type != certmanagerv1alpha2.CertificateRequestConditionReady {
 			continue
 		}
-		reason := st.Reason
-		if reason == "Failed" {
+		if st.Reason == certmanagerv1alpha2.CertificateRequestReasonFailed {
 			log.Error("CertificateRequest failed", map[string]interface{}{
 				"certificate name":         cert.Name,
 				"certificate request name": targetCertReq.Name,
