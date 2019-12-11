@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bmc-reverse-proxy
+  labels:
+    control-plane: "true"
+spec:
+  finalizers:
+    - kubernetes

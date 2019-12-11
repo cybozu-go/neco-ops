@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - argocd-ingress.yaml
 - argocd.yaml
+- bmc-reverse-proxy.yaml
 - cert-manager.yaml
 - elastic.yaml
 - external-dns.yaml

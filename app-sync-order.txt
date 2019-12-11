@@ -13,3 +13,4 @@ network-policy
 neco-admission
 team-management
 argocd-ingress
+bmc-reverse-proxy

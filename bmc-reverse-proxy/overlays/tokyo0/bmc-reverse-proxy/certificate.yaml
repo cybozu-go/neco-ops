@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: bmc-reverse-proxy-tls
+spec:
+  secretName: bmc-reverse-proxy-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: clouddns
+  commonName: "*.bmc.tokyo0.cybozu-ne.co"
+  dnsNames:
+    - "*.bmc.tokyo0.cybozu-ne.co"
