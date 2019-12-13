@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bmc-reverse-proxy
+  labels:
+    app.kubernetes.io/name: bmc-reverse-proxy
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bmc-reverse-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bmc-reverse-proxy
+    spec:
+      containers:
+        - image: quay.io/cybozu/testhttpd:0
+          name: bmc-reverse-proxy

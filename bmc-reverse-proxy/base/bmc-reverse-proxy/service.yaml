@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bmc-reverse-proxy
+  labels:
+    app.kubernetes.io/name: bmc-reverse-proxy
+  annotations:
+    metallb.universe.tf/address-pool: bastion
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+    - name: web
+      port: 443
+      protocol: TCP
+      targetPort: 8443
+    - name: virtual-console
+      port: 5900
+      protocol: TCP
+      targetPort: 5900
+  selector:
+    app.kubernetes.io/name: bmc-reverse-proxy

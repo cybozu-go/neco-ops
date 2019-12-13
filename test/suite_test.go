@@ -67,4 +67,7 @@ var _ = Describe("Test applications", func() {
 		Context("argocd-ingress", testArgoCDIngress)
 	}
 	Context("admission", testAdmission)
+	if !withKind {
+		Context("bmc-reverse-proxy", testBMCReverseProxy)
+	}
 })

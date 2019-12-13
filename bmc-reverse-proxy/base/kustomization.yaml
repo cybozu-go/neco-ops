@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - bmc-reverse-proxy/deployment.yaml
+  - bmc-reverse-proxy/role.yaml
+  - bmc-reverse-proxy/rolebinding.yaml
+  - bmc-reverse-proxy/service.yaml
+  - bmc-reverse-proxy/serviceaccount.yaml
+  - machines-endpoints/cronjob.yaml
+  - machines-endpoints/role.yaml
+  - machines-endpoints/rolebinding.yaml
+  - machines-endpoints/serviceaccount.yaml
+  - machines-endpoints/pod-security-policy.yaml

@@ -1,0 +1,47 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: bmc-reverse-proxy-selfsign
+  labels:
+    app.kubernetes.io/name: bmc-reverse-proxy
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: bmc-reverse-proxy-ca
+  labels:
+    app.kubernetes.io/name: bmc-reverse-proxy
+spec:
+  secretName: bmc-reverse-proxy-ca
+  duration: 87600h0m0s # 10y
+  issuerRef:
+    name: bmc-reverse-proxy-selfsign
+  commonName: "ca.bmc-reverse-proxy"
+  isCA: true
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: bmc-reverse-proxy-ca
+  labels:
+    app.kubernetes.io/name: bmc-reverse-proxy
+spec:
+  ca:
+    secretName: bmc-reverse-proxy-ca
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: bmc-reverse-proxy-tls
+  labels:
+    app.kubernetes.io/name: bmc-reverse-proxy
+spec:
+  secretName: bmc-reverse-proxy-tls
+  duration: 8760h0m0s # 1y
+  issuerRef:
+    name: bmc-reverse-proxy-ca
+  commonName: "*.bmc.gcp0.dev-ne.co"
+  dnsNames:
+    - "*.bmc.gcp0.dev-ne.co"

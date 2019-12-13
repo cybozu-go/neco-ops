@@ -170,7 +170,10 @@ func testSetup() {
 
 		It("should prepare secrets", func() {
 			By("creating namespace and secrets for grafana")
-			ExecSafeAt(boot0, "kubectl", "create", "namespace", "monitoring")
+			_, _, err := ExecAt(boot0, "kubectl", "get", "namespace", "monitoring")
+			if err != nil {
+				ExecSafeAt(boot0, "kubectl", "create", "namespace", "monitoring")
+			}
 			stdout, stderr, err := ExecAtWithInput(boot0, []byte(grafanaSecret), "dd", "of=grafana.yaml")
 			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 			ExecSafeAt(boot0, "kubectl", "apply", "-f", "grafana.yaml")
@@ -189,15 +192,29 @@ func testSetup() {
 					Token: teleportToken,
 				})
 				Expect(err).NotTo(HaveOccurred())
-				ExecSafeAt(boot0, "kubectl", "create", "namespace", "teleport")
+				_, _, err := ExecAt(boot0, "kubectl", "get", "namespace", "teleport")
+				if err != nil {
+					ExecSafeAt(boot0, "kubectl", "create", "namespace", "teleport")
+				}
 				stdout, stderr, err = ExecAtWithInput(boot0, buf.Bytes(), "kubectl", "apply", "-n", "teleport", "-f", "-")
 				Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
-				ExecSafeAt(boot0, "ckecli", "etcd", "user-add", "teleport", "/teleport")
-				ExecSafeAt(boot0, "ckecli", "etcd", "issue", "teleport", "--output", "file")
-				ExecSafeAt(boot0, "kubectl", "-n", "teleport", "create", "secret", "generic",
-					"teleport-etcd-certs", "--from-file=ca.crt=etcd-ca.crt",
-					"--from-file=tls.crt=etcd-teleport.crt", "--from-file=tls.key=etcd-teleport.key")
+				controlPlaceAddress := ExecSafeAt(boot0, "kubectl", "get", "node", "-l=cke.cybozu.com/master=true", `-o=jsonpath="{.items[0].metadata.name}"`)
+				ExecSafeAt(boot0, "ckecli", "etcd", "root-issue", "--output=file")
+				_, _, err = ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "user", "get", "teleport",
+					fmt.Sprintf("--endpoints=https://%s:2379", controlPlaceAddress),
+					"--key=etcd-root.key", "--cert=etcd-root.crt", "--cacert=etcd-ca.crt")
+				if err != nil {
+					ExecSafeAt(boot0, "ckecli", "etcd", "user-add", "teleport", "/teleport")
+				}
+
+				_, _, err = ExecAt(boot0, "kubectl", "get", "secret", "teleport-etcd-certs", "-n=teleport")
+				if err != nil {
+					ExecSafeAt(boot0, "ckecli", "etcd", "issue", "teleport", "--output", "file")
+					ExecSafeAt(boot0, "kubectl", "-n", "teleport", "create", "secret", "generic",
+						"teleport-etcd-certs", "--from-file=ca.crt=etcd-ca.crt",
+						"--from-file=tls.crt=etcd-teleport.crt", "--from-file=tls.key=etcd-teleport.key")
+				}
 			}
 		})
 	}
@@ -337,7 +354,10 @@ func applyAndWaitForApplications() {
 
 func setupArgoCD() {
 	By("installing Argo CD")
-	ExecSafeAt(boot0, "kubectl", "create", "namespace", "argocd")
+	_, _, err := ExecAt(boot0, "kubectl", "get", "namespace", "argocd")
+	if err != nil {
+		ExecSafeAt(boot0, "kubectl", "create", "namespace", "argocd")
+	}
 	data, err := ioutil.ReadFile("install.yaml")
 	Expect(err).ShouldNot(HaveOccurred())
 	_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-n", "argocd", "-f", "-")

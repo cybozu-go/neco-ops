@@ -33,7 +33,6 @@ spec:
               port: 9090
             initialDelaySeconds: 30
             timeoutSeconds: 30
-            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /-/healthy

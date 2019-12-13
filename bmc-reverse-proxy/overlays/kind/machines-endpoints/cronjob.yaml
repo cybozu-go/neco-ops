@@ -5,17 +5,17 @@ metadata:
   labels:
     cronjob: machines-endpoints-cronjob
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "0 0 * * *"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
             - name: machines-endpoints
-              image: quay.io/cybozu/machines-endpoints:0.4.0
-              args:
-                - --monitoring-endpoints
+              image: quay.io/cybozu/ubuntu:18.04
               imagePullPolicy: IfNotPresent
-          hostNetwork: true
+              command:
+              - "true"
+          hostNetwork: false
           restartPolicy: OnFailure
           serviceAccountName: machines-endpoints
