@@ -127,10 +127,6 @@ func testSetup() {
 		Expect(appList).Should(Equal(resources))
 	})
 
-	It("should re-issue kubeconfig", func() {
-		issueKubeconfig()
-	})
-
 	if !doUpgrade {
 		It("should create secrets of account.json", func() {
 			By("loading account.json")

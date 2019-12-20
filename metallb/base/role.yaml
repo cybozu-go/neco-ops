@@ -49,7 +49,7 @@ rules:
   - create
   - patch
 - apiGroups:
-  - extensions
+  - policy
   resourceNames:
   - metallb
   resources:

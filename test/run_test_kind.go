@@ -20,8 +20,6 @@ type sshAgent struct {
 }
 
 func prepare() {
-	issueKubeconfig()
-
 	resources := []string{
 		"https://raw.githubusercontent.com/cybozu-go/cke/master/static/pod-security-policy.yml",
 		"https://raw.githubusercontent.com/cybozu-go/cke/master/static/rbac.yml",
@@ -52,10 +50,6 @@ func prepare() {
 	ExecSafeAt("", "kubectl", "label", "node", "kindtest-worker", "cke.cybozu.com/index-in-rack=4", "cke.cybozu.com/rack=1", "cke.cybozu.com/role=cs")
 	ExecSafeAt("", "kubectl", "label", "node", "kindtest-worker2", "cke.cybozu.com/index-in-rack=4", "cke.cybozu.com/rack=2", "cke.cybozu.com/role=cs")
 	ExecSafeAt("", "kubectl", "label", "node", "kindtest-worker3", "cke.cybozu.com/index-in-rack=5", "cke.cybozu.com/rack=0", "cke.cybozu.com/role=cs")
-}
-
-func issueKubeconfig() {
-	ExecSafeAt("kind", "cp", "$(kind get kubeconfig-path --name='kindtest')", "~/.kube/config")
 }
 
 // ExecAt executes command at given host

@@ -18,11 +18,11 @@ export GOFLAGS
 # Follow Argo CD installed kustomize version
 # https://github.com/cybozu/neco-containers/blob/master/argocd/Dockerfile#L32
 KUSTOMIZE_VERSION = 3.2.0
-PROMTOOL_VERSION := 2.9.2
+PROMTOOL_VERSION := 2.12.0
 TELEPORT_VERSION := 4.1.3
-KUBERNETES_VERSION = 1.15.4
-KIND_VERSION = 0.5.1
-ARGOCD_VERSION = 1.2.2
+KUBERNETES_VERSION = 1.16.3
+KIND_VERSION = 0.6.1
+ARGOCD_VERSION = 1.2.5
 
 install.yaml: $(shell find ../argocd/base)
 	kustomize build ../argocd/base/ > install.yaml
@@ -37,13 +37,15 @@ test-alert-rules:
 kustomize-check:
 	./kustomize-check.sh
 
-test: install.yaml test-alert-rules kustomize-check validation
+code-check:
 	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"
 	test -z "$$(golint $$(go list ./... | grep -v /vendor/) | grep -v '/mtest/.*: should not use dot imports' | tee /dev/stderr)"
 	test -z "$$(nilerr ./... 2>&1 | tee /dev/stderr)"
 	test -z "$$(restrictpkg -packages=html/template,log ./... 2>&1 | tee /dev/stderr)"
 	ineffassign .
 	go vet ./...
+
+test: code-check install.yaml test-alert-rules kustomize-check validation
 
 test-apps:
 	$(MAKE) -f Makefile.dctest dctest
@@ -72,4 +74,4 @@ setup:
 clean:
 	rm -f install.yaml
 
-.PHONY:	validation test-alert-rules kustomize-check test test-apps setup clean
+.PHONY:	validation test-alert-rules kustomize-check code-check test test-apps setup clean

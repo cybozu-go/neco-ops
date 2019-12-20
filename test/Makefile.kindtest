@@ -1,7 +1,7 @@
 include Makefile
 
-KIND_NODE_VERSION = 1.15
-TOPOLVM_VERSION = 0.2.0
+KIND_NODE_VERSION = 1.16
+TOPOLVM_VERSION = 0.2.1
 TOPOLVM_STORAGE_SIZE = 20G
 
 /tmp/kindtest/scheduler/scheduler-config.yaml: kind/scheduler-config.yaml
