@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: testhttpd
+  namespace: maneki
+spec:
+  project: maneki
+  source:
+    repoURL: https://github.com/cybozu-private/maneki-apps.git
+    targetRevision: release
+    path: testhttpd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: maneki
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
