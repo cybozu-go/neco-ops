@@ -70,4 +70,7 @@ var _ = Describe("Test applications", func() {
 	if !withKind {
 		Context("bmc-reverse-proxy", testBMCReverseProxy)
 	}
+	if !withKind {
+		Context("local-pv-provisioner", testLocalPVProvisioner)
+	}
 })

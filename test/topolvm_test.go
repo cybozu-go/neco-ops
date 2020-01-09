@@ -16,9 +16,8 @@ func testTopoLVM() {
 		By("checking PodDisruptionBudget for controller Deployment")
 		pdb := policyv1beta1.PodDisruptionBudget{}
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "poddisruptionbudgets", "controller-pdb", "-n", "topolvm-system", "-o", "json")
-		if err != nil {
-			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		}
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+
 		err = json.Unmarshal(stdout, &pdb)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(pdb.Status.CurrentHealthy).Should(Equal(int32(2)))
