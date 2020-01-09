@@ -8,5 +8,8 @@ spec:
       containers:
         - name: local-pv-provisioner
           args:
-            - --device-dir=/dev/crypt-disk/by-path
+            - --device-dir=/dev
+            - --device-name-filter=dm-[23]$
             - --polling-interval=10s
+      nodeSelector: null
+      tolerations: null

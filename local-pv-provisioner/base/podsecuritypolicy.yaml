@@ -9,7 +9,7 @@ spec:
     - 'secret'
     - 'hostPath'
   allowedHostPaths:
-  - pathPrefix: "/dev/crypt-disk/by-path"
+  - pathPrefix: "/dev"
     readOnly: true
   hostNetwork: false
   runAsUser:
