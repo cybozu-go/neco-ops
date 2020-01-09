@@ -6,6 +6,7 @@ patchesStrategicMerge:
 - argocd-ingress.yaml
 - bmc-reverse-proxy.yaml
 - external-dns.yaml
+- local-pv-provisioner.yaml
 - monitoring.yaml
 - metallb.yaml
 - teleport.yaml

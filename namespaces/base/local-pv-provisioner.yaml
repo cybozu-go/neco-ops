@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: local-pv-provisioner
+  labels:
+    cert-manager.io/disable-validation: "true"
+    control-plane: "true"
+    topolvm.cybozu.com/webhook: ignore

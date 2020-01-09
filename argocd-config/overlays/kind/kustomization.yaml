@@ -8,6 +8,7 @@ patchesStrategicMerge:
 - bmc-reverse-proxy.yaml
 - cert-manager.yaml
 - ingress.yaml
+- local-pv-provisioner.yaml
 - metallb.yaml
 - monitoring.yaml
 - network-policy.yaml

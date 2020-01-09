@@ -8,6 +8,7 @@ resources:
 - ingress.yaml
 - internet-egress.yaml
 - kube-system.yaml
+- local-pv-provisioner.yaml
 - metallb.yaml
 - monitoring.yaml
 - teleport.yaml
