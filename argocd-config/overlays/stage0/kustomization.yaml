@@ -11,6 +11,7 @@ patchesStrategicMerge:
 - elastic.yaml
 - external-dns.yaml
 - ingress.yaml
+- local-pv-provisioner.yaml
 - metallb.yaml
 - monitoring.yaml
 - namespaces.yaml
