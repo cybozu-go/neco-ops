@@ -5,10 +5,10 @@ bases:
 patchesStrategicMerge:
 - argocd-ingress.yaml
 - bmc-reverse-proxy.yaml
+- cert-manager.yaml
 - external-dns.yaml
 - local-pv-provisioner.yaml
-- monitoring.yaml
 - metallb.yaml
-- teleport.yaml
+- monitoring.yaml
 - secrets.yaml
-- cert-manager.yaml
+- teleport.yaml

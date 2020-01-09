@@ -3,11 +3,11 @@ kind: Kustomization
 bases:
 - ../../base
 patchesStrategicMerge:
-- argocd.yaml
 - argocd-ingress.yaml
+- argocd.yaml
 - bmc-reverse-proxy.yaml
+- cert-manager.yaml
 - external-dns.yaml
 - metallb.yaml
 - monitoring.yaml
 - teleport.yaml
-- cert-manager.yaml
