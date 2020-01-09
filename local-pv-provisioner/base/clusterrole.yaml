@@ -22,3 +22,11 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - "policy"
+    resources:
+      - "podsecuritypolicies"
+    verbs:
+      - "use"
+    resourceNames:
+      - "local-pv-provisioner"
