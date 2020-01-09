@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: local-pv-provisioner
+spec:
+  template:
+    spec:
+      containers:
+        - name: local-pv-provisioner
+          args:
+            - --device-dir=/dev/crypt-disk/by-path
+            - --polling-interval=10s
