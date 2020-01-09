@@ -3,16 +3,15 @@ kind: Kustomization
 resources:
 - argocd.yaml
 - bmc-reverse-proxy.yaml
+- cert-manager.yaml
 - elastic.yaml
 - external-dns.yaml
 - ingress.yaml
 - internet-egress.yaml
 - kube-system.yaml
-- local-pv-provisioner.yaml
 - metallb.yaml
 - monitoring.yaml
 - teleport.yaml
 - topolvm.yaml
-- cert-manager.yaml
 commonLabels:
   team: neco
