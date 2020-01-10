@@ -69,8 +69,8 @@ func testLocalPVProvisioner() {
 
 	It("should be created PV successfully", func() {
 		var targetDevices = []string{
-			"/dev/dm-2",
-			"/dev/dm-3",
+			"/dev/crypt-disk/by-path/pci-0000:00:0a.0",
+			"/dev/crypt-disk/by-path/pci-0000:00:0b.0",
 		}
 
 		By("checking the number of local PVs")

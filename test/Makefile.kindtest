@@ -13,6 +13,7 @@ TOPOLVM_STORAGE_SIZE = 20G
 	cp $< $@
 
 launch-kind: start-lvmd /tmp/kindtest/scheduler/scheduler-config.yaml /tmp/kindtest/scheduler/scheduler-policy.cfg
+	$(SUDO) mkdir -p /dev/crypt-disk/by-path
 	sed s/@KUBERNETES_VERSION@/$(KUBERNETES_VERSION)/ kind/cluster.yaml > /tmp/kindtest/cluster.yaml
 	env KUBECONFIG= kind create cluster --config /tmp/kindtest/cluster.yaml --image quay.io/cybozu/kind-node:$(KIND_NODE_VERSION) --name=kindtest --wait=300s
 

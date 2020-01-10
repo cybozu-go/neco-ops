@@ -18,7 +18,7 @@ spec:
           image: quay.io/cybozu/local-pv-provisioner:0.1.0
           imagePullPolicy: IfNotPresent
           args:
-            - --device-dir=/dev
+            - --device-dir=/dev/crypt-disk/by-path
             - --device-name-filter=.+-sas-.+-lun-0$
           env:
             - name: LP_NODE_NAME
@@ -27,7 +27,7 @@ spec:
                   fieldPath: spec.nodeName
           volumeMounts:
             - name: dev
-              mountPath: /dev
+              mountPath: /dev/crypt-disk/by-path
               readOnly: true
           securityContext:
             runAsUser: 0
@@ -37,7 +37,7 @@ spec:
       volumes:
         - name: dev
           hostPath:
-            path: /dev
+            path: /dev/crypt-disk/by-path
       nodeSelector:
         cke.cybozu.com/role: ss
       tolerations:
