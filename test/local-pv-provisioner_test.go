@@ -45,7 +45,7 @@ func testLocalPVProvisioner() {
 		}).Should(Succeed())
 
 		By("checking the Pods were assigned for Nodes")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "--selector=app.kubernetes.io/name=local-pv-provisioner", "-o", "json")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "--selector=app.kubernetes.io/name=local-pv-provisioner", "-n", "kube-system", "-o", "json")
 		Expect(err).ShouldNot(HaveOccurred(), "failed to get a DaemonSet. stdout: %s, stderr: %s", stdout, stderr)
 
 		var lppPods corev1.PodList
