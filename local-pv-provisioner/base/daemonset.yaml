@@ -44,4 +44,3 @@ spec:
         - key: cke.cybozu.com/role
           operator: Equal
           value: storage
-          effect: NoExecute
