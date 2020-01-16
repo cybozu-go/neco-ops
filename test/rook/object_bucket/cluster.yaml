@@ -1,15 +1,15 @@
 apiVersion: ceph.rook.io/v1
 kind: CephCluster
 metadata:
-  name: rook-ceph
-  namespace: rook-ceph
+  name: ceph-for-ss
+  namespace: ceph-for-ss
 spec:
   dataDirHostPath: /var/lib/rook
   mon:
     count: 1
     allowMultiplePerNode: false
   cephVersion:
-    image: ceph/ceph:v14.2.4-20190917
+    image: ceph/ceph:v14.2.6
     allowUnsupported: false
   dashboard:
     enabled: false
@@ -26,7 +26,7 @@ spec:
   storage:
     useAllNodes: true
     useAllDevices: false
-    devLinksFilter: "^/dev/mapper/crypt-vd[cd]"
+    devPathFilter: "^/dev/mapper/crypt-vd[cd]"
     config:
       databaseSizeMB: "1024"
       journalSizeMB: "1024"
