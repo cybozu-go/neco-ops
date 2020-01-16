@@ -8,18 +8,6 @@ spec:
   mon:
     count: 1
     allowMultiplePerNode: false
-    # A volume claim template can be specified in which case new monitors (and
-    # monitors created during fail over) will construct a PVC based on the
-    # template for the monitor's primary storage. Changes to the template do not
-    # affect existing monitors. Log data is stored on the HostPath under
-    # dataDirHostPath. If no storage requirement is specified, a default storage
-    # size appropriate for monitor data will be used.
-#    volumeClaimTemplate:
-#      spec:
-#        storageClassName: gp2
-#        resources:
-#          requests:
-#            storage: 10Gi
   cephVersion:
     image: ceph/ceph:v14.2.4-20190917
     allowUnsupported: false
@@ -33,24 +21,6 @@ spec:
     - name: set1
       count: 1
       resources:
-      #   limits:
-      #     cpu: "500m"
-      #     memory: "4Gi"
-      #   requests:
-      #     cpu: "500m"
-      #     memory: "4Gi"
-      # placement:
-      #   podAntiAffinity:
-      #     preferredDuringSchedulingIgnoredDuringExecution:
-      #     - weight: 100
-      #       podAffinityTerm:
-      #         labelSelector:
-      #           matchExpressions:
-      #           - key: "rook.io/cluster"
-      #             operator: In
-      #             values:
-      #               - cluster1
-      #           topologyKey: "failure-domain.beta.kubernetes.io/zone"
       volumeClaimTemplates:
       - metadata:
           name: data

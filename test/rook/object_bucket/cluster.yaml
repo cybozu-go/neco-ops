@@ -16,17 +16,26 @@ spec:
     ssl: true
   network:
     hostNetwork: false
-  placement:
-    osd:
-      tolerations:
-      - key: cke.cybozu.com/role
-        operator: Equal
-        value: storage
-        effect: NoExecute
   storage:
-    useAllNodes: true
-    useAllDevices: false
-    devPathFilter: "^/dev/mapper/crypt-vd[cd]"
-    config:
-      databaseSizeMB: "1024"
-      journalSizeMB: "1024"
+    storageClassDeviceSets:
+      - name: set1
+        count: 1
+        resources:
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            resources:
+              requests:
+                storage: 5Gi
+            # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
+            storageClassName: local-storage
+            volumeMode: Block
+            accessModes:
+              - ReadWriteOnce
+        placement:
+          tolerations:
+          - key: cke.cybozu.com/role
+            operator: Equal
+            value: storage
+            effect: NoExecute

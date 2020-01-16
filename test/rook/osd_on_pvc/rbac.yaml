@@ -25,7 +25,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: rook-ceph-cmd-reporter
+  name: rook-ceph
 subjects:
 - kind: ServiceAccount
   name: rook-ceph-cmd-reporter
@@ -59,7 +59,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: rook-ceph-system-psp
+  name: rook-ceph-cmd-reporter-psp
   namespace: ceph-for-cs
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -67,7 +67,7 @@ roleRef:
   name: 'psp:rook'
 subjects:
   - kind: ServiceAccount
-    name: rook-ceph
+    name: rook-ceph-cmd-reporter
     namespace: ceph-for-cs
 ---
 # Allow the default serviceAccount to use the privileged PSP
@@ -118,7 +118,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: rook-ceph-osd-psp
+  name: rook-ceph-osd
   namespace: ceph-for-cs
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -132,7 +132,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: rook-ceph-mgr-psp
+  name: rook-ceph-mgr
   namespace: ceph-for-cs
 roleRef:
   apiGroup: rbac.authorization.k8s.io
