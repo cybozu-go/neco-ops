@@ -1,0 +1,57 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: ceph-for-cs
+  namespace: ceph-for-cs
+spec:
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 1
+    allowMultiplePerNode: false
+    volumeClaimTemplate:
+      spec:
+        storageClassName: topolvm-provisioner
+        resources:
+          requests:
+            storage: 1Gi
+  cephVersion:
+    image: ceph/ceph:v14.2.5
+    allowUnsupported: false
+  dashboard:
+    enabled: false
+    ssl: true
+  network:
+    hostNetwork: false
+  storage:
+    storageClassDeviceSets:
+    - name: set1
+      count: 3
+      portable: true
+      placement:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - rook-ceph-osd
+                - key: app
+                  operator: In
+                  values:
+                  - rook-ceph-osd-prepare
+              topologyKey: kubernetes.io/hostname
+      resources:
+      volumeClaimTemplates:
+      - metadata:
+          name: data
+        spec:
+          storageClassName: topolvm-provisioner
+          volumeMode: Block
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
