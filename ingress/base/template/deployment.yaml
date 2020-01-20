@@ -56,6 +56,10 @@ spec:
               fieldPath: metadata.name
         image: quay.io/cybozu/contour:1.0.1.1
         imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep", "5"]
         livenessProbe:
           httpGet:
             path: /healthz
@@ -162,14 +166,11 @@ spec:
           preStop:
             exec:
               command:
-              - bash
-              - -c
-              - --
-              - echo
-              - -ne
-              - "POST /healthcheck/fail HTTP/1.1\r\nHost: localhost\r\nConnection:
-                close\r\n\r\n"
-              - '>/dev/tcp/localhost/9001'
+              - "bash"
+              - "-c"
+              - |
+                  sleep 5
+                  echo -ne "POST /healthcheck/fail HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >/dev/tcp/localhost/9001
         name: envoy
         ports:
         - containerPort: 8080

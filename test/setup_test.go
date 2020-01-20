@@ -295,8 +295,21 @@ func applyAndWaitForApplications(overlay string) {
 	fmt.Printf("application list: %v\n", appList)
 	Expect(appList).ShouldNot(HaveLen(0))
 
+	By("pruning resource quota manually")
+	//TODO: Remove this `By` block after merged this PR: https://github.com/cybozu-go/neco-apps/pull/344
+	if doUpgrade {
+		Eventually(func() error {
+			stdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", "team-management", "--prune")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+			return nil
+		}).Should(Succeed())
+	}
+
 	By("waiting initialization")
 	Eventually(func() error {
+	OUTER:
 		for _, appName := range appList {
 			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", appName)
 			if err != nil {
@@ -319,11 +332,16 @@ func applyAndWaitForApplications(overlay string) {
 
 			// In upgrade test, sync without --force may cause temporal network disruption.
 			// It leads to sync-error of other applications,
-			// so sync manually out-of-sync apps in upgrade test.
-			if doUpgrade && st.Sync.Status == argocd.SyncStatusCodeOutOfSync {
-				stdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", appName)
-				if err != nil {
-					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			// so sync manually sync-error apps in upgrade test.
+			if doUpgrade {
+				for _, cond := range st.Conditions {
+					if cond.Type == argocd.ApplicationConditionSyncError {
+						stdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", appName)
+						if err != nil {
+							return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+						}
+						continue OUTER
+					}
 				}
 			}
 			return fmt.Errorf("%s is not initialized. argocd app get %s -o json: %s", appName, appName, appStdout)

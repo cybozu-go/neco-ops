@@ -34,19 +34,6 @@ kind: Namespace
 metadata:
   name: app-monitoring
 ---
-apiVersion: v1
-kind: ResourceQuota
-metadata:
-  name: monitoring-quota
-  namespace: app-monitoring
-spec:
-  hard:
-    requests.cpu: 128
-    limits.cpu: 128
-    requests.memory: 1Ti
-    limits.memory: 1Ti
-    requests.storage: 200Ti
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
