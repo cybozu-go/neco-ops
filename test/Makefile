@@ -9,7 +9,8 @@ BASE_BRANCH = master
 COMMIT_ID = $(shell git rev-parse --abbrev-ref HEAD)
 KUSTOMIZATION_DIRS := $(shell find ../ -name "kustomization.yaml" -exec dirname {} \;)
 SUDO = sudo
-export BOOT0 BOOT1 BOOT2 GINKGO SSH_PRIVKEY TEST_ID COMMIT_ID KUSTOMIZATION_DIRS BOOTSTRAP
+NUM_DASHBOARD = $(shell ls ../monitoring/base/grafana/dashboards/ | wc -l)
+export BOOT0 BOOT1 BOOT2 GINKGO SSH_PRIVKEY TEST_ID COMMIT_ID KUSTOMIZATION_DIRS BOOTSTRAP NUM_DASHBOARD
 
 ### for Go
 GOFLAGS = -mod=vendor

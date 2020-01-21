@@ -129,6 +129,8 @@ spec:
               mountPath: /var/lib/grafana/dashboards/all-nodes
             - name: dashboard-node-exporter-volume
               mountPath: /var/lib/grafana/dashboards/node-exporter
+            - name: dashboard-neco-admission-volume
+              mountPath: /var/lib/grafana/dashboards/neco-admission
             - name: dashboard-provider
               mountPath: /etc/grafana/provisioning/dashboards
             - name: datasources-provider
@@ -200,6 +202,9 @@ spec:
         - name: dashboard-all-nodes-volume
           configMap:
             name: dashboard-all-nodes
+        - name: dashboard-neco-admission-volume
+          configMap:
+            name: dashboard-neco-admission
         - name: dashboard-node-exporter-volume
           emptyDir: {}
         - name: dashboard-provider

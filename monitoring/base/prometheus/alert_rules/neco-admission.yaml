@@ -1,0 +1,21 @@
+groups:
+  - name: neco-admission
+    rules:
+      - alert: NecoAdmissionRestClientLatencyHigh
+        annotations:
+          summary: "The rest client of neco-admission has a 99th percentile latency of {{ $value }} for {{ $labels.verb }}."
+          runbook: TBD
+        expr: |
+          histogram_quantile(0.99, sum(rate(rest_client_request_latency_seconds_bucket{job="neco-admission"}[1m])) by (le, verb)) > 1
+        for: 10m
+        labels:
+          severity: warning
+      - alert: NecoAdmissionControllerRuntimeWebhookLatencyHigh
+        annotations:
+          summary: "The webhook of neco-admission has a 99th percentile latency of {{ $value }} for {{ $labels.webhook }}."
+          runbook: TBD
+        expr: |
+          histogram_quantile(0.99, sum(rate(controller_runtime_webhook_latency_seconds_bucket{job="neco-admission"}[1m])) by (le, webhook)) > 1
+        for: 10m
+        labels:
+          severity: warning

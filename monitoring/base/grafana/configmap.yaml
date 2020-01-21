@@ -61,42 +61,42 @@ data:
       options:
         path: /var/lib/grafana/dashboards/etcd
     - name: 'kube-apiserver'
-      folder: ''
+      folder: 'Kubernetes'
       type: file
       disableDeletion: false
       editable: false
       options:
         path: /var/lib/grafana/dashboards/kube-apiserver
     - name: 'kube-controller-manager'
-      folder: ''
+      folder: 'Kubernetes'
       type: file
       disableDeletion: false
       editable: false
       options:
         path: /var/lib/grafana/dashboards/kube-controller-manager
     - name: 'kube-scheduler'
-      folder: ''
+      folder: 'Kubernetes'
       type: file
       disableDeletion: false
       editable: false
       options:
         path: /var/lib/grafana/dashboards/kube-scheduler
     - name: 'kubelet'
-      folder: ''
+      folder: 'Kubernetes'
       type: file
       disableDeletion: false
       editable: false
       options:
         path: /var/lib/grafana/dashboards/kubelet
     - name: 'kubernetes-cluster'
-      folder: ''
+      folder: 'Kubernetes'
       type: file
       disableDeletion: false
       editable: false
       options:
         path: /var/lib/grafana/dashboards/kubernetes-cluster
     - name: 'kubernetes-persistence-volumes'
-      folder: ''
+      folder: 'Kubernetes'
       type: file
       disableDeletion: false
       editable: false
@@ -151,6 +151,14 @@ data:
       editable: false
       options:
         path: /var/lib/grafana/dashboards/all-nodes
+    - name: 'neco-admission'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/neco-admission
+
 ---
 apiVersion: v1
 kind: ConfigMap

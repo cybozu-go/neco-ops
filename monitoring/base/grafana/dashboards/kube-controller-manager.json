@@ -689,7 +689,10 @@
     "refresh": "",
     "schemaVersion": 21,
     "style": "dark",
-    "tags": [],
+    "tags": [
+      "kubernetes",
+      "master"
+    ],
     "templating": {
       "list": [
         {

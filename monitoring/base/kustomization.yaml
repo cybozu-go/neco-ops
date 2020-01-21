@@ -36,6 +36,7 @@ configMapGenerator:
       - prometheus/alert_rules/kubernetes.yaml
       - prometheus/alert_rules/metallb.yaml
       - prometheus/alert_rules/monitoring.yaml
+      - prometheus/alert_rules/neco-admission.yaml
       - prometheus/alert_rules/network-policy.yaml
       - prometheus/alert_rules/node.yaml
       - prometheus/alert_rules/sabakan.yaml
@@ -94,3 +95,6 @@ configMapGenerator:
   - name: dashboard-all-nodes
     files:
       - grafana/dashboards/all_nodes.json
+  - name: dashboard-neco-admission
+    files:
+      - grafana/dashboards/neco-admission.json

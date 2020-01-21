@@ -15,8 +15,8 @@
     "editable": true,
     "gnetId": null,
     "graphTooltip": 0,
-    "id": null,
-    "iteration": 1570083853267,
+    "id": 23,
+    "iteration": 1579585315777,
     "links": [],
     "panels": [
         {
@@ -24,14 +24,103 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
+            "datasource": null,
             "fill": 1,
             "fillGradient": 0,
             "gridPos": {
-                "h": 20,
+                "h": 9,
                 "w": 12,
                 "x": 0,
                 "y": 0
             },
+            "hiddenSeries": false,
+            "id": 6,
+            "legend": {
+                "avg": false,
+                "current": false,
+                "max": false,
+                "min": false,
+                "show": true,
+                "total": false,
+                "values": false
+            },
+            "lines": true,
+            "linewidth": 1,
+            "nullPointMode": "null",
+            "options": {
+                "dataLinks": []
+            },
+            "percentage": false,
+            "pointradius": 2,
+            "points": false,
+            "renderer": "flot",
+            "seriesOverrides": [],
+            "spaceLength": 10,
+            "stack": false,
+            "steppedLine": false,
+            "targets": [
+                {
+                    "expr": "histogram_quantile($quantile, sum(rate(controller_runtime_webhook_latency_seconds_bucket{job=\"neco-admission\"}[1m])) by (le, webhook))",
+                    "intervalFactor": 1,
+                    "refId": "A"
+                }
+            ],
+            "thresholds": [],
+            "timeFrom": null,
+            "timeRegions": [],
+            "timeShift": null,
+            "title": "Controller Runtime Webhook Latency φ-quantile",
+            "tooltip": {
+                "shared": true,
+                "sort": 0,
+                "value_type": "individual"
+            },
+            "type": "graph",
+            "xaxis": {
+                "buckets": null,
+                "mode": "time",
+                "name": null,
+                "show": true,
+                "values": []
+            },
+            "yaxes": [
+                {
+                    "format": "s",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                },
+                {
+                    "format": "s",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                }
+            ],
+            "yaxis": {
+                "align": false,
+                "alignLevel": null
+            }
+        },
+        {
+            "aliasColors": {},
+            "bars": false,
+            "dashLength": 10,
+            "dashes": false,
+            "datasource": null,
+            "fill": 1,
+            "fillGradient": 0,
+            "gridPos": {
+                "h": 9,
+                "w": 12,
+                "x": 12,
+                "y": 0
+            },
+            "hiddenSeries": false,
             "id": 2,
             "legend": {
                 "avg": false,
@@ -58,16 +147,41 @@
             "steppedLine": false,
             "targets": [
                 {
-                    "expr": "rate(container_cpu_usage_seconds_total{namespace=\"$namespace\"}[10m])",
-                    "legendFormat": "{{pod}}",
+                    "expr": "sum(rate(rest_client_requests_total{code=~\"2..\", job=\"neco-admission\"}[5m]))",
+                    "intervalFactor": 2,
+                    "legendFormat": "2xx",
+                    "refId": "A"
+                },
+                {
+                    "expr": "sum(rate(rest_client_requests_total{code=~\"3..\", job=\"neco-admission\"}[5m]))",
+                    "intervalFactor": 2,
+                    "legendFormat": "3xx",
                     "refId": "B"
+                },
+                {
+                    "expr": "sum(rate(rest_client_requests_total{code=~\"4..\", job=\"neco-admission\"}[5m]))",
+                    "intervalFactor": 2,
+                    "legendFormat": "4xx",
+                    "refId": "C"
+                },
+                {
+                    "expr": "sum(rate(rest_client_requests_total{code=~\"5..\", job=\"neco-admission\"}[5m]))",
+                    "intervalFactor": 2,
+                    "legendFormat": "5xx",
+                    "refId": "D"
+                },
+                {
+                    "expr": "sum(rate(rest_client_requests_total{code=~\"<error>\", job=\"neco-admission\"}[5m]))",
+                    "intervalFactor": 2,
+                    "legendFormat": "error",
+                    "refId": "E"
                 }
             ],
             "thresholds": [],
             "timeFrom": null,
             "timeRegions": [],
             "timeShift": null,
-            "title": "CPU time average 10m ($namespace)",
+            "title": "RPC Rate",
             "tooltip": {
                 "shared": true,
                 "sort": 0,
@@ -83,16 +197,15 @@
             },
             "yaxes": [
                 {
-                    "decimals": 2,
-                    "format": "s",
-                    "label": "",
+                    "format": "short",
+                    "label": null,
                     "logBase": 1,
                     "max": null,
                     "min": null,
                     "show": true
                 },
                 {
-                    "format": "none",
+                    "format": "short",
                     "label": null,
                     "logBase": 1,
                     "max": null,
@@ -110,15 +223,17 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
+            "datasource": null,
             "fill": 1,
             "fillGradient": 0,
             "gridPos": {
-                "h": 20,
+                "h": 9,
                 "w": 12,
-                "x": 12,
-                "y": 0
+                "x": 0,
+                "y": 9
             },
-            "id": 3,
+            "hiddenSeries": false,
+            "id": 4,
             "legend": {
                 "avg": false,
                 "current": false,
@@ -144,16 +259,16 @@
             "steppedLine": false,
             "targets": [
                 {
-                    "expr": "container_cpu_load_average_10s{namespace=\"$namespace\"}",
-                    "legendFormat": "{{pod}}",
-                    "refId": "B"
+                    "expr": "histogram_quantile($quantile, sum(rate(rest_client_request_latency_seconds_bucket{job=\"neco-admission\"}[1m])) by (le))",
+                    "intervalFactor": 2,
+                    "refId": "A"
                 }
             ],
             "thresholds": [],
             "timeFrom": null,
             "timeRegions": [],
             "timeShift": null,
-            "title": "CPU load average 10s ($namespace)",
+            "title": "Rest Client Latency φ-quantile",
             "tooltip": {
                 "shared": true,
                 "sort": 0,
@@ -169,16 +284,15 @@
             },
             "yaxes": [
                 {
-                    "decimals": 0,
-                    "format": "short",
-                    "label": "",
+                    "format": "s",
+                    "label": null,
                     "logBase": 1,
                     "max": null,
-                    "min": "0",
+                    "min": null,
                     "show": true
                 },
                 {
-                    "format": "none",
+                    "format": "s",
                     "label": null,
                     "logBase": 1,
                     "max": null,
@@ -192,135 +306,51 @@
             }
         }
     ],
-    "refresh": false,
-    "schemaVersion": 19,
+    "schemaVersion": 21,
     "style": "dark",
     "tags": [
-        "node"
+        "kubernetes"
     ],
     "templating": {
         "list": [
             {
                 "allValue": null,
                 "current": {
+                    "selected": false,
                     "tags": [],
-                    "text": "argocd",
-                    "value": "argocd"
+                    "text": "0.95",
+                    "value": "0.95"
                 },
-                "datasource": "prometheus",
-                "definition": "label_values(kube_namespace_created,namespace)",
                 "hide": 0,
                 "includeAll": false,
                 "label": null,
                 "multi": false,
-                "name": "namespace",
+                "name": "quantile",
                 "options": [
                     {
+                        "selected": false,
+                        "text": "0.99",
+                        "value": "0.99"
+                    },
+                    {
                         "selected": true,
-                        "text": "argocd",
-                        "value": "argocd"
+                        "text": "0.95",
+                        "value": "0.95"
                     },
                     {
                         "selected": false,
-                        "text": "default",
-                        "value": "default"
-                    },
-                    {
-                        "selected": false,
-                        "text": "demo",
-                        "value": "demo"
-                    },
-                    {
-                        "selected": false,
-                        "text": "elastic-system",
-                        "value": "elastic-system"
-                    },
-                    {
-                        "selected": false,
-                        "text": "external-dns",
-                        "value": "external-dns"
-                    },
-                    {
-                        "selected": false,
-                        "text": "ingress-global",
-                        "value": "ingress-global"
-                    },
-                    {
-                        "selected": false,
-                        "text": "ingress-forest",
-                        "value": "ingress-forest"
-                    },
-                    {
-                        "selected": false,
-                        "text": "ingress-bastion",
-                        "value": "ingress-bastion"
-                    },
-                    {
-                        "selected": false,
-                        "text": "internet-egress",
-                        "value": "internet-egress"
-                    },
-                    {
-                        "selected": false,
-                        "text": "kube-node-lease",
-                        "value": "kube-node-lease"
-                    },
-                    {
-                        "selected": false,
-                        "text": "kube-public",
-                        "value": "kube-public"
-                    },
-                    {
-                        "selected": false,
-                        "text": "kube-system",
-                        "value": "kube-system"
-                    },
-                    {
-                        "selected": false,
-                        "text": "maneki",
-                        "value": "maneki"
-                    },
-                    {
-                        "selected": false,
-                        "text": "metallb-system",
-                        "value": "metallb-system"
-                    },
-                    {
-                        "selected": false,
-                        "text": "monitoring",
-                        "value": "monitoring"
-                    },
-                    {
-                        "selected": false,
-                        "text": "sandbox",
-                        "value": "sandbox"
-                    },
-                    {
-                        "selected": false,
-                        "text": "teleport",
-                        "value": "teleport"
-                    },
-                    {
-                        "selected": false,
-                        "text": "topolvm-system",
-                        "value": "topolvm-system"
+                        "text": "0.9",
+                        "value": "0.9"
                     }
                 ],
-                "query": "label_values(kube_namespace_created,namespace)",
-                "refresh": 0,
-                "regex": "",
+                "query": "0.99,0.95,0.9",
                 "skipUrlSync": false,
-                "sort": 1,
-                "tagValuesQuery": "",
-                "tags": [],
-                "tagsQuery": "",
-                "type": "query",
-                "useTags": false
+                "type": "custom"
             }
         ]
     },
     "time": {
-        "from": "now-15m",
+        "from": "now-6h",
         "to": "now"
     },
     "timepicker": {
@@ -338,7 +368,7 @@
         ]
     },
     "timezone": "",
-    "title": "CPU Usage Per Pod",
-    "uid": "llj9rd2Wk",
-    "version": 5
+    "title": "Neco Admission",
+    "uid": "K7BL37yZz",
+    "version": 14
 }

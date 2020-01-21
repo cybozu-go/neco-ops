@@ -5,6 +5,10 @@ metadata:
   namespace: kube-system
   labels:
     app.kubernetes.io/name: neco-admission
+  annotations:
+    prometheus.io/path: "/metrics"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
 spec:
   selector:
     matchLabels:
@@ -38,6 +42,8 @@ spec:
         volumeMounts:
           - name: certs
             mountPath: /certs
+        ports:
+          - containerPort: 8080
         readinessProbe:
           httpGet:
             path: /metrics

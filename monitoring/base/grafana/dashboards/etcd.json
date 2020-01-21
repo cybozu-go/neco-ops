@@ -1740,7 +1740,10 @@
     ],
     "schemaVersion": 14,
     "style": "dark",
-    "tags": [],
+    "tags": [
+        "kubernetes",
+        "storage"
+    ],
     "templating": {
         "list": [
             {

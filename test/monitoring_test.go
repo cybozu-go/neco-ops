@@ -278,7 +278,7 @@ func testGrafana() {
 
 		By("confirming all dashboards are successfully registered")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", loadBalancerIP+"/api/search")
+			stdout, stderr, err := ExecAt(boot0, "curl", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", loadBalancerIP+"/api/search?type=dash-db")
 			if err != nil {
 				return fmt.Errorf("unable to get dashboards, stderr: %s, err: %v", stderr, err)
 			}
@@ -292,9 +292,8 @@ func testGrafana() {
 
 			// NOTE: expectedNum is the number of JSON files under monitoring/base/grafana/dashboards + 1(Node Exporter Full).
 			// Node Exporter Full is downloaded every time from the Internet because too large to store into configMap.
-			expectedNum := 18
-			if len(dashboards) != expectedNum {
-				return fmt.Errorf("len(dashboards) should be %d: %d", expectedNum, len(dashboards))
+			if len(dashboards) != numGrafanaDashboard {
+				return fmt.Errorf("len(dashboards) should be %d: %d", numGrafanaDashboard, len(dashboards))
 			}
 			return nil
 		}).Should(Succeed())

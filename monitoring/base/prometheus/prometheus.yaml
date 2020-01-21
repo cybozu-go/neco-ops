@@ -18,6 +18,7 @@ rule_files:
   - /etc/prometheus/network-policy.yaml
   - /etc/prometheus/node.yaml
   - /etc/prometheus/sabakan.yaml
+  - /etc/prometheus/neco-admission.yaml
   - /etc/prometheus/teleport.yaml
   - /etc/prometheus/topolvm.yaml
 alerting:
@@ -396,6 +397,25 @@ scrape_configs:
       - source_labels: [__meta_kubernetes_service_name]
         action: keep
         regex: external-dns-metrics
+  - job_name: "neco-admission"
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: ["kube-system"]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: neco-admission
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: ${1}:${2}
+        target_label: __address__
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance
   - job_name: "teleport"
     kubernetes_sd_configs:
       - role: pod
