@@ -3,7 +3,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,21 +11,42 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+func existTargetLocalPV(localPVs []corev1.PersistentVolume, nodename, path string) bool {
+	for _, pv := range localPVs {
+		if len(pv.OwnerReferences) != 1 {
+			continue
+		}
+		owner := pv.OwnerReferences[0]
+		if owner.Kind != "Node" || owner.Name != nodename {
+			continue
+		}
+		if pv.Spec.Local.Path != path {
+			continue
+		}
+		return true
+	}
+	return false
+}
+
 func testLocalPVProvisioner() {
+	const cryptPartDir = "/dev/crypt-part/by-path/"
+
 	var ssNodes corev1.NodeList
 	var ssNumber int
+	var targetDeviceNum int
 	var targetPVList []corev1.PersistentVolume
 
-	It("should be deployed successfully", func() {
-		By("getting SS Nodes")
+	It("should get SS Nodes", func() {
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "nodes", "--selector=cke.cybozu.com/role=ss", "-o", "json")
-		Expect(err).ShouldNot(HaveOccurred(), "failed to get SS Nodes. stdout: %s, stderr: %s", stdout, stderr)
+		Expect(err).NotTo(HaveOccurred(), "failed to get SS Nodes. stdout: %s, stderr: %s", stdout, stderr)
 
 		err = json.Unmarshal(stdout, &ssNodes)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(ssNodes.Items).ShouldNot(HaveLen(0))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ssNodes.Items).NotTo(HaveLen(0))
 		ssNumber = len(ssNodes.Items)
+	})
 
+	It("should be deployed successfully", func() {
 		By("checking the number of available Pods by the state of DaemonSet")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "ds", "local-pv-provisioner", "-n", "kube-system", "-o", "json")
@@ -46,78 +67,52 @@ func testLocalPVProvisioner() {
 		}).Should(Succeed())
 
 		By("checking the Pods were assigned for Nodes")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "--selector=app.kubernetes.io/name=local-pv-provisioner", "-n", "kube-system", "-o", "json")
-		Expect(err).ShouldNot(HaveOccurred(), "failed to get a DaemonSet. stdout: %s, stderr: %s", stdout, stderr)
-
-		var lppPods corev1.PodList
-		err = json.Unmarshal(stdout, &lppPods)
-		Expect(err).ShouldNot(HaveOccurred(), "failed to unmarshal JSON.")
-
-		nodeNamesByPod := []string{}
-		for _, lppPod := range lppPods.Items {
-			nodeNamesByPod = append(nodeNamesByPod, lppPod.Spec.NodeName)
-		}
-		sort.Strings(nodeNamesByPod)
-
-		nodeNames := []string{}
 		for _, ssNode := range ssNodes.Items {
-			nodeNames = append(nodeNames, ssNode.Name)
-		}
-		sort.Strings(nodeNames)
+			By("checking the pod on " + ssNode.GetName())
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pods", "--selector=app.kubernetes.io/name=local-pv-provisioner", "--field-selector=spec.nodeName=="+ssNode.GetName(), "-n", "kube-system", "-o", "json")
+			Expect(err).NotTo(HaveOccurred(), "failed to get a DaemonSet. stdout: %s, stderr: %s", stdout, stderr)
 
-		Expect(nodeNamesByPod).Should(BeEquivalentTo(nodeNames))
+			var lppPods corev1.PodList
+			err = json.Unmarshal(stdout, &lppPods)
+			Expect(err).NotTo(HaveOccurred(), "failed to unmarshal JSON")
+			Expect(lppPods.Items).To(HaveLen(1))
+		}
 	})
 
 	It("should be created PV successfully", func() {
-		var targetDevices = []string{
-			"/dev/crypt-disk/by-path/pci-0000:00:0a.0",
-			"/dev/crypt-disk/by-path/pci-0000:00:0b.0",
+		By("getting local PVs")
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pv", "-o", "json")
+		Expect(err).NotTo(HaveOccurred(), "failed to get PVs. stdout: %s, stderr: %s", stdout, stderr)
+
+		var pvs corev1.PersistentVolumeList
+		err = json.Unmarshal(stdout, &pvs)
+		Expect(err).NotTo(HaveOccurred(), "failed to unmarshal JSON")
+
+		for _, pv := range pvs.Items {
+			if pv.Spec.StorageClassName == "local-storage" {
+				targetPVList = append(targetPVList, pv)
+			}
+		}
+
+		By("checking local PVs were created for each device on each node")
+		for _, ssNode := range ssNodes.Items {
+			By("checking target device files on " + ssNode.GetName())
+			ssNodeIP := ssNode.GetName()
+			stdout, stderr, err := ExecAt(boot0, "ckecli", "ssh", "cybozu@"+ssNodeIP, "ls", cryptPartDir)
+			Expect(err).NotTo(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+			devices := strings.Fields(strings.TrimSpace(string(stdout)))
+
+			for _, dev := range devices {
+				path := cryptPartDir + dev
+				By("checking the existence of local PV for " + path)
+				Expect(existTargetLocalPV(targetPVList, ssNodeIP, path)).To(BeTrue())
+			}
+
+			targetDeviceNum += len(devices)
 		}
 
 		By("checking the number of local PVs")
-		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pv", "-o", "json")
-			if err != nil {
-				return fmt.Errorf("failed to get PVs. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			}
-
-			var pvs corev1.PersistentVolumeList
-			err = json.Unmarshal(stdout, &pvs)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal JSON. err: %v", err)
-			}
-
-			for _, pv := range pvs.Items {
-				if pv.Spec.StorageClassName == "local-storage" {
-					targetPVList = append(targetPVList, pv)
-				}
-			}
-			if len(targetPVList) != ssNumber*len(targetDevices) {
-				return fmt.Errorf("the number of local PVs should be %d: %d", ssNumber*len(targetDevices), len(targetPVList))
-			}
-
-			return nil
-		}).Should(Succeed())
-
-		By("checking local PVs were created for each device on each node")
-		expected := []string{}
-		for _, ssNode := range ssNodes.Items {
-			for _, dev := range targetDevices {
-				expected = append(expected, ssNode.Name+":"+dev)
-			}
-		}
-		sort.Strings(expected)
-
-		actual := []string{}
-		for _, pv := range targetPVList {
-			ownerRefList := pv.GetOwnerReferences()
-			Expect(ownerRefList).To(HaveLen(1), "local PV should have one owner reference. pv: %s, len(ownerReferences): %d", pv.Name, len(ownerRefList))
-			ownerRef := ownerRefList[0]
-			actual = append(actual, ownerRef.Name+":"+pv.Spec.PersistentVolumeSource.Local.Path)
-		}
-		sort.Strings(actual)
-
-		Expect(actual).Should(BeEquivalentTo(expected))
+		Expect(targetPVList).To(HaveLen(targetDeviceNum))
 	})
 
 	ns := "test-local-pv-provisioner"
@@ -186,8 +181,39 @@ spec:
 
 	It("cleans up", func() {
 		ExecSafeAt(boot0, "kubectl", "delete", "namespace", ns)
+
 		for _, pv := range targetPVList {
 			ExecSafeAt(boot0, "kubectl", "delete", "pv", pv.GetName())
 		}
+		Eventually(func() error {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pv", "-o", "json")
+			if err != nil {
+				return fmt.Errorf("failed to get PVs. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+
+			var pvs corev1.PersistentVolumeList
+			err = json.Unmarshal(stdout, &pvs)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal JSON. err: %v", err)
+			}
+
+			var newPVList []corev1.PersistentVolume
+			for _, pv := range pvs.Items {
+				if pv.Spec.StorageClassName == "local-storage" {
+					newPVList = append(newPVList, pv)
+				}
+			}
+			if len(newPVList) != targetDeviceNum {
+				return fmt.Errorf("the number of local PVs should be %d: %d", targetDeviceNum, len(newPVList))
+			}
+
+			for _, pv := range newPVList {
+				if pv.Status.Phase != corev1.VolumeAvailable {
+					return fmt.Errorf("local PVs status should be %s: %s", corev1.VolumeAvailable, pv.Status.Phase)
+				}
+			}
+
+			return nil
+		}).Should(Succeed())
 	})
 }
