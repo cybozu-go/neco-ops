@@ -31,8 +31,7 @@ commands:
             - run:
                 name: Checkout Neco (specified branch)
                 command: |
-                  # If CIRCLE_BRANCH has specified prefix("with-neco-branch-"), change the branch to be cloned.
-                  NECO_BRANCH=${CIRCLE_BRANCH#with-neco-branch-}
+                  NECO_BRANCH=${CIRCLE_BRANCH}
 
                   # If there is not NECO_BRANCH branch in the cybozu-go/neco repository, git clone will fail.
                   echo "checkout $NECO_BRANCH"
@@ -75,6 +74,35 @@ commands:
                   ./bin/run-dctest.sh bootstrap
                 no_output_timeout: 31m
 
+  notify-slack-to-extend:
+    description: "notify slack to extend the lifetime of the GCP instance"
+    steps:
+      - run:
+          name: Notify Slack to extend the lifetime of the GCP instance
+          command: |
+            . ./bin/env
+            curl -X POST -H 'Content-type: application/json' --data "{
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"Failed: ${CIRCLE_USERNAME}'s workflow (${CIRCLE_JOB}) in <https://circleci.com/gh/${CIRCLE_PROJECT_USERNAME}/workflows/${CIRCLE_PROJECT_REPONAME}|${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}> (<https://circleci.com/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}|${CIRCLE_BRANCH}>)\n Do you extend the lifetime of ${INSTANCE_NAME}?\"
+                  },
+                  \"accessory\": {
+                    \"type\": \"button\",
+                    \"text\": {
+                      \"type\": \"plain_text\",
+                      \"text\": \"Extend\",
+                      \"emoji\": true
+                    },
+                    \"value\": \"${INSTANCE_NAME}\"
+                  }
+                }
+              ]
+            }" $SLACK_WEBHOOK_URL
+          when: on_fail
+
 jobs:
   test:
     docker:
@@ -108,6 +136,14 @@ jobs:
             ./bin/run-test.sh
           no_output_timeout: 31m
       - run:
+          name: Set the instance lifetime to 10 minutes
+          command: |
+            . ./bin/env
+            $GCLOUD compute instances add-metadata ${INSTANCE_NAME} --zone ${ZONE} \
+              --metadata shutdown-at=$(date -Iseconds -d+10minutes)
+          when: on_fail
+      - notify-slack-to-extend
+      - run:
           name: Remove instance
           command: |
             cd neco
@@ -126,6 +162,14 @@ jobs:
             export NECO_DIR=$(pwd)/neco
             TARGET=dctest-upgrade ./bin/run-test.sh
           no_output_timeout: 31m
+      - run:
+          name: Set the instance lifetime to 10 minutes
+          command: |
+            . ./bin/env
+            $GCLOUD compute instances add-metadata ${INSTANCE_NAME} --zone ${ZONE} \
+              --metadata shutdown-at=$(date -Iseconds -d+10minutes)
+          when: on_fail
+      - notify-slack-to-extend
       - run:
           name: Remove instance
           command: |
@@ -146,6 +190,14 @@ jobs:
             TARGET=dctest-upgrade BASE_BRANCH=stage ./bin/run-test.sh
           no_output_timeout: 31m
       - run:
+          name: Set the instance lifetime to 10 minutes
+          command: |
+            . ./bin/env
+            $GCLOUD compute instances add-metadata ${INSTANCE_NAME} --zone ${ZONE} \
+              --metadata shutdown-at=$(date -Iseconds -d+10minutes)
+          when: on_fail
+      - notify-slack-to-extend
+      - run:
           name: Remove instance
           command: |
             cd neco
@@ -164,6 +216,14 @@ jobs:
             export NECO_DIR=$(pwd)/neco
             TARGET=dctest-upgrade BASE_BRANCH=release ./bin/run-test.sh
           no_output_timeout: 31m
+      - run:
+          name: Set the instance lifetime to 10 minutes
+          command: |
+            . ./bin/env
+            $GCLOUD compute instances add-metadata ${INSTANCE_NAME} --zone ${ZONE} \
+              --metadata shutdown-at=$(date -Iseconds -d+10minutes)
+          when: on_fail
+      - notify-slack-to-extend
       - run:
           name: Remove instance
           command: |
@@ -187,6 +247,14 @@ jobs:
             curl -sSLf -o ./bin/env https://raw.githubusercontent.com/cybozu-go/neco/master/bin/env
             ./bin/run-kindtest.sh
           no_output_timeout: 31m
+      - run:
+          name: Set the instance lifetime to 10 minutes
+          command: |
+            . ./bin/env
+            $GCLOUD compute instances add-metadata ${INSTANCE_NAME} --zone ${ZONE} \
+              --metadata shutdown-at=$(date -Iseconds -d+10minutes)
+          when: on_fail
+      - notify-slack-to-extend
       - run:
           name: Remove instance
           command: |
@@ -271,11 +339,7 @@ workflows:
       - kindtest:
           filters:
             branches:
-              ignore:
-                - master
-                - stage
-                - release
-                - /^op-(stage|release)-.*/
+              ignore: ["master", "stage", "release", /^op-(stage|release)-.*/]
 
   manual-dctest:
     jobs:
@@ -285,19 +349,12 @@ workflows:
           name: bootstrap
           requires:
             - hold
-      # If branch name has specified prefix("with-neco-branch-hoge-piyo"), testing with the specified neco branch("hoge-piyo").
-      - bootstrap:
-          name: bootstrap-with-neco-branch
-          neco-release-branch: false
-          filters:
-            branches:
-              only: /^with-neco-branch-.*$/
       - upgrade-master:
           requires:
             - hold
           filters:
             branches:
-              ignore: ["master", "stage", "release"]
+              ignore: ["master", "stage", "release", /^op-(stage|release)-.*/]
       - upgrade-release:
           requires:
             - hold
@@ -313,6 +370,23 @@ workflows:
             - bootstrap
             - upgrade-stage
             - upgrade-release
+
+  # Test with the specified neco branch.
+  manual-dctest-with-neco-feature-branch:
+    jobs:
+      - hold:
+          type: approval
+          filters:
+            branches:
+              ignore: ["master", "stage", "release", /^op-(stage|release)-.*/]
+      - bootstrap:
+          name: bootstrap-with-neco-branch
+          neco-release-branch: false
+          requires:
+            - hold
+          filters:
+            branches:
+              ignore: ["master", "stage", "release", /^op-(stage|release)-.*/]
 
   daily:
     triggers:

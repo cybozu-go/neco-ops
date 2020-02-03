@@ -37,12 +37,12 @@ This repository has 4 CircleCI workflows, `main`, `daily`, `manual-dctest` and `
 
 `daily` workflow is executed daily for merging `master` to `stage`.  This consists of the following 4 jobs.
 
-| job name                    | description                                                                                            | target branch |
-| -----------------           | ------------------------------------------------------------------------------------------------------ | ------------- |
-| `bootstrap`                 | Bootstrap test on GCP instances                                                                        | `master`      |
-| `upgrade-stage`             | Upgrade test from `stage` branch (staging env)                                                         | `master`      |
-| `upgrade-release`           | Upgrade test from `release` branch (production env)                                                    | `master`      |
-| `create-pull-request-stage` | Create PR to stage, then trigger `create-pull-request-stage` of the secret repository.                 | `master`      |
+| job name                    | description                                                                            | target branch |
+| --------------------------- | -------------------------------------------------------------------------------------- | ------------- |
+| `bootstrap`                 | Bootstrap test on GCP instances                                                        | `master`      |
+| `upgrade-stage`             | Upgrade test from `stage` branch (staging env)                                         | `master`      |
+| `upgrade-release`           | Upgrade test from `release` branch (production env)                                    | `master`      |
+| `create-pull-request-stage` | Create PR to stage, then trigger `create-pull-request-stage` of the secret repository. | `master`      |
 
 `update-stage` is executed only if 3 other jobs succeeded.
 
@@ -52,17 +52,26 @@ This repository has 4 CircleCI workflows, `main`, `daily`, `manual-dctest` and `
 
 This consists of the following 6 jobs.
 
-| job name                     | description                                                                                            | target branch                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------ |
-| `bootstrap`                  | Bootstrap test on GCP instances                                                                        | all branches                         |
-| `bootstrap-with-neco-branch` | Bootstrap test with `neco`'s feature branch                                                            | `with-neco-branch-*` branch          |
-| `upgrade-master`             | Upgrade test from `master` branch                                                                      | all but `master`, `stage`, `release` |
-| `upgrade-stage`              | Upgrade test from `stage` branch (staging env)                                                         | all branches                         |
-| `upgrade-release`            | Upgrade test from `release` branch (production env)                                                    | all branches                         |
-| `create-pull-request-stage`  | Create PR to stage, then trigger `create-pull-request-stage` of the secret repository.                 | `master`                             |
+| job name                    | description                                                                            | target branch                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `bootstrap`                 | Bootstrap test on GCP instances                                                        | all branches                                                                      |
+| `upgrade-master`            | Upgrade test from `master` branch                                                      | all branches except `master`, `stage`, `release`, `op-release-*` and `op-stage-*` |
+| `upgrade-stage`             | Upgrade test from `stage` branch (staging env)                                         | all branches                                                                      |
+| `upgrade-release`           | Upgrade test from `release` branch (production env)                                    | all branches                                                                      |
+| `create-pull-request-stage` | Create PR to stage, then trigger `create-pull-request-stage` of the secret repository. | `master`                                                                          |
 
-`bootstrap-2` is tested with `neco`'s feature branch which extracted from `neco-apps`'s branch name.
-For example, when `with-neco-branch-foo-bar` branch of `neco-apps`, it's tested with `foo-bar` branch of `neco`.
+### `manual-dctest-with-neco-feature-branch` workflow
+
+`manual-dctest-with-neco-feature-branch` workflow is not executed automatically. This can be triggered from Web UI.
+
+This consists of the following job.
+
+| job name                     | description                                 | target branch                                                                     |
+| ---------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------- |
+| `bootstrap-with-neco-branch` | Bootstrap test with `neco`'s feature branch | all branches except `master`, `stage`, `release`, `op-release-*` and `op-stage-*` |
+
+`bootstrap-with-neco-branch` is tested with `neco`'s feature branch which is the same name as `neco-apps`'s target branch name.
+For example, when `foo-bar` branch of `neco-apps`, it's tested with `foo-bar` branch of `neco`.
 
 ### `release-tag` workflow
 
