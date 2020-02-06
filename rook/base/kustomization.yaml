@@ -5,7 +5,7 @@ resources:
   - upstream/operator.yaml
   - ceph-cs
   - ceph-ss
-#images:
-#  - name: rook/ceph
-#    newName: rook/ceph
-#    newTag: master
+images:
+  - name: rook/ceph
+    newName: quay.io/cybozu/rook
+    newTag: 1.2.2.2
