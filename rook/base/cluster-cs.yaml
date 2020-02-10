@@ -15,8 +15,8 @@ spec:
           requests:
             storage: 1Gi
   cephVersion:
-    image: ceph/ceph:v14.2.6
-    allowUnsupported: false
+    image: quay.io/cybozu/ceph:15.1.0.2
+    allowUnsupported: true
   dashboard:
     enabled: false
     ssl: true
