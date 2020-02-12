@@ -15,7 +15,7 @@ spec:
           requests:
             storage: 1Gi
   cephVersion:
-    image: quay.io/ishii_masayuki/ceph:15.1.0.3
+    image: quay.io/cybozu/ceph:14.2.6.3
     allowUnsupported: true
   dashboard:
     enabled: false
