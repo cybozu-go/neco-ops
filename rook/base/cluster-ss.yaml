@@ -59,3 +59,14 @@ spec:
           resources:
             requests:
               storage: 6Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: ceph-for-ss
+data:
+  # Suppress warning by insufficient OSD count.
+  config: |
+    [global]
+    osd pool default size = 1
