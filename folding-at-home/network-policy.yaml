@@ -1,0 +1,29 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: incluster-deny
+  namespace: folding-at-home
+spec:
+  order: 1001.0
+  types:
+    - Egress
+  egress:
+    - action: Deny
+      destination:
+        selector: role == 'private'
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-squid-allow
+  namespace: folding-at-home
+spec:
+  order: 1000.0
+  types:
+    - Egress
+  egress:
+    - action: Allow
+      destination:
+        selector: app.kubernetes.io/name == 'squid'
+        ports:
+          - 3128
