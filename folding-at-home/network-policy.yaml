@@ -4,7 +4,7 @@ metadata:
   name: incluster-deny
   namespace: folding-at-home
 spec:
-  order: 1001.0
+  order: 1002.0
   types:
     - Egress
   egress:
@@ -18,7 +18,7 @@ metadata:
   name: egress-squid-allow
   namespace: folding-at-home
 spec:
-  order: 1000.0
+  order: 1001.0
   types:
     - Egress
   egress:

@@ -2,7 +2,7 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: folding-at-home
-value: 10
+value: -10000
 globalDefault: false
 description: "This priority class should be used for low priority fah pods only."
 ---
@@ -44,9 +44,9 @@ spec:
           value: http://squid.internet-egress.svc:3128
         resources:
           limits:
-            cpu: 1000m # How much CPU you wish to donate per node
-            memory: 2Gi
+            cpu: 24 # How much CPU you wish to donate per node
+            memory: 48Gi
           requests:
-            cpu: 100m
-            memory: 256Mi
+            cpu: 24
+            memory: 48Gi
       priorityClassName: folding-at-home
