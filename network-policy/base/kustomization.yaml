@@ -10,7 +10,6 @@ resources:
   - policies/kube-system.yaml
   - policies/monitoring.yaml
   - policies/teleport.yaml
-  - global-policies/apiserver.yaml
   - global-policies/controller-manager.yaml
   - global-policies/egress-all-allow.yaml
   - global-policies/egress-backyard-deny.yaml
