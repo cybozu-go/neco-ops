@@ -23,30 +23,59 @@ spec:
       labels:
         app.kubernetes.io/name: folding-at-home
     spec:
+      securityContext:
+        runAsUser: 105 # fahclient(=105)
+        runAsGroup: 105
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                - folding-at-home
-            topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - folding-at-home
+              topologyKey: "kubernetes.io/hostname"
       containers:
-      - name: fah
-        image: "richstokes20/fah-covid:latest"
-        imagePullPolicy: Always
-        env:
-        - name: HTTP_PROXY
-          value: http://squid.internet-egress.svc:3128
-        - name: HTTPS_PROXY
-          value: http://squid.internet-egress.svc:3128
-        resources:
-          limits:
-            cpu: 24 # How much CPU you wish to donate per node
-            memory: 48Gi
-          requests:
-            cpu: 24
-            memory: 48Gi
+        - name: fah
+          image: "richstokes20/fah-covid:latest"
+          imagePullPolicy: Always
+          command:
+            - /usr/bin/FAHClient
+            - --config
+            - /etc/fahclient/config.xml
+            - --run-as
+            - fahclient
+            - --pid-file=/var/run/fahclient.pid
+            - --proxy
+            - squid.internet-egress.svc:3128
+            - --proxy-enable
+          env:
+            - name: http_proxy
+              value: http://squid.internet-egress.svc:3128
+            - name: https_proxy
+              value: http://squid.internet-egress.svc:3128
+            - name: HTTP_PROXY
+              value: http://squid.internet-egress.svc:3128
+            - name: HTTPS_PROXY
+              value: http://squid.internet-egress.svc:3128
+          resources:
+            limits:
+              cpu: 24 # How much CPU you wish to donate per node
+              memory: 48Gi
+            requests:
+              cpu: 24
+              memory: 48Gi
+          volumeMounts:
+            - mountPath: /opt/fah
+              name: opt
+              readOnly: false
+            - mountPath: /var/lib/fahclient
+              name: var-lib
+              readOnly: false
+      volumes:
+        - name: opt
+          emptyDir: {}
+        - name: var-lib
+          emptyDir: {}
       priorityClassName: folding-at-home
