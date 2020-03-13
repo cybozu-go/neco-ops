@@ -42,13 +42,11 @@ spec:
           imagePullPolicy: Always
           command:
             - /usr/bin/FAHClient
-            - --config
-            - /etc/fahclient/config.xml
-            - --run-as
-            - fahclient
+            - --config=/etc/fahclient/config.xml
+            - --run-as=fahclient
             - --pid-file=/var/run/fahclient.pid
-            - --proxy
-            - squid.internet-egress.svc:3128
+            - --user=Cybozu
+            - --proxy=squid.internet-egress.svc:3128
             - --proxy-enable
           env:
             - name: http_proxy
