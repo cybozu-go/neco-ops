@@ -22,6 +22,8 @@ spec:
       labels:
         app.kubernetes.io/name: folding-at-home
     spec:
+      nodeSelector:
+        cke.cybozu.com/role: cs
       securityContext:
         runAsUser: 105 # fahclient(=105)
         runAsGroup: 105
