@@ -17,7 +17,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: folding-at-home
-  replicas: 2 # Set number of replicas to run - one replica per node
+  replicas: 20 # Set number of replicas to run - one replica per node
   template:
     metadata:
       labels:
