@@ -67,6 +67,9 @@ spec:
               cpu: 24
               memory: 48Gi
           volumeMounts:
+            - mountPath: /etc/fahclient
+              name: etc
+              readOnly: false
             - mountPath: /opt/fah
               name: opt
               readOnly: false
@@ -74,6 +77,8 @@ spec:
               name: var-lib
               readOnly: false
       volumes:
+        - name: etc
+          emptyDir: {}
         - name: opt
           emptyDir: {}
         - name: var-lib
