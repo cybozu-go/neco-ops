@@ -68,10 +68,10 @@ spec:
           resources:
             limits:
               cpu: 24 # How much CPU you wish to donate per node
-              memory: 48Gi
+              memory: 4Gi
             requests:
               cpu: 24
-              memory: 48Gi
+              memory: 4Gi
           volumeMounts:
             - mountPath: /config-volume
               name: config-volume
