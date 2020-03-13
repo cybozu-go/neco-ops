@@ -36,18 +36,26 @@ spec:
                     values:
                       - folding-at-home
               topologyKey: "kubernetes.io/hostname"
+      initContainers:
+        - name: copy-config
+          image: richstokes20/fah-covid:latest
+          command: [cp, /etc/fahclient/config.xml, /config-volume/config.xml]
+          volumeMounts:
+          - mountPath: /config-volume
+            name: config-volume
       containers:
         - name: fah
-          image: "richstokes20/fah-covid:latest"
+          image: richstokes20/fah-covid:latest
           imagePullPolicy: Always
           command:
             - /usr/bin/FAHClient
-            - --config=/etc/fahclient/config.xml
+            - --config=/config-volume/config.xml
             - --run-as=fahclient
             - --pid-file=/var/run/fahclient.pid
             - --user=Cybozu
             - --proxy=squid.internet-egress.svc:3128
             - --proxy-enable
+            - --power=full
           env:
             - name: http_proxy
               value: http://squid.internet-egress.svc:3128
@@ -65,8 +73,8 @@ spec:
               cpu: 24
               memory: 48Gi
           volumeMounts:
-            - mountPath: /etc/fahclient
-              name: etc
+            - mountPath: /config-volume
+              name: config-volume
               readOnly: false
             - mountPath: /opt/fah
               name: opt
@@ -75,7 +83,7 @@ spec:
               name: var-lib
               readOnly: false
       volumes:
-        - name: etc
+        - name: config-volume
           emptyDir: {}
         - name: opt
           emptyDir: {}
