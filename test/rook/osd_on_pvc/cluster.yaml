@@ -27,7 +27,7 @@ spec:
         spec:
           resources:
             requests:
-              storage: 5Gi
+              storage: 10Gi
           # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
           storageClassName: topolvm-provisioner
           volumeMode: Block
