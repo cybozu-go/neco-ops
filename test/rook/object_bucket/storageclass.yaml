@@ -7,6 +7,6 @@ metadata:
 provisioner: ceph.rook.io/bucket
 parameters:
   objectStoreName: my-store
-  objectStoreNamespace: rook-ceph
+  objectStoreNamespace: ceph-for-ss
   region: us-west-1
 reclaimPolicy: Delete
