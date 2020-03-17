@@ -1,7 +1,7 @@
 apiVersion: ceph.rook.io/v1
 kind: CephBlockPool
 metadata:
-  name: replicapool
+  name: cs-block-pool
   namespace: ceph-for-cs
 spec:
   failureDomain: host
@@ -18,7 +18,7 @@ parameters:
     # clusterID is the namespace where the rook cluster is running
     clusterID: ceph-for-cs
     # Ceph pool into which the RBD image shall be created
-    pool: replicapool
+    pool: cs-block-pool
 
     # RBD image format. Defaults to "2".
     imageFormat: "2"

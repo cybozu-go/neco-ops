@@ -31,7 +31,7 @@ spec:
       serviceAccountName: rook-ceph-system
       containers:
       - name: rook-ceph-operator
-        image: rook/ceph:master
+        image: quay.io/kfyharukz/rook-ceph:200317-2
         args: ["ceph", "operator"]
         volumeMounts:
         - mountPath: /var/lib/rook

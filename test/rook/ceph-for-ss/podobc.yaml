@@ -1,0 +1,27 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: pod-ob
+  namespace: default
+spec:
+  generateBucketName: obc-poc
+  storageClassName: rook-ceph-bucket
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-ob
+  namespace: default
+spec:
+  containers:
+  - name: mycontainer
+    image: quay.io/cybozu/ubuntu-debug:18.04
+    args:
+    - infinity
+    command:
+    - sleep
+    envFrom:
+    - configMapRef:
+        name: pod-ob
+    - secretRef:
+        name: pod-ob

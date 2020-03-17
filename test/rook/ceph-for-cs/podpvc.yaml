@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: topolvm-pvc
+  name: pod-rbd
   namespace: default
 spec:
   accessModes:
@@ -14,10 +14,10 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: my-pod
+  name: pod-rbd
   namespace: default
   labels:
-    app.kubernetes.io/name: my-pod
+    app.kubernetes.io/name: pod-rbd
 spec:
   containers:
   - name: ubuntu
@@ -25,8 +25,8 @@ spec:
     command: ["/usr/local/bin/pause"]
     volumeMounts:
     - mountPath: /test1
-      name: my-volume
+      name: rbd-volume
   volumes:
-    - name: my-volume
+    - name: rbd-volume
       persistentVolumeClaim:
-        claimName: topolvm-pvc
+        claimName: pod-rbd

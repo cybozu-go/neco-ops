@@ -1,7 +1,7 @@
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
-  name: my-store
+  name: ss-object-store
   namespace: ceph-for-ss
 spec:
   metadataPool:
@@ -43,3 +43,16 @@ spec:
     #  requests:
     #    cpu: "500m"
     #    memory: "1024Mi"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-bucket
+  labels:
+    aws-s3/object: ""
+provisioner: ceph.rook.io/bucket
+parameters:
+  objectStoreName: ss-object-store
+  objectStoreNamespace: ceph-for-ss
+  region: us-west-1
+reclaimPolicy: Delete

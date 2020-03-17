@@ -9,7 +9,7 @@ spec:
     count: 1
     allowMultiplePerNode: false
   cephVersion:
-    image: ceph/ceph:v14.2.6
+    image: quay.io/morimoto_cybozu/ceph:14.2.8.1
     allowUnsupported: false
   dashboard:
     enabled: false
