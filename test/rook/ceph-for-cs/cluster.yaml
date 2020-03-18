@@ -8,6 +8,12 @@ spec:
   mon:
     count: 1
     allowMultiplePerNode: false
+    volumeClaimTemplate:
+      spec:
+        storageClassName: topolvm-provisioner
+        resources:
+          requests:
+            storage: 10Gi
   cephVersion:
     image: quay.io/morimoto_cybozu/ceph:14.2.8.1
     allowUnsupported: false
