@@ -3,6 +3,91 @@ kind: Namespace
 metadata:
   name: ceph-for-cs
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rook-ceph-osd
+  namespace: ceph-for-cs
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rook-ceph-mgr
+  namespace: ceph-for-cs
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rook-ceph-cmd-reporter
+  namespace: ceph-for-cs
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-ceph-osd
+  namespace: ceph-for-cs
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: [ "get", "list", "watch", "create", "update", "delete" ]
+- apiGroups: ["ceph.rook.io"]
+  resources: ["cephclusters", "cephclusters/finalizers"]
+  verbs: [ "get", "list", "create", "update", "delete" ]
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-ceph-mgr
+  namespace: ceph-for-cs
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ceph.rook.io
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-ceph-cmd-reporter
+  namespace: ceph-for-cs
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -20,61 +105,89 @@ subjects:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
+  name: rook-ceph-osd
+  namespace: ceph-for-cs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rook-ceph-osd
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-osd
+  namespace: ceph-for-cs
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-ceph-mgr
+  namespace: ceph-for-cs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rook-ceph-mgr
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-mgr
+  namespace: ceph-for-cs
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-ceph-mgr-system
+  namespace: ceph-for-cs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rook-ceph-mgr-system
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-mgr
+  namespace: ceph-for-cs
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-ceph-mgr-cluster-ceph-for-cs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rook-ceph-mgr-cluster
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-mgr
+  namespace: ceph-for-cs
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-ceph-osd-ceph-for-cs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rook-ceph-osd
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-osd
+  namespace: ceph-for-cs
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
   name: rook-ceph-cmd-reporter
   namespace: ceph-for-cs
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: rook-ceph
+  name: rook-ceph-cmd-reporter
 subjects:
 - kind: ServiceAccount
   name: rook-ceph-cmd-reporter
   namespace: ceph-for-cs
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: rook-ceph-cmd-reporter
-  namespace: ceph-for-cs
----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: rook-ceph
-  namespace: ceph-for-cs
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - configmaps
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - delete
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: rook-ceph-cmd-reporter-psp
-  namespace: ceph-for-cs
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: 'psp:rook'
-subjects:
-  - kind: ServiceAccount
-    name: rook-ceph-cmd-reporter
-    namespace: ceph-for-cs
----
-# Allow the default serviceAccount to use the privileged PSP
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: rook-default-psp
+  name: rook-ceph-default-psp
   namespace: ceph-for-cs
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -85,7 +198,6 @@ subjects:
   name: default
   namespace: ceph-for-cs
 ---
-# Allow the rook-ceph-osd serviceAccount to use the privileged PSP
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -100,7 +212,6 @@ subjects:
   name: rook-ceph-osd
   namespace: ceph-for-cs
 ---
-# Allow the rook-ceph-mgr serviceAccount to use the privileged PSP
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -118,39 +229,13 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: rook-ceph-osd
+  name: rook-ceph-cmd-reporter-psp
   namespace: ceph-for-cs
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: rook-ceph
+  kind: ClusterRole
+  name: psp:rook
 subjects:
-- kind: ServiceAccount
-  name: rook-ceph-osd
-  namespace: ceph-for-cs
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: rook-ceph-mgr
-  namespace: ceph-for-cs
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: rook-ceph
-subjects:
-- kind: ServiceAccount
-  name: rook-ceph-mgr
-  namespace: ceph-for-cs
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: rook-ceph-osd
-  namespace: ceph-for-cs
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: rook-ceph-mgr
-  namespace: ceph-for-cs
+  - kind: ServiceAccount
+    name: rook-ceph-cmd-reporter
+    namespace: ceph-for-cs

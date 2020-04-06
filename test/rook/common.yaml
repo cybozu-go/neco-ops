@@ -70,6 +70,8 @@ spec:
                   type: boolean
             skipUpgradeChecks:
               type: boolean
+            continueUpgradeAfterChecksEvenIfNotHealthy:
+              type: boolean
             mon:
               properties:
                 allowMultiplePerNode:
@@ -134,13 +136,10 @@ spec:
                             pattern: ^(true|false)$
                       useAllDevices:
                         type: boolean
-                      deviceFilter: {}
-                      directories:
-                        type: array
-                        items:
-                          properties:
-                            path:
-                              type: string
+                      deviceFilter:
+                        type: string
+                      devicePathFilter:
+                        type: string
                       devices:
                         type: array
                         items:
@@ -148,22 +147,15 @@ spec:
                             name:
                               type: string
                             config: {}
-                      location: {}
                       resources: {}
                   type: array
                 useAllDevices:
                   type: boolean
-                deviceFilter: {}
-                location: {}
-                directories:
-                  type: array
-                  items:
-                    properties:
-                      path:
-                        type: string
+                deviceFilter:
+                  type: string
+                devicePathFilter:
+                  type: string
                 config: {}
-                topologyAware:
-                  type: boolean
                 storageClassDeviceSets: {}
             monitoring:
               properties:
@@ -175,12 +167,22 @@ spec:
               properties:
                 workers:
                   type: integer
+            removeOSDsIfOutAndSafeToRemove:
+              type: boolean
             external:
               properties:
                 enable:
                   type: boolean
+            cleanupPolicy:
+              properties:
+                deleteDataDirOnHosts:
+                  type: string
+                  pattern: ^$|^yes-really-destroy-data$
             placement: {}
             resources: {}
+  # somehow this is breaking the status, but let's keep this here so we don't forget it once we move to controller-runtime
+  # subresources:
+  #   status: {}
   additionalPrinterColumns:
     - name: DataDirHostPath
       type: string
@@ -193,15 +195,44 @@ spec:
     - name: Age
       type: date
       JSONPath: .metadata.creationTimestamp
-    - name: State
+    - name: Phase
       type: string
-      description: Current State
-      JSONPath: .status.state
+      description: Phase
+      JSONPath: .status.phase
+    - name: Message
+      type: string
+      description: Message
+      JSONPath: .status.message
     - name: Health
       type: string
       description: Ceph Health
       JSONPath: .status.ceph.health
 # OLM: END CEPH CRD
+# OLM: BEGIN CEPH CLIENT CRD
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: cephclients.ceph.rook.io
+spec:
+  group: ceph.rook.io
+  names:
+    kind: CephClient
+    listKind: CephClientList
+    plural: cephclients
+    singular: cephclient
+  scope: Namespaced
+  version: v1
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            caps:
+              type: object
+  subresources:
+    status: {}
+# OLM: END CEPH CLIENT CRD
 # OLM: BEGIN CEPH FS CRD
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
@@ -240,15 +271,29 @@ spec:
                 replicated:
                   properties:
                     size:
-                      minimum: 1
+                      minimum: 0
                       maximum: 10
                       type: integer
+                    requireSafeReplicaSize:
+                      type: boolean
                 erasureCoded:
                   properties:
                     dataChunks:
+                      minimum: 0
+                      maximum: 10
                       type: integer
                     codingChunks:
+                      minimum: 0
+                      maximum: 10
                       type: integer
+                compressionMode:
+                  type: string
+                  enum:
+                  - ""
+                  - none
+                  - passive
+                  - aggressive
+                  - force
             dataPools:
               type: array
               items:
@@ -258,15 +303,31 @@ spec:
                   replicated:
                     properties:
                       size:
-                        minimum: 1
+                        minimum: 0
                         maximum: 10
                         type: integer
+                      requireSafeReplicaSize:
+                        type: boolean
                   erasureCoded:
                     properties:
                       dataChunks:
+                        minimum: 0
+                        maximum: 10
                         type: integer
                       codingChunks:
+                        minimum: 0
+                        maximum: 10
                         type: integer
+                  compressionMode:
+                    type: string
+                    enum:
+                    - ""
+                    - none
+                    - passive
+                    - aggressive
+                    - force
+            preservePoolsOnDelete:
+              type: boolean
   additionalPrinterColumns:
     - name: ActiveMDS
       type: string
@@ -275,6 +336,8 @@ spec:
     - name: Age
       type: date
       JSONPath: .metadata.creationTimestamp
+  subresources:
+    status: {}
 # OLM: END CEPH FS CRD
 # OLM: BEGIN CEPH NFS CRD
 ---
@@ -311,6 +374,8 @@ spec:
                 annotations: {}
                 placement: {}
                 resources: {}
+  subresources:
+    status: {}
 # OLM: END CEPH NFS CRD
 # OLM: BEGIN CEPH OBJECT STORE CRD
 ---
@@ -339,6 +404,8 @@ spec:
                 sslCertificateRef: {}
                 port:
                   type: integer
+                  minimum: 1
+                  maximum: 65535
                 securePort: {}
                 instances:
                   type: integer
@@ -359,6 +426,14 @@ spec:
                       type: integer
                     codingChunks:
                       type: integer
+                compressionMode:
+                  type: string
+                  enum:
+                  - ""
+                  - none
+                  - passive
+                  - aggressive
+                  - force
             dataPool:
               properties:
                 failureDomain:
@@ -373,6 +448,18 @@ spec:
                       type: integer
                     codingChunks:
                       type: integer
+                compressionMode:
+                  type: string
+                  enum:
+                  - ""
+                  - none
+                  - passive
+                  - aggressive
+                  - force
+            preservePoolsOnDelete:
+              type: boolean
+  subresources:
+    status: {}
 # OLM: END CEPH OBJECT STORE CRD
 # OLM: BEGIN CEPH OBJECT STORE USERS CRD
 ---
@@ -392,6 +479,8 @@ spec:
     - objectuser
   scope: Namespaced
   version: v1
+  subresources:
+    status: {}
 # OLM: END CEPH OBJECT STORE USERS CRD
 # OLM: BEGIN CEPH BLOCK POOL CRD
 ---
@@ -408,6 +497,43 @@ spec:
     singular: cephblockpool
   scope: Namespaced
   version: v1
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            failureDomain:
+                type: string
+            replicated:
+              properties:
+                size:
+                  type: integer
+                  minimum: 0
+                  maximum: 9
+                targetSizeRatio:
+                  type: number
+                requireSafeReplicaSize:
+                  type: boolean
+            erasureCoded:
+              properties:
+                dataChunks:
+                  type: integer
+                  minimum: 0
+                  maximum: 9
+                codingChunks:
+                  type: integer
+                  minimum: 0
+                  maximum: 9
+            compressionMode:
+              type: string
+              enum:
+              - ""
+              - none
+              - passive
+              - aggressive
+              - force
+  subresources:
+    status: {}
 # OLM: END CEPH BLOCK POOL CRD
 # OLM: BEGIN CEPH VOLUME POOL CRD
 ---
@@ -426,6 +552,8 @@ spec:
     - rv
   scope: Namespaced
   version: v1alpha2
+  subresources:
+    status: {}
 # OLM: END CEPH VOLUME POOL CRD
 # OLM: BEGIN OBJECTBUCKET CRD
 ---
@@ -517,29 +645,21 @@ metadata:
 rules:
 - apiGroups:
   - ""
+  - apps
+  - extensions
   resources:
   - secrets
   - pods
   - pods/log
   - services
   - configmaps
-  verbs:
-  - get
-  - list
-  - watch
-  - patch
-  - create
-  - update
-  - delete
-- apiGroups:
-  - apps
-  resources:
   - deployments
   - daemonsets
   verbs:
   - get
   - list
   - watch
+  - patch
   - create
   - update
   - delete
@@ -570,6 +690,7 @@ rules:
   - delete
 - apiGroups:
   - apps
+  - extensions
   resources:
   - daemonsets
   - statefulsets
@@ -581,6 +702,12 @@ rules:
   - create
   - update
   - delete
+- apiGroups:
+  - k8s.cni.cncf.io
+  resources:
+  - network-attachment-definitions
+  verbs:
+  - get
 ---
 # The cluster role for managing the Rook CRDs
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -613,6 +740,7 @@ rules:
   # Node access is needed for determining nodes where mons should run
   - nodes
   - nodes/proxy
+  - services
   verbs:
   - get
   - list
@@ -667,11 +795,13 @@ rules:
 - apiGroups:
   - policy
   - apps
+  - extensions
   resources:
-  #this is for the clusterdisruption controller
+  # This is for the clusterdisruption controller
   - poddisruptionbudgets
-  #this is for both clusterdisruption and nodedrain controllers
+  # This is for both clusterdisruption and nodedrain controllers
   - deployments
+  - replicasets
   verbs:
   - "*"
 - apiGroups:
@@ -696,6 +826,12 @@ rules:
   - create
   - update
   - delete
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - csidrivers
+  verbs:
+  - create
 ---
 # Aspects of ceph-mgr that require cluster-wide access
 kind: ClusterRole
@@ -812,7 +948,6 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: rook-ceph-global
-  namespace: rook-ceph
   labels:
     operator: rook
     storage-backend: ceph
@@ -881,7 +1016,6 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: rook-ceph-osd
-  namespace: rook-ceph
 rules:
 - apiGroups:
   - ""
@@ -896,7 +1030,6 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: rook-ceph-mgr-system
-  namespace: rook-ceph
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
@@ -907,7 +1040,6 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: rook-ceph-mgr-system-rules
-  namespace: rook-ceph
   labels:
       rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-system: "true"
 rules:
@@ -932,10 +1064,12 @@ rules:
   resources:
   - pods
   - services
+  - pods/log
   verbs:
   - get
   - list
   - watch
+  - delete
 - apiGroups:
   - batch
   resources:
@@ -1347,7 +1481,7 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["persistentvolumes"]
-    verbs: ["get", "list", "watch", "create", "delete", "update"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
     verbs: ["get", "list", "watch", "update"]
@@ -1359,10 +1493,13 @@ rules:
     verbs: ["list", "watch", "create", "update", "patch"]
   - apiGroups: ["storage.k8s.io"]
     resources: ["volumeattachments"]
-    verbs: ["get", "list", "watch", "update"]
+    verbs: ["get", "list", "watch", "update", "patch"]
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims/status"]
+    verbs: ["update", "patch"]
 # OLM: END CSI CEPHFS CLUSTER ROLE
 # OLM: BEGIN CSI CEPHFS CLUSTER ROLEBINDING
 ---
@@ -1527,7 +1664,7 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["persistentvolumes"]
-    verbs: ["get", "list", "watch", "create", "delete", "update"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
     verbs: ["get", "list", "watch", "update"]
@@ -1558,6 +1695,9 @@ rules:
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: ["volumesnapshots/status"]
     verbs: ["update"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims/status"]
+    verbs: ["update", "patch"]
 # OLM: END CSI RBD CLUSTER ROLE
 # OLM: BEGIN CSI RBD CLUSTER ROLEBINDING
 ---
