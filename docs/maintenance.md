@@ -102,6 +102,10 @@ $ cp deploy/1.8+/*.yaml /path/to/neco-apps/metrics-server/base/upstream
 There is no official kubernetes manifests for prometheus.
 So, check changes in release notes on github for both prometheus and alertmanager and make necessary actions.
 
+### machines-endpoints
+Update version following:
+https://github.com/cybozu/neco-containers/blob/master/machines-endpoints/TAG
+
 ### kube-state-metrics
 
 Check [examples/standard](https://github.com/kubernetes/kube-state-metrics/tree/master/examples/standard)
