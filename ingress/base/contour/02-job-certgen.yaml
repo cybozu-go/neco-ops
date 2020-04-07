@@ -44,6 +44,7 @@ metadata:
   name: contour-certgen
   namespace: projectcontour
 spec:
+  ttlSecondsAfterFinished: 0
   template:
     metadata:
       labels:
@@ -51,15 +52,24 @@ spec:
     spec:
       containers:
       - name: contour
-        image: docker.io/projectcontour/contour:v1.0.1
+        image: docker.io/projectcontour/contour:latest
         imagePullPolicy: Always
         command:
         - contour
         - certgen
         - --incluster
         - --kube
+        env:
+        - name: CONTOUR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
       restartPolicy: Never
       serviceAccountName: contour-certgen
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
   parallelism: 1
   completions: 1
   backoffLimit: 1

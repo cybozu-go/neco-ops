@@ -54,7 +54,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: quay.io/cybozu/contour:1.0.1.2
+        image: quay.io/cybozu/contour:1.3.0.1
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -141,6 +141,26 @@ spec:
             weight: 100
       automountServiceAccountToken: false
       containers:
+      - command:
+        - /bin/contour
+        args:
+          - envoy
+          - shutdown-manager
+        image: quay.io/cybozu/contour:v1.3.0.1
+        imagePullPolicy: Always
+        lifecycle:
+          preStop:
+            httpGet:
+              path: /shutdown
+              port: 8090
+              scheme: HTTP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8090
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        name: shutdown-manager
       - args:
         - -c
         - /config/envoy.json
@@ -160,17 +180,14 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: quay.io/cybozu/envoy:1.12.3.1
+        image: quay.io/cybozu/envoy:1.13.1.1
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
-            exec:
-              command:
-              - "bash"
-              - "-c"
-              - |
-                  sleep 5
-                  echo -ne "POST /healthcheck/fail HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >/dev/tcp/localhost/9001
+            httpGet:
+              path: /shutdown
+              port: 8090
+              scheme: HTTP
         name: envoy
         ports:
         - containerPort: 8080
@@ -213,7 +230,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: quay.io/cybozu/contour:1.0.1.2
+        image: quay.io/cybozu/contour:1.3.0.1
         imagePullPolicy: IfNotPresent
         name: envoy-initconfig
         volumeMounts:
@@ -223,6 +240,7 @@ spec:
           name: envoycert
           readOnly: true
       restartPolicy: Always
+      terminationGracePeriodSeconds: 300
       volumes:
       - emptyDir: {}
         name: envoy-config
