@@ -115,7 +115,7 @@ spec:
       serviceAccountName: rook-ceph-system
       containers:
       - name: rook-ceph-operator
-        image: quay.io/cybozu/rook:1.2.7.1
+        image: quay.io/cybozu/rook:1.3.0.1
         args: ["ceph", "operator"]
         volumeMounts:
         - mountPath: /var/lib/rook
