@@ -16,6 +16,15 @@ spec:
         resources:
           limits:
             cpu: null
+        env:
+        - $patch: delete
+          name: METALLB_ML_BIND_ADDR
+        - $patch: delete
+          name: METALLB_ML_LABELS
+        - $patch: delete
+          name: METALLB_ML_NAMESPACE
+        - $patch: delete
+          name: METALLB_ML_SECRET_KEY
 ---
 apiVersion: apps/v1
 kind: Deployment
