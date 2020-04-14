@@ -53,7 +53,7 @@ metadata:
   name: cert-manager-webhook
   namespace: cert-manager
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   template:
     spec:

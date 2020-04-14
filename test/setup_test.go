@@ -319,6 +319,31 @@ func applyAndWaitForApplications(overlay string) {
 		return nil
 	}).Should(Succeed())
 
+	// TODO: this block should be deleted after cert-manager v0.14 is deployed on prod
+	if doUpgrade {
+		By("deleting old(v0.12) cert-manager")
+		stdout, stderr, err := ExecAt(boot0, "argocd", "app", "set", "cert-manager", "--sync-policy", "none")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "delete", "-n", "cert-manager", "deployment", "cert-manager", "cert-manager-cainjector", "cert-manager-webhook")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		Eventually(func() error {
+			resources := []string{
+				"cert-manager",
+				"cert-manager-cainjector",
+				"cert-manager-webhook",
+			}
+			for _, v := range resources {
+				_, _, err := ExecAt(boot0, "kubectl", "get", "deployment", "-n", "cert-manager", v)
+				if err == nil {
+					return fmt.Errorf("deployment still exists %s", v)
+				}
+			}
+			return nil
+		}).Should(Succeed())
+		stdout, stderr, err = ExecAt(boot0, "argocd", "app", "set", "cert-manager", "--sync-policy", "automated", "--auto-prune", "--self-heal")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+	}
+
 	By("waiting initialization")
 	checkAllAppsSynced := func() error {
 	OUTER:
