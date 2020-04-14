@@ -357,10 +357,15 @@ func applyAndWaitForApplications(overlay string) {
 			}
 			return nil
 		}).Should(Succeed())
-		stdout, stderr, err = ExecAt(boot0, "argocd", "app", "set", "cert-manager", "--sync-policy", "automated", "--auto-prune", "--self-heal")
-		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		stdout, stderr, err = ExecAt(boot0, "argocd", "app", "sync", "cert-manager", "--force")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		Eventually(func() error {
+			stdout, stderr, err = ExecAt(boot0, "argocd", "app", "set", "cert-manager", "--sync-policy", "automated", "--auto-prune", "--self-heal")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+			return nil
+		}).Should(Succeed())
 	}
 
 	By("waiting initialization")
