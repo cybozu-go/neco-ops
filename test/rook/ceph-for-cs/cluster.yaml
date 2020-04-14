@@ -5,6 +5,8 @@ metadata:
   namespace: ceph-for-cs
 spec:
   dataDirHostPath: /var/lib/rook
+  cleanupPolicy:
+    deleteDataDirOnHosts: yes-really-destroy-data
   mon:
     count: 1
     allowMultiplePerNode: false
@@ -14,28 +16,30 @@ spec:
         resources:
           requests:
             storage: 10Gi
+  mgr:
+    modules:
+      - name: pg_autoscaler
+        enabled: true
   cephVersion:
     image: quay.io/cybozu/ceph:14.2.8.4
     allowUnsupported: false
   dashboard:
     enabled: false
     ssl: true
-  network:
-    hostNetwork: false
   storage:
     storageClassDeviceSets:
-    - name: set1
-      count: 1
-      resources:
-      volumeClaimTemplates:
-      - metadata:
-          name: data
-        spec:
-          resources:
-            requests:
-              storage: 10Gi
-          # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
-          storageClassName: topolvm-provisioner
-          volumeMode: Block
-          accessModes:
-            - ReadWriteOnce
+      - name: set1
+        count: 1
+        resources:
+        volumeClaimTemplates:
+          - metadata:
+              name: data
+            spec:
+              resources:
+                requests:
+                  storage: 10Gi
+              # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
+              storageClassName: topolvm-provisioner
+              volumeMode: Block
+              accessModes:
+                - ReadWriteOnce
