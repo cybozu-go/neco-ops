@@ -322,6 +322,23 @@ func applyAndWaitForApplications(overlay string) {
 	// TODO: this block should be deleted after cert-manager v0.14 is deployed on prod
 	if doUpgrade {
 		By("deleting old(v0.12) cert-manager")
+		Eventually(func() error {
+			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", "cert-manager")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", appStdout, stderr, err)
+			}
+			var app argocd.Application
+			err = json.Unmarshal(appStdout, &app)
+			if err != nil {
+				return fmt.Errorf("stdout: %s, err: %v", appStdout, err)
+			}
+			if app.Status.Sync.ComparedTo.Source.TargetRevision != commitID {
+				return errors.New("cert-manager does not have correct target yet")
+			}
+
+			return nil
+		}).Should(Succeed())
+
 		stdout, stderr, err := ExecAt(boot0, "argocd", "app", "set", "cert-manager", "--sync-policy", "none")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "delete", "-n", "cert-manager", "deployment", "cert-manager", "cert-manager-cainjector", "cert-manager-webhook")
@@ -341,6 +358,8 @@ func applyAndWaitForApplications(overlay string) {
 			return nil
 		}).Should(Succeed())
 		stdout, stderr, err = ExecAt(boot0, "argocd", "app", "set", "cert-manager", "--sync-policy", "automated", "--auto-prune", "--self-heal")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		stdout, stderr, err = ExecAt(boot0, "argocd", "app", "sync", "cert-manager", "--force")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 	}
 
