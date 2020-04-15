@@ -1,4 +1,4 @@
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Issuer
 metadata:
   name: argocd-server-selfsign
@@ -8,7 +8,7 @@ metadata:
 spec:
   selfSigned: {}
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Certificate
 metadata:
   name: argocd-server-ca
@@ -23,7 +23,7 @@ spec:
   commonName: "ca.server.argocd"
   isCA: true
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Issuer
 metadata:
   name: argocd-server-ca
@@ -34,7 +34,7 @@ spec:
   ca:
     secretName: argocd-server-ca
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Certificate
 metadata:
   name: argocd-server-tls

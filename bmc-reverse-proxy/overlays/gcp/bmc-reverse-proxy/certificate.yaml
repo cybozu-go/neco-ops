@@ -1,4 +1,4 @@
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Issuer
 metadata:
   name: bmc-reverse-proxy-selfsign
@@ -7,7 +7,7 @@ metadata:
 spec:
   selfSigned: {}
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Certificate
 metadata:
   name: bmc-reverse-proxy-ca
@@ -21,7 +21,7 @@ spec:
   commonName: "ca.bmc-reverse-proxy"
   isCA: true
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Issuer
 metadata:
   name: bmc-reverse-proxy-ca
@@ -31,7 +31,7 @@ spec:
   ca:
     secretName: bmc-reverse-proxy-ca
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1alpha3
 kind: Certificate
 metadata:
   name: bmc-reverse-proxy-tls
