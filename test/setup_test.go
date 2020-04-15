@@ -415,6 +415,7 @@ func applyAndWaitForApplications(overlay string) {
 		return nil
 	}
 	Eventually(checkAllAppsSynced).Should(Succeed())
+	time.Sleep(10 * time.Second)
 	Consistently(checkAllAppsSynced, 10*time.Second, 1*time.Second).Should(Succeed())
 }
 
