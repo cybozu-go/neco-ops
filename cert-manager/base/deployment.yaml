@@ -52,6 +52,8 @@ kind: Deployment
 metadata:
   name: cert-manager-webhook
   namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   template:
     spec:
