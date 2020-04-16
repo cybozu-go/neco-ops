@@ -414,9 +414,17 @@ func applyAndWaitForApplications(overlay string) {
 		}
 		return nil
 	}
-	Eventually(checkAllAppsSynced).Should(Succeed())
-	time.Sleep(10 * time.Second)
-	Consistently(checkAllAppsSynced, 10*time.Second, 1*time.Second).Should(Succeed())
+	// want to do "Eventually( Consistently(checkAllAppsSynced, 30sec, 1sec) )"
+	Eventually(func() error {
+		for i := 0; i < 30; i++ {
+			err := checkAllAppsSynced()
+			if err != nil {
+				return err
+			}
+			time.Sleep(1 * time.Second)
+		}
+		return nil
+	}).Should(Succeed())
 }
 
 func setupArgoCD() {
