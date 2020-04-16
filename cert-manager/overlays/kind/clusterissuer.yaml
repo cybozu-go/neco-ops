@@ -2,7 +2,7 @@ apiVersion: cert-manager.io/v1alpha3
 kind: ClusterIssuer
 metadata:
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
   name: self-signed-issuer
 spec:
   selfSigned: {}
