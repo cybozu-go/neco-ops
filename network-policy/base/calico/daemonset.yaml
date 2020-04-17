@@ -16,7 +16,7 @@ spec:
           name: flexvol-driver
       containers:
         - name: calico-node
-          image: quay.io/cybozu/calico:3.11.1.1
+          image: quay.io/cybozu/calico:3.13.2.1
           command:
             - start_runit
           env:
