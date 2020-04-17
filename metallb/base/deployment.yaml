@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: speaker
-        image: quay.io/cybozu/metallb:0.8.3.1
+        image: quay.io/cybozu/metallb:0.9.3.1
         imagePullPolicy: IfNotPresent
         command: ["/speaker"]
         securityContext:
@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
       - name: controller
-        image: quay.io/cybozu/metallb:0.8.3.1
+        image: quay.io/cybozu/metallb:0.9.3.1
         imagePullPolicy: IfNotPresent
         command: ["/controller"]
         resources:
