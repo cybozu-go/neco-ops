@@ -4,7 +4,6 @@ resources:
   - upstream/cert-manager.yaml
   - rbac.yaml
 patches:
-  - crd.yaml
   - deployment.yaml
   - mutatingwebhookconfiguration.yaml
   - validatingwebhookconfiguration.yaml
