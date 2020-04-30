@@ -3,13 +3,13 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - dashboards
+  - cluster-role.yaml
   - configmap.yaml
   - datasources/datasource.yaml
   - grafana.yaml
   - upstream/cluster_roles/cluster_role_aggregate_grafana_admin_edit.yaml
   - upstream/cluster_roles/cluster_role_aggregate_grafana_view.yaml
   - upstream/cluster_roles/cluster_role_binding_grafana_operator.yaml
-  - upstream/cluster_roles/cluster_role_grafana_operator.yaml
   - upstream/crds/Grafana.yaml
   - upstream/crds/GrafanaDashboard.yaml
   - upstream/crds/GrafanaDataSource.yaml
