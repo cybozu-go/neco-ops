@@ -9,6 +9,7 @@ patchesStrategicMerge:
   - grafana-operator/grafana.yaml
 configMapGenerator:
   - name: alertmanager
+    namespace: monitoring
     behavior: merge
     files:
       - alertmanager/env.template

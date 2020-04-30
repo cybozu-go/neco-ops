@@ -199,6 +199,7 @@ data:
 kind: ConfigMap
 metadata:
   name: grafana-init-script
+  namespace: sandbox
 ---
 apiVersion: v1
 kind: Service
@@ -222,6 +223,7 @@ metadata:
   labels:
     app.kubernetes.io/name: grafana
   name: grafana
+  namespace: sandbox
 spec:
   selector:
     matchLabels:
