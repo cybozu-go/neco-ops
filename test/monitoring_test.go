@@ -300,6 +300,59 @@ func testGrafanaOperator() {
 			return nil
 		}).Should(Succeed())
 	})
+
+	It("can watch Grafana CR in namespaces except for monitoring ns", func() {
+		By("creating Datasource and Grafana CR")
+		manifests := `apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDataSource
+metadata:
+  labels:
+    app.kubernetes.io/instance: monitoring
+  name: prometheus
+spec:
+  datasources:
+  - access: proxy
+    editable: false
+    isDefault: false
+    jsonData:
+      timeInterval: 5s
+      tlsSkipVerify: true
+    name: prometheus
+    type: prometheus
+    url: http://prometheus.monitoring.svc:9090
+    version: 1
+  name: middleware.yaml
+---
+apiVersion: integreatly.org/v1alpha1
+kind: Grafana
+metadata:
+  name: grafana
+spec:
+  service:
+    type: ClusterIP
+  deployment:
+    envFrom:
+      - configMapRef:
+          name: https-proxy
+    securityContext:
+      runAsUser: 10000
+  dashboardLabelSelector:
+    - matchExpressions:
+        - {key: app.kubernetes.io/name, operator: In, values: [grafana]}
+`
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte(manifests), "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+
+		By("getting grafana-deployment in default namespace")
+		Eventually(func() error {
+			stdout, _, err := ExecAt(boot0, "kubectl", "get", "deployment/grafana-deployment", "-o=json")
+			if err != nil {
+				return err
+			}
+			deployment := new(appsv1.Deployment)
+			return json.Unmarshal(stdout, deployment)
+		}).Should(Succeed())
+	})
 }
 
 func testPrometheusMetrics() {
