@@ -30,6 +30,7 @@ configMapGenerator:
       - prometheus/alert_rules/elastic-operator.yaml
       - prometheus/alert_rules/etcd.yaml
       - prometheus/alert_rules/external-dns.yaml
+      - prometheus/alert_rules/grafana-sandbox.yaml
       - prometheus/alert_rules/ingress.yaml
       - prometheus/alert_rules/kube-state-metrics.yaml
       - prometheus/alert_rules/kubernetes.yaml

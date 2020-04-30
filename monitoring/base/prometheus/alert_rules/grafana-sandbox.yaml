@@ -1,0 +1,49 @@
+groups:
+  - name: grafana-sandbox
+    rules:
+      - alert: GrafanaSandboxStatefulSetReplicasMismatch
+        annotations:
+          summary: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has
+            not matched the expected number of replicas for longer than 30 minutes.
+          runbook: TBD
+        expr: |
+          kube_statefulset_status_replicas_ready{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+            !=
+          kube_statefulset_status_replicas{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+        for: 30m
+        labels:
+          severity: minor
+          frequency: daily
+      - alert: GrafanaSandboxStatefulSetGenerationMismatch
+        annotations:
+          summary: StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset
+            }} does not match, this indicates that the StatefulSet has failed but has
+            not been rolled back.
+          runbook: TBD
+        expr: |
+          kube_statefulset_status_observed_generation{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+            !=
+          kube_statefulset_metadata_generation{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+        for: 15m
+        labels:
+          severity: minor
+      - alert: GrafanaSandboxStatefulSetUpdateNotRolledOut
+        annotations:
+          summary: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} update
+            has not been rolled out.
+          runbook: TBD
+        expr: |
+          max without (revision) (
+            kube_statefulset_status_current_revision{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+              unless
+            kube_statefulset_status_update_revision{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+          )
+            *
+          (
+            kube_statefulset_replicas{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+              !=
+            kube_statefulset_status_replicas_updated{job="kube-state-metrics",namespace="sandbox",statefulset="grafana"}
+          )
+        for: 15m
+        labels:
+          severity: minor

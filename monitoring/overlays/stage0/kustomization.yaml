@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ../../base
   - grafana-operator/httpproxy.yaml
+  - grafana-sandbox/grafana.yaml
 patchesStrategicMerge:
   - prometheus/statefulset.yaml
   - grafana-operator/grafana.yaml

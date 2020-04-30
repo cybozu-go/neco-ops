@@ -1,0 +1,463 @@
+apiVersion: v1
+data:
+  grafana.ini: |
+    [analytics]
+    check_for_updates = true
+    [grafana_net]
+    url = https://grafana.monitoring.svc.cluster.local
+    [log]
+    mode = console
+    [paths]
+    data = /var/lib/grafana/data
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+    [users]
+    viewers_can_edit = true
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: grafana
+  name: grafana
+  namespace: sandbox
+---
+apiVersion: v1
+data:
+  providers.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'argocd'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/argocd
+    - name: 'calico'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/calico
+    - name: 'cert-manager'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/cert-manager
+    - name: 'contour'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/contour
+    - name: 'etcd'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/etcd
+    - name: 'kube-apiserver'
+      folder: 'Kubernetes'
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/kube-apiserver
+    - name: 'kube-controller-manager'
+      folder: 'Kubernetes'
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/kube-controller-manager
+    - name: 'kube-scheduler'
+      folder: 'Kubernetes'
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/kube-scheduler
+    - name: 'kubelet'
+      folder: 'Kubernetes'
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/kubelet
+    - name: 'kubernetes-cluster'
+      folder: 'Kubernetes'
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/kubernetes-cluster
+    - name: 'kubernetes-persistence-volumes'
+      folder: 'Kubernetes'
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/kubernetes-persistence-volumes
+    - name: 'node-exporter'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/node-exporter
+    - name: 'memory-usage'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/memory-usage
+    - name: 'cpu-usage'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/cpu-usage
+    - name: 'topolvm-volumegroup'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/topolvm-volumegroup
+    - name: 'local-pv-provisioner'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/local-pv-provisioner
+    - name: 'sabakan'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/sabakan
+    - name: 'all-nodes'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/all-nodes
+    - name: 'neco-admission'
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: false
+      options:
+        path: /var/lib/grafana/dashboards/neco-admission
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: grafana
+  name: grafana-dash-provider
+  namespace: sandbox
+---
+apiVersion: v1
+data:
+  providers.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: 'prometheus'
+      type: prometheus
+      access: proxy
+      orgId: 1
+      url: http://prometheus.monitoring.svc:9090
+      isDefault: true
+      editable: false
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: grafana
+  name: grafana-datasources-provider
+  namespace: sandbox
+---
+apiVersion: v1
+data:
+  init.sh: |-
+    #!/bin/bash
+    # Download node-exporter-full dashboard JSON,
+    # then replace ${DS_PROMETHEUS} to "prometheus"
+    # because ${DS_PROMETHEUS} is not available in provisioning
+    curl -sSLf https://grafana.com/api/dashboards/1860/revisions/14/download | \
+    jq '(.rows[].panels[] | select(.datasource == "${DS_PROMETHEUS}") | .datasource) |= "prometheus"' | \
+    jq '(.templating.list[] | select(.datasource == "${DS_PROMETHEUS}") | .datasource) |= "prometheus"' \
+    > /config/node-exporter.json
+kind: ConfigMap
+metadata:
+  name: grafana-init-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: grafana
+  name: grafana
+  namespace: sandbox
+spec:
+  ports:
+  - name: service
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app.kubernetes.io/name: grafana
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/name: grafana
+  name: grafana
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  serviceName: grafana
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: grafana
+    spec:
+      containers:
+      - env:
+        - name: GF_SECURITY_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              key: admin-user
+              name: grafana
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: admin-password
+              name: grafana
+        image: quay.io/cybozu/grafana:6.7.3.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /api/health
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 30
+        name: grafana
+        ports:
+        - containerPort: 3000
+          name: grafana
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 3000
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/grafana/grafana.ini
+          name: config
+          subPath: grafana.ini
+        - mountPath: /etc/grafana/ldap.toml
+          name: ldap
+          subPath: ldap.toml
+        - mountPath: /var/lib/grafana
+          name: storage
+        - mountPath: /var/lib/grafana/dashboards/argocd
+          name: dashboard-argocd-volume
+        - mountPath: /var/lib/grafana/dashboards/calico
+          name: dashboard-calico-volume
+        - mountPath: /var/lib/grafana/dashboards/cert-manager
+          name: dashboard-cert-manager-volume
+        - mountPath: /var/lib/grafana/dashboards/contour
+          name: dashboard-contour-volume
+        - mountPath: /var/lib/grafana/dashboards/etcd
+          name: dashboard-etcd-volume
+        - mountPath: /var/lib/grafana/dashboards/kube-apiserver
+          name: dashboard-kube-apiserver
+        - mountPath: /var/lib/grafana/dashboards/kube-controller-manager
+          name: dashboard-kube-controller-manager
+        - mountPath: /var/lib/grafana/dashboards/kube-scheduler
+          name: dashboard-kube-scheduler
+        - mountPath: /var/lib/grafana/dashboards/kubelet
+          name: dashboard-kubelet
+        - mountPath: /var/lib/grafana/dashboards/kubernetes-cluster
+          name: dashboard-kubernetes-cluster-volume
+        - mountPath: /var/lib/grafana/dashboards/kubernetes-persistence-volumes
+          name: dashboard-kubernetes-persistence-volumes-volume
+        - mountPath: /var/lib/grafana/dashboards/memory-usage
+          name: dashboard-memory-usage-volume
+        - mountPath: /var/lib/grafana/dashboards/cpu-usage
+          name: dashboard-cpu-usage-volume
+        - mountPath: /var/lib/grafana/dashboards/topolvm-volumegroup
+          name: dashboard-topolvm-volumegroup-volume
+        - mountPath: /var/lib/grafana/dashboards/local-pv-provisioner
+          name: dashboard-local-pv-provisioner-volume
+        - mountPath: /var/lib/grafana/dashboards/sabakan
+          name: dashboard-sabakan-volume
+        - mountPath: /var/lib/grafana/dashboards/all-nodes
+          name: dashboard-all-nodes-volume
+        - mountPath: /var/lib/grafana/dashboards/node-exporter
+          name: dashboard-node-exporter-volume
+        - mountPath: /var/lib/grafana/dashboards/neco-admission
+          name: dashboard-neco-admission-volume
+        - mountPath: /etc/grafana/provisioning/dashboards
+          name: dashboard-provider
+        - mountPath: /etc/grafana/provisioning/datasources
+          name: datasources-provider
+      initContainers:
+      - command:
+        - /bin/init.sh
+        env:
+        - name: HTTPS_PROXY
+          value: http://squid.internet-egress.svc.cluster.local:3128
+        image: quay.io/cybozu/ubuntu-debug:18.04
+        imagePullPolicy: IfNotPresent
+        name: grafana-initconfig
+        volumeMounts:
+        - mountPath: /bin/init.sh
+          name: grafana-init-script-volume
+          readOnly: true
+          subPath: init.sh
+        - mountPath: /config
+          name: dashboard-node-exporter-volume
+      priorityClassName: node-bound
+      securityContext:
+        fsGroup: 10000
+        runAsUser: 10000
+      volumes:
+      - configMap:
+          defaultMode: 511
+          name: grafana-init-script
+        name: grafana-init-script-volume
+      - configMap:
+          defaultMode: 420
+          name: grafana
+        name: config
+      - name: ldap
+        secret:
+          defaultMode: 420
+          items:
+          - key: ldap-toml
+            path: ldap.toml
+          secretName: grafana
+      - configMap:
+          name: dashboard-argocd
+        name: dashboard-argocd-volume
+      - configMap:
+          name: dashboard-calico
+        name: dashboard-calico-volume
+      - configMap:
+          name: dashboard-cert-manager
+        name: dashboard-cert-manager-volume
+      - configMap:
+          name: dashboard-contour
+        name: dashboard-contour-volume
+      - configMap:
+          name: dashboard-etcd
+        name: dashboard-etcd-volume
+      - configMap:
+          name: dashboard-kube-apiserver
+        name: dashboard-kube-apiserver
+      - configMap:
+          name: dashboard-kube-controller-manager
+        name: dashboard-kube-controller-manager
+      - configMap:
+          name: dashboard-kube-scheduler
+        name: dashboard-kube-scheduler
+      - configMap:
+          name: dashboard-kubelet
+        name: dashboard-kubelet
+      - configMap:
+          name: dashboard-kubernetes-cluster
+        name: dashboard-kubernetes-cluster-volume
+      - configMap:
+          name: dashboard-kubernetes-persistence-volumes
+        name: dashboard-kubernetes-persistence-volumes-volume
+      - configMap:
+          name: dashboard-memory-usage
+        name: dashboard-memory-usage-volume
+      - configMap:
+          name: dashboard-cpu-usage
+        name: dashboard-cpu-usage-volume
+      - configMap:
+          name: dashboard-topolvm-volumegroup
+        name: dashboard-topolvm-volumegroup-volume
+      - configMap:
+          name: dashboard-local-pv-provisioner
+        name: dashboard-local-pv-provisioner-volume
+      - configMap:
+          name: dashboard-sabakan
+        name: dashboard-sabakan-volume
+      - configMap:
+          name: dashboard-all-nodes
+        name: dashboard-all-nodes-volume
+      - configMap:
+          name: dashboard-neco-admission
+        name: dashboard-neco-admission-volume
+      - emptyDir: {}
+        name: dashboard-node-exporter-volume
+      - configMap:
+          items:
+          - key: providers.yaml
+            path: providers.yaml
+          name: grafana-dash-provider
+        name: dashboard-provider
+      - configMap:
+          items:
+          - key: providers.yaml
+            path: providers.yaml
+          name: grafana-datasources-provider
+        name: datasources-provider
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: topolvm-provisioner
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: bastion
+    kubernetes.io/tls-acme: "true"
+  name: grafana
+  namespace: sandbox
+spec:
+  routes:
+  - conditions:
+    - prefix: /
+    services:
+    - name: grafana
+      port: 80
+    timeoutPolicy:
+      idle: 5m
+      response: 2m
+  virtualhost:
+    fqdn: grafana.sandbox.stage0.cybozu-ne.co
+    tls:
+      secretName: grafana-tls

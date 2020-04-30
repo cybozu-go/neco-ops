@@ -7,3 +7,5 @@ spec:
   source:
     targetRevision: stage
     path: monitoring/overlays/stage0
+  destination:
+    namespace: "*"
