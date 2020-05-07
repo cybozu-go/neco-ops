@@ -132,6 +132,11 @@ func testSetup() {
 		})
 
 		It("should prepare secrets", func() {
+			By("creating namespace and secrets for grafana")
+			_, _, err := ExecAt(boot0, "kubectl", "get", "namespace", "sandbox")
+			if err != nil {
+				ExecSafeAt(boot0, "kubectl", "create", "namespace", "sandbox")
+			}
 			if !withKind {
 				By("creating namespace and secrets for teleport")
 				stdout, stderr, err := ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",

@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: manager
-          args: ["manager", "--operator-roles", "all", "--log-verbosity=0", "--metrics-port=9001"]
+          args: ["manager", "--log-verbosity=0", "--metrics-port=9001"]
           resources:
             limits: null
           ports:

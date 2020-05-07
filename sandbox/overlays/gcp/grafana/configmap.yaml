@@ -4,13 +4,12 @@ metadata:
   labels:
     app.kubernetes.io/name: grafana
   name: grafana
-  namespace: monitoring
 data:
   grafana.ini: |
     [analytics]
     check_for_updates = true
     [grafana_net]
-    url = https://grafana.monitoring.svc.cluster.local
+    url = https://grafana.sandbox.svc.cluster.local
     [log]
     mode = console
     [paths]
@@ -27,7 +26,6 @@ metadata:
   labels:
     app.kubernetes.io/name: grafana
   name: grafana-dash-provider
-  namespace: monitoring
 data:
   providers.yaml: |
     apiVersion: 1
@@ -165,7 +163,6 @@ data:
       editable: false
       options:
         path: /var/lib/grafana/dashboards/neco-admission
-
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -173,7 +170,6 @@ metadata:
   labels:
     app.kubernetes.io/name: grafana
   name: grafana-datasources-provider
-  namespace: monitoring
 data:
   providers.yaml: |
     apiVersion: 1

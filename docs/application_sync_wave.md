@@ -17,6 +17,7 @@ The sync order of applications can be managed with the `argocd.argoproj.io/sync-
 | topolvm              | 5    |
 | elastic              | 6    |
 | monitoring           | 6    |
+| sandbox              | 6    |
 | network-policy       | 7    |
 | team-management      | 8    |
 | neco-admission       | 8    |

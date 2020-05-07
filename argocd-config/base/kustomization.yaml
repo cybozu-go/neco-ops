@@ -16,6 +16,7 @@ resources:
 - namespaces.yaml
 - neco-admission.yaml
 - network-policy.yaml
+- sandbox.yaml
 - secrets.yaml
 - team-management.yaml
 - teleport.yaml

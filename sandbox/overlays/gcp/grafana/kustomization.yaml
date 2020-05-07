@@ -1,0 +1,63 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: sandbox
+resources:
+  - configmap.yaml
+  - service.yaml
+  - statefulset.yaml
+configMapGenerator:
+  - name: dashboard-argocd
+    files:
+      - dashboards/argocd.json
+  - name: dashboard-calico
+    files:
+      - dashboards/calico.json
+  - name: dashboard-cert-manager
+    files:
+      - dashboards/cert-manager.json
+  - name: dashboard-contour
+    files:
+      - dashboards/contour.json
+      - dashboards/envoy.json
+  - name: dashboard-etcd
+    files:
+      - dashboards/etcd.json
+  - name: dashboard-kube-apiserver
+    files:
+      - dashboards/kube-apiserver.json
+  - name: dashboard-kube-controller-manager
+    files:
+      - dashboards/kube-controller-manager.json
+  - name: dashboard-kube-scheduler
+    files:
+      - dashboards/kube-scheduler.json
+  - name: dashboard-kubelet
+    files:
+      - dashboards/kubelet.json
+  - name: dashboard-kubernetes-cluster
+    files:
+      - dashboards/kubernetes_cluster.json
+  - name: dashboard-kubernetes-persistence-volumes
+    files:
+      - dashboards/kubernetes-persistence-volumes.json
+  - name: dashboard-memory-usage
+    files:
+      - dashboards/memory_usage.json
+  - name: dashboard-cpu-usage
+    files:
+      - dashboards/cpu_usage.json
+  - name: dashboard-topolvm-volumegroup
+    files:
+      - dashboards/topolvm_volumegroup.json
+  - name: dashboard-local-pv-provisioner
+    files:
+      - dashboards/local-pv-provisioner.json
+  - name: dashboard-sabakan
+    files:
+      - dashboards/sabakan.json
+  - name: dashboard-all-nodes
+    files:
+      - dashboards/all_nodes.json
+  - name: dashboard-neco-admission
+    files:
+      - dashboards/neco-admission.json

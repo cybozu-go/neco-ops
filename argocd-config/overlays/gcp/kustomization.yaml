@@ -11,5 +11,6 @@ patchesStrategicMerge:
 - maneki-apps.yaml
 - metallb.yaml
 - monitoring.yaml
+- sandbox.yaml
 - secrets.yaml
 - teleport.yaml

@@ -29,22 +29,6 @@ spec:
       labels:
         app.kubernetes.io/name: grafana
     spec:
-      initContainers:
-        # JSON of https://grafana.com/api/dashboards/1860 is too large to create ConfigMap by kubectl, so use init container
-        - image: quay.io/cybozu/ubuntu-debug:18.04
-          imagePullPolicy: IfNotPresent
-          name: grafana-initconfig
-          command: ["/bin/init.sh"]
-          env:
-            - name: HTTPS_PROXY
-              value: http://squid.internet-egress.svc.cluster.local:3128
-          volumeMounts:
-            - name: grafana-init-script-volume
-              readOnly: true
-              mountPath: /bin/init.sh
-              subPath: init.sh
-            - name: dashboard-node-exporter-volume
-              mountPath: /config
       containers:
         - env:
             - name: GF_SECURITY_ADMIN_USER

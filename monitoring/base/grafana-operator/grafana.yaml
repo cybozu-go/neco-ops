@@ -19,7 +19,7 @@ spec:
       level: "warn"
     auth:
       disable_login_form: false
-      disable_signout_menu: true
+      disable_signout_menu: false
     auth.anonymous:
       enabled: false
     auth.github:
