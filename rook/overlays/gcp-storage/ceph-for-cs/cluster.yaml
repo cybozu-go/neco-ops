@@ -1,0 +1,50 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: ceph-for-cs
+  namespace: ceph-for-cs
+spec:
+  mon:
+    count: 1
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 5Gi
+  storage:
+    storageClassDeviceSets:
+      - name: set1
+        count: 3
+        volumeClaimTemplates:
+          - metadata:
+              name: data
+            spec:
+              resources:
+                requests:
+                  storage: 5Gi
+              storageClassName: topolvm-provisioner
+              volumeMode: Block
+              accessModes:
+                - ReadWriteOnce
+        placement:
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare

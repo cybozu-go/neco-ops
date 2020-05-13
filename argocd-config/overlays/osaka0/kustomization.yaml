@@ -13,3 +13,4 @@ patchesStrategicMerge:
 - monitoring.yaml
 - secrets.yaml
 - teleport.yaml
+- rook.yaml

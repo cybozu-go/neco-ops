@@ -14,4 +14,7 @@ dctest-upgrade:
 	cp /tmp/neco-apps/test/argocd-password.txt ./
 	UPGRADE=1 ./test.sh
 
+dctest-storage: install.yaml
+	STORAGE_TEST=1 ./test.sh
+
 .PHONY: dctest dctest-reboot dctest-upgrade

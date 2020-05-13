@@ -1,0 +1,69 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: ceph-for-ss
+  namespace: ceph-for-ss
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 3
+    volumeClaimTemplate:
+      spec:
+        storageClassName: topolvm-provisioner
+        resources:
+          requests:
+            storage: 10Gi
+  mgr:
+    modules:
+      - name: pg_autoscaler
+        enabled: true
+  cephVersion:
+    image: quay.io/cybozu/ceph:15.2.1.1
+  dashboard:
+    ssl: true
+  storage:
+    storageClassDeviceSets:
+      - name: set1
+        count: 18
+        volumeClaimTemplates:
+          - metadata:
+              name: data
+            spec:
+              resources:
+                requests:
+                  # Local-storage provisioner allocates whole disk capacity, in spite of the storage request specified.
+                  storage: 5Gi
+              # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
+              storageClassName: local-storage
+              volumeMode: Block
+              accessModes:
+                - ReadWriteOnce
+        placement:
+          tolerations:
+            - key: cke.cybozu.com/role
+              operator: Equal
+              value: storage
+              effect: NoExecute
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare

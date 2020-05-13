@@ -11,6 +11,7 @@ resources:
 - kube-system.yaml
 - metallb.yaml
 - monitoring.yaml
+- rook-ceph.yaml
 - teleport.yaml
 - topolvm.yaml
 commonLabels:

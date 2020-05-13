@@ -1,0 +1,22 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rook-ceph-operator-config
+  namespace: rook-ceph
+data:
+  CSI_CEPHFS_GRPC_METRICS_PORT: "9092"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+  namespace: rook-ceph
+spec:
+  template:
+    spec:
+      containers:
+        - name: rook-ceph-operator
+          image: quay.io/cybozu/rook:1.3.2.1
+          env:
+            - name: ROOK_ENABLE_DISCOVERY_DAEMON
+              value: "false"

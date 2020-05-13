@@ -50,15 +50,15 @@ func testBMCReverseProxy() {
 
 			data := cm.Data
 			if data["rack3-cs4"] != "10.72.17.100" {
-				return fmt.Errorf("bmc-reverse-proxy rack3-cs4 IP Adress is not 10.72.17.100: %s", data["rack3-cs4"])
+				return fmt.Errorf("bmc-reverse-proxy rack3-cs4 IP Address is not 10.72.17.100: %s", data["rack3-cs4"])
 			}
 
 			if data["10-69-2-68"] != "10.72.17.100" {
-				return fmt.Errorf("bmc-reverse-proxy 10-69-2-68 IP Adress is not 10.72.17.100: %s", data["10-69-2-68"])
+				return fmt.Errorf("bmc-reverse-proxy 10-69-2-68 IP Address is not 10.72.17.100: %s", data["10-69-2-68"])
 			}
 
 			if data["168799a36a60da24f934e2adf9e455e25a3ad4ef"] != "10.72.17.100" {
-				return fmt.Errorf("bmc-reverse-proxy 168799a36a60da24f934e2adf9e455e25a3ad4ef IP Adress is not 10.72.17.100: %s", data["168799a36a60da24f934e2adf9e455e25a3ad4ef"])
+				return fmt.Errorf("bmc-reverse-proxy 168799a36a60da24f934e2adf9e455e25a3ad4ef IP Address is not 10.72.17.100: %s", data["168799a36a60da24f934e2adf9e455e25a3ad4ef"])
 			}
 
 			return nil

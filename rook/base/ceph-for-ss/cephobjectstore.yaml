@@ -1,0 +1,62 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: ss-object-store
+  namespace: ceph-for-ss
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  metadataPool:
+    failureDomain: zone
+    replicated:
+      size: 3
+  dataPool:
+    failureDomain: zone
+    replicated:
+      size: 3
+  preservePoolsOnDelete: true
+  gateway:
+    type: s3
+    sslCertificateRef:
+    port: 80
+    securePort:
+    instances: 1
+    # A key/value list of annotations
+    annotations:
+    #  key: value
+    placement:
+    #  nodeAffinity:
+    #    requiredDuringSchedulingIgnoredDuringExecution:
+    #      nodeSelectorTerms:
+    #      - matchExpressions:
+    #        - key: role
+    #          operator: In
+    #          values:
+    #          - rgw-node
+    #  tolerations:
+    #  - key: rgw-node
+    #    operator: Exists
+    #  podAffinity:
+    #  podAntiAffinity:
+    resources:
+    #  limits:
+    #    cpu: "500m"
+    #    memory: "1024Mi"
+    #  requests:
+    #    cpu: "500m"
+    #    memory: "1024Mi"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-bucket
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    aws-s3/object: ""
+provisioner: ceph.rook.io/bucket
+parameters:
+  objectStoreName: ss-object-store
+  objectStoreNamespace: ceph-for-ss
+  region: us-west-1
+reclaimPolicy: Delete

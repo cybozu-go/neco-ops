@@ -122,6 +122,22 @@ Download the upstream manifest as follows:
 $ curl -sLf -o network-policy/base/calico/upstream/calico-policy-only.yaml https://docs.projectcalico.org/vX.Y/manifests/calico-policy-only.yaml
 ```
 
+## rook
+
+Download the upstream manifest as follows:
+
+```console
+$ curl -sLf -o rook/base/upstream/operator.yaml https://raw.githubusercontent.com/cybozu-go/rook/neco-release/cluster/examples/kubernetes/ceph/operator.yaml
+```
+
+Then check the diffs by `git diff`.
+
+TODO:  
+Following manifests can be retrieved from upstream, after [PR](https://github.com/rook/rook/pull/5240) is merged.
+- rook/base/upstream/common.yaml
+- rook/base/ceph-for-cs/rbac.yaml
+- rook/base/ceph-for-ss/rbac.yaml
+
 teleport
 --------
 
