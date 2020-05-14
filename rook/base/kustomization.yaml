@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - upstream/common.yaml
+  - upstream/operator.yaml
+  - ceph-for-cs/cephblockpool.yaml
+  - ceph-for-cs/cluster.yaml
+  - ceph-for-cs/rbac.yaml
+  - ceph-for-ss/cephobjectstore.yaml
+  - ceph-for-ss/cluster.yaml
+  - ceph-for-ss/rbac.yaml
+patchesStrategicMerge:
+  - operator.yaml

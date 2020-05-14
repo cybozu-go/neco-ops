@@ -9,6 +9,7 @@ var (
 	doBootstrap         = os.Getenv("BOOTSTRAP") == "1"
 	doUpgrade           = os.Getenv("UPGRADE") == "1"
 	doReboot            = os.Getenv("REBOOT") == "1"
+	doStorageTest       = os.Getenv("STORAGE_TEST") == "1"
 	boot0               = os.Getenv("BOOT0")
 	boot1               = os.Getenv("BOOT1")
 	boot2               = os.Getenv("BOOT2")

@@ -1,0 +1,77 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/cybozu-go/neco-apps.git
+    targetRevision: release
+    path: rook/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-ceph
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  ignoreDifferences:
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: rook-ceph-cluster-mgmt
+      jsonPointers:
+        - /rules
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: rook-ceph-global
+      jsonPointers:
+        - /rules
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: rook-ceph-mgr-cluster
+      jsonPointers:
+        - /rules
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: rook-ceph-mgr-system
+      jsonPointers:
+        - /rules
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cephfs-csi-nodeplugin
+      jsonPointers:
+        - /rules
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cephfs-external-provisioner-runner
+      jsonPointers:
+        - /rules
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: rbd-csi-nodeplugin
+      jsonPointers:
+        - /rules
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: rbd-external-provisioner-runner
+      jsonPointers:
+        - /rules
+    - group: ceph.rook.io
+      kind: CephCluster
+      name: ceph-for-cs
+      namespace: ceph-for-cs
+      jsonPointers:
+        - /spec/storage/storageClassDeviceSets/0/count
+        - /spec/storage/storageClassDeviceSets/0/placement/topologySpreadConstraints/0/maxSkew
+        - /spec/storage/storageClassDeviceSets/0/placement/topologySpreadConstraints/1/maxSkew
+    - group: ceph.rook.io
+      kind: CephCluster
+      name: ceph-for-ss
+      namespace: ceph-for-ss
+      jsonPointers:
+        - /spec/storage/storageClassDeviceSets/0/count
+        - /spec/storage/storageClassDeviceSets/0/placement/topologySpreadConstraints/0/maxSkew
+        - /spec/storage/storageClassDeviceSets/0/placement/topologySpreadConstraints/1/maxSkew
