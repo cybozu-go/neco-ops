@@ -179,7 +179,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: quay.io/cybozu/envoy:1.13.1.3
+        image: quay.io/cybozu/envoy:1.13.1.4
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -214,7 +214,7 @@ spec:
         - mountPath: /certs
           name: envoycert
       - name: liveness-probe
-        image: quay.io/cybozu/envoy:1.13.1.3
+        image: quay.io/cybozu/envoy:1.13.1.4
         command:
           - /usr/local/bin/livenessprobe
       initContainers:
