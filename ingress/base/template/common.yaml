@@ -3,3 +3,9 @@ kind: ServiceAccount
 metadata:
   name: contour
   namespace: projectcontour
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: envoy
+  namespace: projectcontour

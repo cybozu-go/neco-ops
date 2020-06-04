@@ -29,7 +29,7 @@ spec:
         args:
           - envoy
           - shutdown-manager
-        image: docker.io/projectcontour/contour:v1.3.0
+        image: docker.io/projectcontour/contour:v1.5.0
         imagePullPolicy: Always
         lifecycle:
           preStop:
@@ -52,7 +52,7 @@ spec:
         - --log-level info
         command:
         - envoy
-        image: docker.io/envoyproxy/envoy:v1.13.1
+        image: docker.io/envoyproxy/envoy:v1.14.1
         imagePullPolicy: IfNotPresent
         name: envoy
         env:
@@ -86,8 +86,6 @@ spec:
             mountPath: /config
           - name: envoycert
             mountPath: /certs
-          - name: cacert
-            mountPath: /ca
         lifecycle:
           preStop:
             httpGet:
@@ -100,12 +98,13 @@ spec:
         - /config/envoy.json
         - --xds-address=contour
         - --xds-port=8001
-        - --envoy-cafile=/ca/cacert.pem
+        - --resources-dir=/config/resources
+        - --envoy-cafile=/certs/ca.crt
         - --envoy-cert-file=/certs/tls.crt
         - --envoy-key-file=/certs/tls.key
         command:
         - contour
-        image: docker.io/projectcontour/contour:v1.3.0
+        image: docker.io/projectcontour/contour:v1.5.0
         imagePullPolicy: Always
         name: envoy-initconfig
         volumeMounts:
@@ -114,15 +113,12 @@ spec:
         - name: envoycert
           mountPath: /certs
           readOnly: true
-        - name: cacert
-          mountPath: /ca
-          readOnly: true
         env:
         - name: CONTOUR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-      automountServiceAccountToken: false
+      serviceAccountName: envoy
       terminationGracePeriodSeconds: 300
       volumes:
         - name: envoy-config
@@ -130,7 +126,4 @@ spec:
         - name: envoycert
           secret:
             secretName: envoycert
-        - name: cacert
-          secret:
-            secretName: cacert
       restartPolicy: Always

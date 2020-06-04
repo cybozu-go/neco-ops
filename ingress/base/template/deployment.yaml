@@ -48,12 +48,17 @@ spec:
         command:
         - contour
         env:
+        - name: CONTOUR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
         - name: POD_NAME
           valueFrom:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: quay.io/cybozu/contour:1.3.0.2
+        image: quay.io/cybozu/contour:1.5.0.1
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -138,14 +143,14 @@ spec:
                   app.kubernetes.io/name: envoy
               topologyKey: cke.cybozu.com/rack
             weight: 100
-      automountServiceAccountToken: false
+      serviceAccountName: envoy
       containers:
       - command:
         - /bin/contour
         args:
           - envoy
           - shutdown-manager
-        image: quay.io/cybozu/contour:1.3.0.2
+        image: quay.io/cybozu/contour:1.5.0.1
         imagePullPolicy: Always
         lifecycle:
           preStop:
@@ -179,7 +184,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: quay.io/cybozu/envoy:1.13.1.4
+        image: quay.io/cybozu/envoy:1.14.1.4
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -214,7 +219,7 @@ spec:
         - mountPath: /certs
           name: envoycert
       - name: liveness-probe
-        image: quay.io/cybozu/envoy:1.13.1.4
+        image: quay.io/cybozu/envoy:1.14.1.4
         command:
           - /usr/local/bin/livenessprobe
       initContainers:
@@ -223,6 +228,7 @@ spec:
         - /config/envoy.json
         - --xds-address=contour
         - --xds-port=8001
+        - --resources-dir=/config/resources
         - --envoy-cafile=/certs/ca.crt
         - --envoy-cert-file=/certs/tls.crt
         - --envoy-key-file=/certs/tls.key
@@ -233,7 +239,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: quay.io/cybozu/contour:1.3.0.2
+        image: quay.io/cybozu/contour:1.5.0.1
         imagePullPolicy: IfNotPresent
         name: envoy-initconfig
         volumeMounts:
