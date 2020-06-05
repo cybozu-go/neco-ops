@@ -51,6 +51,7 @@ data:
         hs.status = "Progressing"
         hs.message = "Waiting for certificate"
         return hs
+  application.instanceLabelKey: cybozu.com/appname
 ---
 apiVersion: v1
 kind: ConfigMap
