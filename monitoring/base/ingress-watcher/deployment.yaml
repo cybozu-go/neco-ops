@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-watcher-global
+  namespace: internet-egress
+  labels:
+    app.kubernetes.io/name: ingress-watcher-global
+  annotations:
+    prometheus.io/path: "/metrics"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-watcher-global
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ingress-watcher-global
+    spec:
+      containers:
+      - name: ingress-watcher
+        args:
+          - --config=/etc/ingress-watcher/config.yaml
+        image: quay.io/cybozu/ingress-watcher:0.1.1
+        volumeMounts:
+          - name: config
+            mountPath: /etc/ingress-watcher
+        ports:
+          - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 8080
+            scheme: HTTP
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 8080
+            scheme: HTTP
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: ingress-watcher-global-config
+---
+piVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-health
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: ingress-health
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-health
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ingress-health
+    spec:
+      containers:
+      - name: ingress-health
+        args:
+          - --listen=:8080
+        image: quay.io/cybozu/testhttpd:0.1.0
+        ports:
+          - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+      terminationGracePeriodSeconds: 10

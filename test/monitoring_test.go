@@ -317,6 +317,128 @@ spec:
 	}
 }
 
+func testIngressWatcher() {
+	fqdn := testID + "-ingress-health-global.gcp0.dev-ne.co"
+	manifest := fmt.Sprintf(`apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-global
+  namespace: monitoring
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: global
+spec:
+  virtualhost:
+    fqdn: %s
+    tls:
+      secretName: ingress-health-global-tls
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-global-https
+          port: 443
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-global-http
+          port: 80
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+---
+apiVersion: v1
+data:
+  config.yaml: |
+    targetAddrs:
+    - %s
+
+    # for export
+    listenAddr: 0.0.0.0:8080
+kind: ConfigMap
+metadata:
+  name: ingress-watcher-global-config
+`, fqdn, fqdn)
+
+	It("should create HTTPProxy for Pushgateway", func() {
+		_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
+	})
+
+	It("should be deployed successfully", func() {
+		By("for ingress-watcher-global")
+		Eventually(func() error {
+			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=internet-egress",
+				"get", "deployment/ingress-watcher-global", "-o=json")
+			if err != nil {
+				return err
+			}
+			deployment := new(appsv1.Deployment)
+			err = json.Unmarshal(stdout, deployment)
+			if err != nil {
+				return err
+			}
+
+			if int(deployment.Status.AvailableReplicas) != 1 {
+				return fmt.Errorf("AvailableReplicas is not 1: %d", int(deployment.Status.AvailableReplicas))
+			}
+			return nil
+		}).Should(Succeed())
+
+		By("for ingress-health (testhttpd)")
+		Eventually(func() error {
+			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=monitoring",
+				"get", "deployment/ingress-health", "-o=json")
+			if err != nil {
+				return err
+			}
+			deployment := new(appsv1.Deployment)
+			err = json.Unmarshal(stdout, deployment)
+			if err != nil {
+				return err
+			}
+
+			if int(deployment.Status.AvailableReplicas) != 1 {
+				return fmt.Errorf("AvailableReplicas is not 1: %d", int(deployment.Status.AvailableReplicas))
+			}
+			return nil
+		}).Should(Succeed())
+	})
+
+	It("should be collect metrics successfully", func() {
+		By("getting Pod address of ingress-watcher-global")
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "internet-egress", "get", "pod", "-l", "app.kubernetes.io/name=ingress-watcher-global", "-o", "json")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+
+		poList := new(corev1.PodList)
+		err = json.Unmarshal(stdout, poList)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(len(poList.Items)).Should(Equal(1))
+		addr := poList.Items[0].Status.PodIP
+
+		By("confirm exposed metrics by ingress-watcher-global")
+		Eventually(func() error {
+			stdout, stderr, err = ExecAt(boot0, "curl", "-skL", "https://"+addr+":8080/metrics")
+			if err != nil {
+				return fmt.Errorf("failed to get metrics from ingress-watcher-global")
+			}
+
+			res := string(stdout)
+			if !strings.Contains(res, "http_get_successful_total") {
+				return fmt.Errorf("metric http_get_successful_total does not exist")
+			}
+			if !strings.Contains(res, "https_get_successful_total") {
+				return fmt.Errorf("metric https_get_successful_total does not exist")
+			}
+
+			return nil
+		})
+	})
+}
+
 func getLoadBalancerIP(namespace, service string) (string, error) {
 	stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", namespace, "get", "service", service, "-o=json")
 	if err != nil {
