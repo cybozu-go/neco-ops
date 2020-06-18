@@ -509,6 +509,20 @@ scrape_configs:
         regex: ([^:]+)(?::\d+)?
         replacement: ${1}
         target_label: instance
+  - job_name: "ingress-watcher-global"
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: ["internet-egress"]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: ingress-watcher-global
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance
   - job_name: "neco-admission"
     kubernetes_sd_configs:
       - role: pod
