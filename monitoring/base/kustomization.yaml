@@ -21,6 +21,8 @@ resources:
   - alertmanager/service.yaml
   - pushgateway/deployment.yaml
   - pushgateway/service.yaml
+  - ingress-watcher/deployment.yaml
+  - ingress-watcher/service.yaml
 configMapGenerator:
   - name: prometheus-server-conf
     files:
