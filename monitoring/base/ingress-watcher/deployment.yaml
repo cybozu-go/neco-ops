@@ -22,6 +22,7 @@ spec:
       containers:
       - name: ingress-watcher
         args:
+          - export
           - --config=/etc/ingress-watcher/config.yaml
         image: quay.io/cybozu/ingress-watcher:0.1.1
         volumeMounts:
@@ -45,7 +46,7 @@ spec:
           configMap:
             name: ingress-watcher-global-config
 ---
-piVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ingress-health

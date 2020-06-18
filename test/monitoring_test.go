@@ -318,56 +318,6 @@ spec:
 }
 
 func testIngressWatcher() {
-	fqdn := testID + "-ingress-health-global.gcp0.dev-ne.co"
-	manifest := fmt.Sprintf(`apiVersion: projectcontour.io/v1
-kind: HTTPProxy
-metadata:
-  name: ingress-health-global
-  namespace: monitoring
-  annotations:
-    kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: global
-spec:
-  virtualhost:
-    fqdn: %s
-    tls:
-      secretName: ingress-health-global-tls
-  routes:
-    - conditions:
-        - prefix: /
-      services:
-        - name: ingress-health-global-https
-          port: 443
-      timeoutPolicy:
-        response: 2m
-        idle: 5m
-    - conditions:
-        - prefix: /
-      services:
-        - name: ingress-health-global-http
-          port: 80
-      timeoutPolicy:
-        response: 2m
-        idle: 5m
----
-apiVersion: v1
-data:
-  config.yaml: |
-    targetAddrs:
-    - %s
-
-    # for export
-    listenAddr: 0.0.0.0:8080
-kind: ConfigMap
-metadata:
-  name: ingress-watcher-global-config
-`, fqdn, fqdn)
-
-	It("should create HTTPProxy for Pushgateway", func() {
-		_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
-	})
-
 	It("should be deployed successfully", func() {
 		By("for ingress-watcher-global")
 		Eventually(func() error {

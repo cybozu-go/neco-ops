@@ -1,19 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ingress-health-global
+  name: ingress-health-https
   namespace: monitoring
   labels:
-    app.kubernetes.io/name: ingress-health-global
-  annotations:
-    contour.heptio.com/upstream-protocol.h2: 443,https
+    app.kubernetes.io/name: ingress-health-https
 spec:
   type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ingress-health
   ports:
-    - name: https
-      port: 443
-      protocol: TCP
-      targetPort: 8080
     - name: http
       port: 80
       protocol: TCP
