@@ -4,11 +4,11 @@ resources:
   - ../../base
   - grafana-operator/httpproxy.yaml
   - pushgateway/httpproxy.yaml
+  - ingress-watcher/httpproxy.yaml
+  - ingress-watcher/configmap.yaml
 patchesStrategicMerge:
   - prometheus/statefulset.yaml
   - grafana-operator/grafana.yaml
-  - ingress-watcher/httpproxy.yaml
-  - ingress-watcher/configmap.yaml
 configMapGenerator:
   - name: alertmanager
     behavior: merge
