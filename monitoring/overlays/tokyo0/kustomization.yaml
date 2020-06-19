@@ -7,6 +7,8 @@ resources:
 patchesStrategicMerge:
   - prometheus/statefulset.yaml
   - grafana-operator/grafana.yaml
+  - ingress-watcher/httpproxy.yaml
+  - ingress-watcher/configmap.yaml
 configMapGenerator:
   - name: alertmanager
     behavior: merge

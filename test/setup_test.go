@@ -246,20 +246,18 @@ apiVersion: v1
 data:
   config.yaml: |
     targetURLs:
-	- http://%s
-	- https://%s
-
+    - http://%s
+    - https://%s
     # for export
     listenAddr: 0.0.0.0:8080
 kind: ConfigMap
 metadata:
   name: ingress-watcher-global-config
+  namespace: internet-egress
 `, fqdn, fqdn, fqdn)
 
-				It("should create HTTPProxy for Pushgateway", func() {
-					_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
-					Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
-				})
+				_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
+				Expect(err).NotTo(HaveOccurred(), "failed to create HTTPProxy and ConfigMap. stderr: %s", stderr)
 			}
 		})
 	}

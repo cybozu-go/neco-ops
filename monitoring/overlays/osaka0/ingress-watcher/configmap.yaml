@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-watcher-global-config
+  namespace: internet-egress
+data:
+  config.yaml: | 
+    targetURLs:
+      - http://ingress-health.monitoring.osaka0.cybozu-ne.co
+      - https://ingress-health.monitoring.osaka0.cybozu-ne.co
+    # for export
+    listenAddr: 0.0.0.0:8080

@@ -1,0 +1,22 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health
+  namespace: monitoring
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: global
+spec:
+  virtualhost:
+    fqdn: ingress-health.monitoring.osaka0.cybozu-ne.co
+    tls:
+      secretName: ingress-health-tls
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-https
+          port: 80
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
