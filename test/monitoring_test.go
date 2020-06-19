@@ -385,7 +385,7 @@ func testIngressWatcher() {
 			}
 
 			return nil
-		})
+		}).Should(Succeed())
 	})
 }
 
