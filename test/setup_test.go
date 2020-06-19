@@ -216,33 +216,11 @@ func testSetup() {
 			}
 		})
 
-		It("should create HTTPProxy and ConfigMap for ingress-watcher", func() {
+		// Since we want to create FQDNs dynamically during testing, we generate a ConfigMap at this location.
+		It("should create ConfigMap for ingress-watcher", func() {
 			if !withKind {
 				fqdn := testID + "-ingress-health-global.gcp0.dev-ne.co"
-				manifest := fmt.Sprintf(`apiVersion: projectcontour.io/v1
-kind: HTTPProxy
-metadata:
-  name: ingress-health
-  namespace: monitoring
-  annotations:
-    kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: global
-spec:
-  virtualhost:
-    fqdn: %s
-    tls:
-      secretName: ingress-health-tls
-  routes:
-    - conditions:
-        - prefix: /
-      services:
-        - name: ingress-health-https
-          port: 80
-      timeoutPolicy:
-        response: 2m
-        idle: 5m
----
-apiVersion: v1
+				manifest := fmt.Sprintf(`apiVersion: v1
 data:
   config.yaml: |
     targetURLs:
@@ -254,10 +232,10 @@ kind: ConfigMap
 metadata:
   name: ingress-watcher-global-config
   namespace: internet-egress
-`, fqdn, fqdn, fqdn)
+`, fqdn, fqdn)
 
 				_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
-				Expect(err).NotTo(HaveOccurred(), "failed to create HTTPProxy and ConfigMap. stderr: %s", stderr)
+				Expect(err).NotTo(HaveOccurred(), "failed to create ConfigMap. stderr: %s", stderr)
 			}
 		})
 	}
