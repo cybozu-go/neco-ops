@@ -388,7 +388,10 @@ spec:
 		}).Should(Succeed())
 	})
 
-	It("should be collect metrics successfully", func() {
+	It("should collect metrics successfully", func() {
+		By("creating ubuntu pod to execute curl")
+		createUbuntuDebugPod("internet-egress")
+
 		By("getting Pod address of ingress-watcher-global")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "internet-egress", "get", "pod", "-l", "app.kubernetes.io/name=ingress-watcher-global", "-o", "json")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
@@ -397,21 +400,21 @@ spec:
 		err = json.Unmarshal(stdout, poList)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(poList.Items)).Should(Equal(1))
-		addr := poList.Items[0].Status.PodIP
+		url := "https://" + poList.Items[0].Status.PodIP + ":8080/metrics"
 
 		By("confirm exposed metrics by ingress-watcher-global")
 		Eventually(func() error {
-			stdout, stderr, err = ExecAt(boot0, "curl", "-skL", "https://"+addr+":8080/metrics")
+			stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n=internet-egress", "ubuntu", "curl", "-skL", url)
 			if err != nil {
-				return fmt.Errorf("failed to get metrics from ingress-watcher-global")
+				return fmt.Errorf("failed to get metrics from ingress-watcher-global %s: stdout=%s, stderr=%s, err=%v", url, stdout, stderr, err)
 			}
 
 			res := string(stdout)
 			if !strings.Contains(res, "http_get_successful_total") {
-				return fmt.Errorf("metric http_get_successful_total does not exist")
+				return fmt.Errorf("metric http_get_successful_total does not exist: stdout=%s", stdout)
 			}
 			if !strings.Contains(res, "https_get_successful_total") {
-				return fmt.Errorf("metric https_get_successful_total does not exist")
+				return fmt.Errorf("metric https_get_successful_total does not exist: stdout=%s", stdout)
 			}
 
 			return nil
