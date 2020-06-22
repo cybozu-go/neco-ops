@@ -404,7 +404,7 @@ spec:
 
 		By("confirm exposed metrics by ingress-watcher-global")
 		Eventually(func() error {
-			stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n=internet-egress", "ubuntu", "curl", "-skL", url)
+			stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "ubuntu", "curl", "-skL", url)
 			if err != nil {
 				return fmt.Errorf("failed to get metrics from ingress-watcher-global %s: stdout=%s, stderr=%s, err=%v", url, stdout, stderr, err)
 			}

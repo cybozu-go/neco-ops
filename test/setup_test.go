@@ -219,9 +219,8 @@ func testSetup() {
 
 	// Since we want to create FQDNs dynamically during testing, we generate a ConfigMap at this location.
 	It("should create ConfigMap for ingress-watcher", func() {
-		if !withKind {
-			fqdn := testID + "-ingress-health-global.gcp0.dev-ne.co"
-			manifest := fmt.Sprintf(`apiVersion: v1
+		fqdn := testID + "-ingress-health-global.gcp0.dev-ne.co"
+		manifest := fmt.Sprintf(`apiVersion: v1
 data:
   config.yaml: |
     targetURLs:
@@ -235,9 +234,8 @@ metadata:
   namespace: internet-egress
 `, fqdn, fqdn)
 
-			_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
-			Expect(err).NotTo(HaveOccurred(), "failed to create ConfigMap. stderr: %s", stderr)
-		}
+		_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "failed to create ConfigMap. stderr: %s", stderr)
 	})
 
 	It("should checkout neco-apps repository@"+commitID, func() {
