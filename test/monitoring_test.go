@@ -390,7 +390,7 @@ spec:
 
 	It("should collect metrics successfully", func() {
 		By("creating ubuntu pod to execute curl")
-		createUbuntuDebugPod("internet-egress")
+		createUbuntuDebugPod("default")
 
 		By("getting Pod address of ingress-watcher-global")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "internet-egress", "get", "pod", "-l", "app.kubernetes.io/name=ingress-watcher-global", "-o", "json")
