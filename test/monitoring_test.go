@@ -400,11 +400,11 @@ spec:
 		err = json.Unmarshal(stdout, poList)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(poList.Items)).Should(Equal(1))
-		url := "https://" + poList.Items[0].Status.PodIP + ":8080/metrics"
+		url := "http://" + poList.Items[0].Status.PodIP + ":8080/metrics"
 
 		By("confirm exposed metrics by ingress-watcher-global")
 		Eventually(func() error {
-			stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "ubuntu", "curl", "-skL", url)
+			stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "ubuntu", "--", "curl", "-skL", url)
 			if err != nil {
 				return fmt.Errorf("failed to get metrics from ingress-watcher-global %s: stdout=%s, stderr=%s, err=%v", url, stdout, stderr, err)
 			}
