@@ -402,6 +402,7 @@ spec:
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(poList.Items)).Should(Equal(1))
 		url := "http://" + poList.Items[0].Status.PodIP + ":8080/metrics"
+		targetFQDN := testID + "-ingress-health-global.gcp0.dev-ne.co"
 
 		By("confirm exposed metrics by ingress-watcher-global")
 		Eventually(func() error {
@@ -411,11 +412,11 @@ spec:
 			}
 
 			res := string(stdout)
-			if !strings.Contains(res, "http_get_successful_total") {
-				return fmt.Errorf("metric http_get_successful_total does not exist: stdout=%s", stdout)
+			if !strings.Contains(res, fmt.Sprintf(`ingresswatcher_http_get_successful_total{code="200 OK",path="http://%s"}`, targetFQDN)) {
+				return fmt.Errorf("metric http_get_successful_total does not exist: stdout=%s, url=http://%s", stdout, targetFQDN)
 			}
-			if !strings.Contains(res, "https_get_successful_total") {
-				return fmt.Errorf("metric https_get_successful_total does not exist: stdout=%s", stdout)
+			if !strings.Contains(res, fmt.Sprintf(`ingresswatcher_http_get_successful_total{code="200 OK",path="https://%s"}`, targetFQDN)) {
+				return fmt.Errorf("metric http_get_successful_total does not exist: stdout=%s, url=https://%s", stdout, targetFQDN)
 			}
 
 			return nil
