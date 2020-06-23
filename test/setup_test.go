@@ -228,6 +228,7 @@ data:
     - https://%s
     # for export
     listenAddr: 0.0.0.0:8080
+    permitInsecure: true
 kind: ConfigMap
 metadata:
   name: ingress-watcher-global-config

@@ -24,7 +24,7 @@ spec:
         args:
           - export
           - --config=/etc/ingress-watcher/config.yaml
-        image: quay.io/cybozu/ingress-watcher:0.1.1
+        image: quay.io/cybozu/ingress-watcher:0.1.2
         volumeMounts:
           - name: config
             mountPath: /etc/ingress-watcher

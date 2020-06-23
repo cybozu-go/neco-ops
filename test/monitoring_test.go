@@ -339,6 +339,7 @@ spec:
       services:
         - name: ingress-health-https
           port: 80
+      permitInsecure: true
       timeoutPolicy:
         response: 2m
         idle: 5m
