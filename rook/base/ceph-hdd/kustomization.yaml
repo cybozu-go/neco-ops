@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - clusterrolebinding
+  - cephblockpool.yaml
+  - cephobjectstore.yaml
+  - cluster.yaml
+  - deployment.yaml
+  - role.yaml
+  - rolebinding.yaml
+  - serviceaccount.yaml
+namespace: ceph-hdd
+patchesStrategicMerge:
+  - operator.yaml

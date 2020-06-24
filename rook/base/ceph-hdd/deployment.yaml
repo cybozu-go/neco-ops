@@ -1,0 +1,89 @@
+---
+# Source: rook-ceph/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+  labels:
+    operator: rook
+    storage-backend: ceph
+    chart: "rook-ceph-0.0.1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rook-ceph-operator
+  template:
+    metadata:
+      labels:
+        app: rook-ceph-operator
+        chart: "rook-ceph-0.0.1"
+    spec:
+      containers:
+      - name: rook-ceph-operator
+        image: "quay.io/cybozu/rook:1.3.4.1"
+        imagePullPolicy: IfNotPresent
+        args: ["ceph", "operator"]
+        env:
+        - name: ROOK_CURRENT_NAMESPACE_ONLY
+          value: "true"
+        - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
+          value: "false"
+        - name: ROOK_LOG_LEVEL
+          value: INFO
+        - name: ROOK_ENABLE_SELINUX_RELABELING
+          value: "true"
+        - name: ROOK_DISABLE_DEVICE_HOTPLUG
+          value: "false"
+        - name: ROOK_CSI_ENABLE_RBD
+          value: "true"
+        - name: ROOK_CSI_ENABLE_CEPHFS
+          value: "false"
+        - name: CSI_ENABLE_SNAPSHOTTER
+          value: "true"
+        - name: CSI_PLUGIN_PRIORITY_CLASSNAME
+          value: ""
+        - name: CSI_PROVISIONER_PRIORITY_CLASSNAME
+          value: ""
+        - name: ROOK_CSI_ENABLE_GRPC_METRICS
+          value: "true"
+        - name: CSI_RBD_GRPC_METRICS_PORT
+          value: "19090"
+        - name: CSI_RBD_LIVENESS_METRICS_PORT
+          value: "19080"
+        - name: CSI_FORCE_CEPHFS_KERNEL_CLIENT
+          value: "true"
+        - name: ROOK_ENABLE_FLEX_DRIVER
+          value: "false"
+        - name: ROOK_ENABLE_DISCOVERY_DAEMON
+          value: "false"
+        - name: ROOK_OBC_WATCH_OPERATOR_NAMESPACE
+          value: "true"
+
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ROOK_CEPH_STATUS_CHECK_INTERVAL
+          value: 60s
+        - name: ROOK_MON_HEALTHCHECK_INTERVAL
+          value: 45s
+        - name: ROOK_MON_OUT_TIMEOUT
+          value: 600s
+        - name: ROOK_UNREACHABLE_NODE_TOLERATION_SECONDS
+          value: "5"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          
+      serviceAccountName: rook-ceph-system
+

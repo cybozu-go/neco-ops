@@ -125,14 +125,57 @@ $ curl -sLf -o network-policy/base/calico/upstream/calico-policy-only.yaml https
 Remove the resources related to `calico-kube-controllers` from `calico-policy-only.yaml` because we do not need to use `calico/kube-controllers`.
 See: [Kubernetes controllers configuration](https://docs.projectcalico.org/reference/resources/kubecontrollersconfig)
 
-teleport
---------
+## rook
+
+Get upstream helm chart:
+
+```console
+$ cd $GOPATH/src/github.com/cybozu-go
+$ git clone https://github.com/cybozu-go/rook
+$ cd rook
+$ git checkout vX.Y.Z
+$ rm -r $GOPATH/src/github.com/cybozu-go/neco-apps/rook/base/upstream/chart
+$ cp -a cluster/charts/rook-ceph $GOPATH/src/github.com/cybozu-go/neco-apps/rook/base/upstream/chart
+```
+
+Download Helm used in Rook. Follow `HELM_VERSION` in the upstream configuration.
+
+```console
+# Check the Helm version, in rook repo directory downloaded above
+$ cat build/makelib/helm.mk | grep ^HELM_VERSION
+$ HELM_VERSION=X.Y.Z
+$ curl -sSLf https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz | sudo tar -C /usr/local/bin linux-amd64/helm --strip-components 1 -xzf -
+```
+
+Update rook/base/values*.yaml if necessary.
+
+Regenerate base resource yaml  
+note: check number of yaml files.
+
+```console
+$ cd $GOPATH/src/github.com/cybozu-go/neco-apps/rook/base
+$ for i in clusterrole psp resources; do
+    helm template upstream/chart -f values.yaml -x templates/${i}.yaml > common/${i}.yaml
+  done
+$ for t in hdd ssd; do
+    for i in deployment role rolebinding serviceaccount; do
+      helm template upstream/chart -f values.yaml -f values-${t}.yaml -x templates/${i}.yaml --namespace ceph-${t} > ceph-${t}/${i}.yaml
+    done
+    helm template upstream/chart -f values.yaml -f values-${t}.yaml -x templates/clusterrolebinding.yaml --namespace ceph-${t} > ceph-${t}/clusterrolebinding/clusterrolebinding.yaml
+  done
+```
+
+Then check the diffs by `git diff`.
+
+TODO:  
+After https://github.com/rook/rook/pull/5240 is merged, we have to revise above mentioned process.
+
+## teleport
 
 There is no official kubernetes manifests actively maintained for teleport.
 So, check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github.
 
-topolvm
--------
+## topolvm
 
 Check [releases](https://github.com/cybozu-go/topolvm/releases) for changes.
 

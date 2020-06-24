@@ -1,0 +1,37 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: ceph-hdd-object-store
+  namespace: ceph-hdd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  metadataPool:
+    failureDomain: zone
+    replicated:
+      size: 3
+  dataPool:
+    failureDomain: zone
+    replicated:
+      size: 3
+  preservePoolsOnDelete: true
+  gateway:
+    type: s3
+    port: 80
+    instances: 1
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1024Mi"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-hdd-bucket
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+provisioner: ceph-hdd.ceph.rook.io/bucket
+parameters:
+  objectStoreName: ceph-hdd-object-store
+  objectStoreNamespace: ceph-hdd
+reclaimPolicy: Delete

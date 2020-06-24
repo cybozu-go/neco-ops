@@ -14,4 +14,7 @@ dctest-upgrade:
 	cp /tmp/neco-apps/test/argocd-password.txt ./
 	UPGRADE=1 ./test.sh
 
-.PHONY: dctest dctest-reboot dctest-upgrade
+dctest-osd-pod-spread: install.yaml
+	OSD_POD_SPREAD_TEST=1 ./test.sh
+
+.PHONY: dctest dctest-reboot dctest-upgrade dctest-osd-pod-spread

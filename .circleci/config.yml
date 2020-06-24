@@ -62,7 +62,7 @@ commands:
                 name: dctest(bootstrap) TAG=release
                 command: |
                   cd neco
-                  ./bin/run-dctest.sh bootstrap release
+                  ./bin/run-dctest.sh bootstrap release "" menu-ss.yml
                 no_output_timeout: 31m
       - unless:
           condition: <<parameters.neco-release-branch>>
@@ -71,7 +71,7 @@ commands:
                 name: dctest(bootstrap) TAG=""
                 command: |
                   cd neco
-                  ./bin/run-dctest.sh bootstrap
+                  ./bin/run-dctest.sh bootstrap "" "" menu-ss.yml
                 no_output_timeout: 31m
 
   delete-instance:
@@ -193,6 +193,20 @@ jobs:
           no_output_timeout: 31m
       - delete-instance
 
+  osd-pod-spread:
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - checkout
+      - boot-dctest
+      - run:
+          name: Test neco-apps
+          command: |
+            export NECO_DIR=$(pwd)/neco
+            TARGET=dctest-osd-pod-spread ./bin/run-test.sh
+          no_output_timeout: 31m
+      - delete-instance
+
   kindtest:
     docker:
       - image: google/cloud-sdk
@@ -306,6 +320,9 @@ workflows:
       - upgrade-stage:
           requires:
             - hold
+      - osd-pod-spread:
+          requires:
+            - hold
       - create-pull-request-stage:
           filters:
             branches:
@@ -315,6 +332,7 @@ workflows:
             - bootstrap
             - upgrade-stage
             - upgrade-release
+            - osd-pod-spread
 
   # Test with the specified neco branch.
   manual-dctest-with-neco-feature-branch:
@@ -346,11 +364,13 @@ workflows:
       - bootstrap
       - upgrade-stage
       - upgrade-release
+      - osd-pod-spread
       - create-pull-request-stage:
           requires:
             - bootstrap
             - upgrade-stage
             - upgrade-release
+            - osd-pod-spread
   release-tag:
     jobs:
       - push-release-tag:

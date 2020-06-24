@@ -35,28 +35,30 @@ This repository has 4 CircleCI workflows: `main`, `daily`, `manual-dctest` and `
 
 ### `daily` workflow
 
-`daily` workflow is executed daily for merging `master` to `stage`.  This consists of the following 4 jobs.
+`daily` workflow is executed daily for merging `master` to `stage`.  This consists of the following 5 jobs.
 
 | job name                    | description                                                                            | target branch |
 | --------------------------- | -------------------------------------------------------------------------------------- | ------------- |
 | `bootstrap`                 | Bootstrap test on GCP instances                                                        | `master`      |
 | `upgrade-stage`             | Upgrade test from `stage` branch (staging env)                                         | `master`      |
 | `upgrade-release`           | Upgrade test from `release` branch (production env)                                    | `master`      |
+| `osd-pod-spread`            | TopologySpreadConstraints test for rook/ceph                                           | `master`      |
 | `create-pull-request-stage` | Create PR to stage, then trigger `create-pull-request-stage` of the secret repository. | `master`      |
 
-`update-stage` is executed only if 3 other jobs succeeded.
+`create-pull-request-stage` is executed only if 4 other jobs succeeded.
 
 ### `manual-dctest` workflow
 
 `manual-dctest` workflow is not executed automatically.  This provides full-scale test for all branches, which can be triggered from Web UI.
 
-This consists of the following 3 jobs.
+This consists of the following 4 jobs.
 
-| job name                    | description                                                                            | target branch                                                                     |
-| --------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `bootstrap`                 | Bootstrap test on GCP instances                                                        | all branches                                                                      |
-| `upgrade-stage`             | Upgrade test from `stage` branch (staging env)                                         | all branches                                                                      |
-| `upgrade-release`           | Upgrade test from `release` branch (production env)                                    | all branches                                                                      |
+| job name          | description                                         | target branch |
+| ----------------- | --------------------------------------------------- | ------------- |
+| `bootstrap`       | Bootstrap test on GCP instances                     | all branches  |
+| `upgrade-stage`   | Upgrade test from `stage` branch (staging env)      | all branches  |
+| `upgrade-release` | Upgrade test from `release` branch (production env) | all branches  |
+| `osd-pod-spread`  | TopologySpreadConstraints test for rook/ceph        | all branches  |
 
 ### `manual-dctest-with-neco-feature-branch` workflow
 

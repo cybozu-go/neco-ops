@@ -180,37 +180,33 @@ spec:
 	})
 
 	It("cleans up", func() {
-		ExecSafeAt(boot0, "kubectl", "delete", "namespace", ns)
+		By("getting used local PV")
+		stdout := ExecSafeAt(boot0, "kubectl", "get", "pvc", "local-pvc", "-n", ns, "-o", "json")
 
-		for _, pv := range targetPVList {
-			ExecSafeAt(boot0, "kubectl", "delete", "pv", pv.GetName())
-		}
+		pvc := new(corev1.PersistentVolumeClaim)
+		err := json.Unmarshal(stdout, pvc)
+		Expect(err).ShouldNot(HaveOccurred())
+		usedPVName := pvc.Spec.VolumeName
+
+		By("deleting test resources")
+		ExecSafeAt(boot0, "kubectl", "delete", "namespace", ns)
+		ExecSafeAt(boot0, "kubectl", "delete", "pv", usedPVName)
+
+		By("waiting used local PV will be recreated")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pv", "-o", "json")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pv", usedPVName, "-o", "json")
 			if err != nil {
 				return fmt.Errorf("failed to get PVs. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
 
-			var pvs corev1.PersistentVolumeList
-			err = json.Unmarshal(stdout, &pvs)
+			var pv corev1.PersistentVolume
+			err = json.Unmarshal(stdout, &pv)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal JSON. err: %v", err)
 			}
 
-			var newPVList []corev1.PersistentVolume
-			for _, pv := range pvs.Items {
-				if pv.Spec.StorageClassName == "local-storage" {
-					newPVList = append(newPVList, pv)
-				}
-			}
-			if len(newPVList) != targetDeviceNum {
-				return fmt.Errorf("the number of local PVs should be %d: %d", targetDeviceNum, len(newPVList))
-			}
-
-			for _, pv := range newPVList {
-				if pv.Status.Phase != corev1.VolumeAvailable {
-					return fmt.Errorf("local PVs status should be %s: %s", corev1.VolumeAvailable, pv.Status.Phase)
-				}
+			if pv.Status.Phase != corev1.VolumeAvailable {
+				return fmt.Errorf("local PVs status should be %s: %s", corev1.VolumeAvailable, pv.Status.Phase)
 			}
 
 			return nil

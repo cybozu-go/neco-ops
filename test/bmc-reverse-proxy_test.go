@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 
+	"github.com/cybozu-go/sabakan/v2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -34,7 +36,15 @@ func testBMCReverseProxy() {
 		}).Should(Succeed())
 	})
 
+	var machines []sabakan.Machine
+
 	It("should create ConfigMap", func() {
+		// check consistency between "sabactl machines get" and bmc-reverse-proxy ConfigMap.
+		stdout, _, err := ExecAt(boot0, "sabactl", "machines", "get")
+		Expect(err).ShouldNot(HaveOccurred())
+		err = json.Unmarshal(stdout, &machines)
+		Expect(err).ShouldNot(HaveOccurred())
+
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=bmc-reverse-proxy",
 				"get", "configmap", "bmc-reverse-proxy", "-o=json")
@@ -49,16 +59,29 @@ func testBMCReverseProxy() {
 			}
 
 			data := cm.Data
-			if data["rack3-cs4"] != "10.72.17.100" {
-				return fmt.Errorf("bmc-reverse-proxy rack3-cs4 IP Adress is not 10.72.17.100: %s", data["rack3-cs4"])
-			}
+			for _, m := range machines {
+				bmcIP := m.Spec.BMC.IPv4
+				var hostname string
+				if m.Spec.Role == "boot" {
+					hostname = fmt.Sprintf("boot-%d", m.Spec.Rack)
+				} else {
+					hostname = fmt.Sprintf("rack%d-%s%d", m.Spec.Rack, m.Spec.Role, m.Spec.IndexInRack)
+				}
+				if data[hostname] != bmcIP {
+					return fmt.Errorf("bmc-reverse-proxy %s IP Address is not %s: %s", hostname, bmcIP, data[hostname])
+				}
 
-			if data["10-69-2-68"] != "10.72.17.100" {
-				return fmt.Errorf("bmc-reverse-proxy 10-69-2-68 IP Adress is not 10.72.17.100: %s", data["10-69-2-68"])
-			}
+				// IPv4[0] is the virtual IP, and IPv4[1] and IPv4[2] are the real node IP belong to ToR subnet.
+				// See sabakan integration
+				nodeIP := strings.Replace(m.Spec.IPv4[0], ".", "-", -1)
+				if data[nodeIP] != bmcIP {
+					return fmt.Errorf("bmc-reverse-proxy %s IP Address is not %s: %s", nodeIP, bmcIP, data[nodeIP])
+				}
 
-			if data["168799a36a60da24f934e2adf9e455e25a3ad4ef"] != "10.72.17.100" {
-				return fmt.Errorf("bmc-reverse-proxy 168799a36a60da24f934e2adf9e455e25a3ad4ef IP Adress is not 10.72.17.100: %s", data["168799a36a60da24f934e2adf9e455e25a3ad4ef"])
+				nodeSerial := m.Spec.Serial
+				if data[nodeSerial] != bmcIP {
+					return fmt.Errorf("bmc-reverse-proxy %s IP Address is not %s: %s", nodeSerial, bmcIP, data[nodeSerial])
+				}
 			}
 
 			return nil
@@ -74,7 +97,8 @@ func testBMCReverseProxy() {
 			}
 			addr := string(stdout)
 
-			cmd := exec.Command("curl", "--fail", "--insecure", "-H", "Host: rack3-cs4.bmc.gcp0.dev-ne.co", fmt.Sprintf("https://%s", addr))
+			someNodeSerial := machines[0].Spec.Serial
+			cmd := exec.Command("curl", "--fail", "--insecure", "-H", fmt.Sprintf("Host: %s.bmc.gcp0.dev-ne.co", someNodeSerial), fmt.Sprintf("https://%s", addr))
 			output, err := cmd.CombinedOutput()
 			if err != nil {
 				return fmt.Errorf("output: %s, err: %v", output, err)

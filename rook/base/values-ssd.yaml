@@ -1,0 +1,3 @@
+csi:
+  rbdGrpcMetricsPort: 29090
+  rbdLivenessMetricsPort: 29080

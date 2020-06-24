@@ -1,0 +1,15 @@
+currentNamespaceOnly: true
+enableDiscoveryDaemon: false
+csi:
+  enableCephfsDriver: false
+  pluginPriorityClassName: ""
+  provisionerPriorityClassName: ""
+image:
+  repository: quay.io/cybozu/rook
+  tag: 1.3.4.1
+  pullPolicy: IfNotPresent
+resources:
+  limits:
+  requests:
+    cpu: 100m
+    memory: 256Mi
