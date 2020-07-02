@@ -321,6 +321,9 @@ spec:
 }
 
 func testIngressHealth() {
+	globalHealthFQDN := testID + "-ingress-health-global.gcp0.dev-ne.co"
+	bastionHealthFQDN := testID + "-ingress-health-bastion.gcp0.dev-ne.co"
+
 	It("should be deployed successfully", func() {
 		By("for ingress-health (testhttpd)")
 		Eventually(func() error {
@@ -346,6 +349,81 @@ func testIngressHealth() {
 			return nil
 		}).Should(Succeed())
 	})
+
+	if !withKind {
+		It("should create HTTPProxy for ingress-watcher", func() {
+			manifest := fmt.Sprintf(`apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-global
+  namespace: monitoring
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: global
+spec:
+  virtualhost:
+    fqdn: %s
+    tls:
+      secretName: ingress-health-global-tls
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-https
+          port: 80
+      permitInsecure: true
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-bastion
+  namespace: monitoring
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: bastion
+spec:
+  virtualhost:
+    fqdn: %s
+    tls:
+      secretName: ingress-health-bastion-tls
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-https
+          port: 80
+      permitInsecure: true
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+`, globalHealthFQDN, bastionHealthFQDN)
+
+			_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
+			Expect(err).NotTo(HaveOccurred(), "failed to create HTTPProxy. stderr: %s", stderr)
+		})
+
+		It("should push metrics to the push-gateway", func() {
+			By("requesting push-gateway server")
+			Eventually(func() error {
+				stdout, stderr, err := ExecAt(boot0, "curl", "-sL", "https://"+bastionFQDN+"/metrics")
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+
+				res := string(stdout)
+				for _, targetFQDN := range []string{globalHealthFQDN, bastionHealthFQDN} {
+					if !strings.Contains(res, fmt.Sprintf(`ingresswatcher_http_get_successful_total{code="200 OK",path="http://%s"}`, targetFQDN)) {
+						return fmt.Errorf("metric http_get_successful_total does not exist: stdout=%s, url=http://%s", stdout, targetFQDN)
+					}
+				}
+
+				return nil
+			}).Should(Succeed())
+		})
+	}
 }
 
 func testUnboundService() {
