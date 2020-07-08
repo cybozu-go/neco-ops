@@ -413,7 +413,15 @@ spec:
 			Expect(err).NotTo(HaveOccurred(), "failed to create HTTPProxy. stderr: %s", stderr)
 		})
 
-		It("should be override configuration of ingress-watcher", func() {
+		It("should replace ingress-watcher configuration file", func() {
+			By("comfirming ingress-watcher configuration file")
+			ingressWatcherConfPath := "/etc/ingress-watcher/ingress-watcher.yaml"
+			Eventually(func() error {
+				_, err := os.Stat(ingressWatcherConfPath)
+				return err
+			}).Should(Succeed())
+
+			By("replacing ingress-watcher configuration file")
 			config := fmt.Sprintf(`
 targetURLs:
 - https://%s
@@ -427,7 +435,7 @@ jobName: ingress-watcher-0
 pushInterval: 10s
 permitInsecure: true
 `, bastionHealthFQDN, bastionHealthFQDN, globalHealthFQDN, globalHealthFQDN, bastionPushgatewayFQDN)
-			err := ioutil.WriteFile("/etc/ingress-watcher/ingress-watcher.yaml", []byte(config), os.FileMode(0644))
+			err := ioutil.WriteFile(ingressWatcherConfPath, []byte(config), os.FileMode(0644))
 			Expect(err).NotTo(HaveOccurred())
 			ExecSafeAt(boot0, "sudo", "systemctl", "restart", "ingress-watcher.service")
 		})
