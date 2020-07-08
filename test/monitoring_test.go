@@ -35,8 +35,11 @@ var dcJobs = []string{
 	"sabakan",
 }
 var (
-	bastionFQDN = testID + "-pushgateway-bastion.gcp0.dev-ne.co"
-	forestFQDN  = testID + "-pushgateway-forest.gcp0.dev-ne.co"
+	globalHealthFQDN  = testID + "-ingress-health-global.gcp0.dev-ne.co"
+	bastionHealthFQDN = testID + "-ingress-health-bastion.gcp0.dev-ne.co"
+
+	bastionPushgatewayFQDN = testID + "-pushgateway-bastion.gcp0.dev-ne.co"
+	forestPushgatewayFQDN  = testID + "-pushgateway-forest.gcp0.dev-ne.co"
 )
 
 func testMachinesEndpoints() {
@@ -276,7 +279,7 @@ spec:
 `
 
 	It("should create HTTPProxy for Pushgateway", func() {
-		manifest := fmt.Sprintf(manifestBase, bastionFQDN, forestFQDN)
+		manifest := fmt.Sprintf(manifestBase, bastionPushgatewayFQDN, forestPushgatewayFQDN)
 		_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 	})
@@ -308,7 +311,7 @@ spec:
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(func() error {
 				stdout, stderr, err := ExecAt(boot0,
-					"curl", "-skL", "--resolve", bastionFQDN+":80:"+bastionIP, "http://"+bastionFQDN+"/-/healthy",
+					"curl", "-skL", "--resolve", bastionPushgatewayFQDN+":80:"+bastionIP, "http://"+bastionPushgatewayFQDN+"/-/healthy",
 					"-o", "/dev/null",
 				)
 				if err != nil {
@@ -322,16 +325,13 @@ spec:
 			forestIP, err := getLoadBalancerIP("ingress-forest", "envoy")
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(func() error {
-				return exec.Command("sudo", "nsenter", "-n", "-t", externalPID, "curl", "--resolve", forestFQDN+":80:"+forestIP, forestFQDN+"/-/healthy", "-m", "5").Run()
+				return exec.Command("sudo", "nsenter", "-n", "-t", externalPID, "curl", "--resolve", forestPushgatewayFQDN+":80:"+forestIP, forestPushgatewayFQDN+"/-/healthy", "-m", "5").Run()
 			}).Should(Succeed())
 		})
 	}
 }
 
 func testIngressHealth() {
-	globalHealthFQDN := testID + "-ingress-health-global.gcp0.dev-ne.co"
-	bastionHealthFQDN := testID + "-ingress-health-bastion.gcp0.dev-ne.co"
-
 	It("should be deployed successfully", func() {
 		By("for ingress-health (testhttpd)")
 		Eventually(func() error {
@@ -377,7 +377,7 @@ spec:
     - conditions:
         - prefix: /
       services:
-        - name: ingress-health-https
+        - name: ingress-health-http
           port: 80
       permitInsecure: true
       timeoutPolicy:
@@ -401,7 +401,7 @@ spec:
     - conditions:
         - prefix: /
       services:
-        - name: ingress-health-https
+        - name: ingress-health-http
           port: 80
       permitInsecure: true
       timeoutPolicy:
@@ -413,10 +413,29 @@ spec:
 			Expect(err).NotTo(HaveOccurred(), "failed to create HTTPProxy. stderr: %s", stderr)
 		})
 
+		It("should be override configuration of ingress-watcher", func() {
+			config := fmt.Sprintf(`
+targetURLs:
+- https://%s
+- http://%s
+- https://%s
+- http://%s
+watchInterval: 10s
+
+pushAddr: %s
+jobName: ingress-watcher-0
+pushInterval: 10s
+permitInsecure: true
+`, bastionHealthFQDN, bastionHealthFQDN, globalHealthFQDN, globalHealthFQDN, bastionPushgatewayFQDN)
+			err := ioutil.WriteFile("/etc/ingress-wacher/ingress-wacher.yaml", []byte(config), os.FileMode(0644))
+			Expect(err).NotTo(HaveOccurred())
+			ExecSafeAt(boot0, "sudo", "systemctl", "restart", "ingress-wacher.service")
+		})
+
 		It("should push metrics to the push-gateway", func() {
 			By("requesting push-gateway server")
 			Eventually(func() error {
-				stdout, stderr, err := ExecAt(boot0, "curl", "-skL", "https://"+bastionFQDN+"/metrics")
+				stdout, stderr, err := ExecAt(boot0, "curl", "-skL", "https://"+bastionPushgatewayFQDN+"/metrics")
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
@@ -462,8 +481,8 @@ func testUnboundService() {
 		if !withKind {
 			By("confirming that nslookup from boot server is successfull")
 			targets := []string{
-				bastionFQDN,
-				forestFQDN,
+				bastionPushgatewayFQDN,
+				forestPushgatewayFQDN,
 			}
 			Eventually(func() error {
 				for _, target := range targets {
