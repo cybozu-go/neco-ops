@@ -427,9 +427,9 @@ jobName: ingress-watcher-0
 pushInterval: 10s
 permitInsecure: true
 `, bastionHealthFQDN, bastionHealthFQDN, globalHealthFQDN, globalHealthFQDN, bastionPushgatewayFQDN)
-			err := ioutil.WriteFile("/etc/ingress-wacher/ingress-wacher.yaml", []byte(config), os.FileMode(0644))
+			err := ioutil.WriteFile("/etc/ingress-watcher/ingress-watcher.yaml", []byte(config), os.FileMode(0644))
 			Expect(err).NotTo(HaveOccurred())
-			ExecSafeAt(boot0, "sudo", "systemctl", "restart", "ingress-wacher.service")
+			ExecSafeAt(boot0, "sudo", "systemctl", "restart", "ingress-watcher.service")
 		})
 
 		It("should push metrics to the push-gateway", func() {
