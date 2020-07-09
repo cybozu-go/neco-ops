@@ -452,9 +452,18 @@ permitInsecure: true
 				}
 
 				res := string(stdout)
+			OUTER:
 				for _, targetFQDN := range []string{globalHealthFQDN, bastionHealthFQDN} {
-					if !strings.Contains(res, fmt.Sprintf(`ingresswatcher_http_get_successful_total{code="200 OK",path="http://%s"}`, targetFQDN)) {
-						return fmt.Errorf("metric http_get_successful_total does not exist: stdout=%s, url=http://%s", stdout, targetFQDN)
+					for _, schema := range []string{"http", "https"} {
+						path := fmt.Sprintf(`path="%s://%s"`, schema, targetFQDN)
+						for _, line := range strings.Split(res, "\n") {
+							if strings.Contains(line, "ingresswatcher_http_get_successful_total") &&
+								strings.Contains(line, `code="200 OK"`) &&
+								strings.Contains(line, path) {
+								continue OUTER
+							}
+						}
+						return fmt.Errorf("metric ingresswatcher_http_get_successful_total does not exist: metrics=%s, path=%s://%s", res, schema, targetFQDN)
 					}
 				}
 
