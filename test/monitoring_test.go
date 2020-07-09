@@ -417,8 +417,11 @@ spec:
 			By("comfirming ingress-watcher configuration file")
 			ingressWatcherConfPath := "/etc/ingress-watcher/ingress-watcher.yaml"
 			Eventually(func() error {
-				_, err := os.Stat(ingressWatcherConfPath)
-				return err
+				stdout, stderr, err := ExecAt(boot0, "test", "-f", ingressWatcherConfPath)
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+				return nil
 			}).Should(Succeed())
 
 			By("replacing ingress-watcher configuration file")
@@ -435,8 +438,8 @@ jobName: ingress-watcher-0
 pushInterval: 10s
 permitInsecure: true
 `, bastionHealthFQDN, bastionHealthFQDN, globalHealthFQDN, globalHealthFQDN, bastionPushgatewayFQDN)
-			err := ioutil.WriteFile(ingressWatcherConfPath, []byte(config), os.FileMode(0644))
-			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte(config), "sudo", "dd", "of="+ingressWatcherConfPath)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			ExecSafeAt(boot0, "sudo", "systemctl", "restart", "ingress-watcher.service")
 		})
 
