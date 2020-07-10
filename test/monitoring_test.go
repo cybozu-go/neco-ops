@@ -1,7 +1,6 @@
 package test
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -471,69 +470,6 @@ permitInsecure: true
 			}).Should(Succeed())
 		})
 	}
-}
-
-func testUnboundService() {
-	It("should be deployed successfully", func() {
-		var ip string
-		By("confirming that unbound is exported")
-		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=internet-egress",
-				"get", "service/unbound-bastion", "-o=json")
-			if err != nil {
-				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			}
-			service := new(corev1.Service)
-			err = json.Unmarshal(stdout, service)
-			if err != nil {
-				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			}
-
-			if len(service.Status.LoadBalancer.Ingress) != 1 {
-				return fmt.Errorf("unable to get LoadBalancer's IP address. stdout: %s, stderr: %s, err: %w", stdout, stderr, err)
-			}
-
-			ip = service.Status.LoadBalancer.Ingress[0].IP
-
-			return nil
-		}).Should(Succeed())
-
-		if !withKind {
-			By("confirming that nslookup from boot server is successfull")
-			targets := []string{
-				bastionPushgatewayFQDN,
-				forestPushgatewayFQDN,
-			}
-			Eventually(func() error {
-				for _, target := range targets {
-					stdout, stderr, err := ExecAt(boot0, "nslookup", target, ip)
-					if err != nil {
-						return fmt.Errorf("target: %s, stdout: %s, stderr: %s, err: %v", target, stdout, stderr, err)
-					}
-				}
-				return nil
-			}).Should(Succeed())
-
-			By("setting dns address to neco config")
-			stdout, stderr, err := ExecAt(boot0, "neco", "config", "set", "dns", ip)
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-
-			stdout, stderr, err = ExecAt(boot0, "neco", "config", "get", "dns")
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			Expect(string(bytes.TrimSpace(stdout))).To(Equal(ip))
-
-			By("confirming that dns is set")
-			Eventually(func() error {
-				for _, target := range targets {
-					stdout, stderr, err := ExecAt(boot0, "nslookup", target)
-					if err != nil {
-						return fmt.Errorf("target: %s, stdout: %s, stderr: %s, err: %v", target, stdout, stderr, err)
-					}
-				}
-				return nil
-			}).Should(Succeed())
-		}
-	})
 }
 
 func getLoadBalancerIP(namespace, service string) (string, error) {

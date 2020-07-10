@@ -241,6 +241,35 @@ func testSetup() {
 	})
 
 	if !withKind {
+		It("should set DNS", func() {
+			var ip string
+			By("confirming that unbound is exported")
+			Eventually(func() error {
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=internet-egress",
+					"get", "service/unbound-bastion", "-o=json")
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+				service := new(corev1.Service)
+				err = json.Unmarshal(stdout, service)
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+
+				if len(service.Status.LoadBalancer.Ingress) != 1 {
+					return fmt.Errorf("unable to get LoadBalancer's IP address. stdout: %s, stderr: %s, err: %w", stdout, stderr, err)
+				}
+
+				ip = service.Status.LoadBalancer.Ingress[0].IP
+
+				return nil
+			}).Should(Succeed())
+
+			By("setting dns address to neco config")
+			stdout, stderr, err := ExecAt(boot0, "neco", "config", "set", "dns", ip)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		})
+
 		It("should set HTTP proxy", func() {
 			var proxyIP string
 			Eventually(func() error {
