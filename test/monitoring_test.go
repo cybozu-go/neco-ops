@@ -240,20 +240,16 @@ metadata:
   name: pushgateway-bastion
   namespace: monitoring
   annotations:
-    kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: bastion
 spec:
   virtualhost:
     fqdn: %s
-    tls:
-      secretName: pushgateway-basition-tls
   routes:
     - conditions:
         - prefix: /
       services:
         - name: pushgateway
           port: 9091
-      permitInsecure: true
 ---
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
@@ -261,20 +257,16 @@ metadata:
   name: pushgateway-forest
   namespace: monitoring
   annotations:
-    kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: forest
 spec:
   virtualhost:
     fqdn: %s
-    tls:
-      secretName: pushgateway-forest-tls
   routes:
     - conditions:
         - prefix: /
       services:
         - name: pushgateway
           port: 9091
-      permitInsecure: true
 `
 
 	It("should create HTTPProxy for Pushgateway", func() {
@@ -310,7 +302,7 @@ spec:
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(func() error {
 				stdout, stderr, err := ExecAt(boot0,
-					"curl", "-skL", "--resolve", bastionPushgatewayFQDN+":80:"+bastionIP, "http://"+bastionPushgatewayFQDN+"/-/healthy",
+					"curl", "-s", "--resolve", bastionPushgatewayFQDN+":80:"+bastionIP, "http://"+bastionPushgatewayFQDN+"/-/healthy",
 					"-o", "/dev/null",
 				)
 				if err != nil {
@@ -445,7 +437,7 @@ permitInsecure: true
 		It("should push metrics to the push-gateway", func() {
 			By("requesting push-gateway server")
 			Eventually(func() error {
-				stdout, stderr, err := ExecAt(boot0, "curl", "-skL", "https://"+bastionPushgatewayFQDN+"/metrics")
+				stdout, stderr, err := ExecAt(boot0, "curl", "-s", "http://"+bastionPushgatewayFQDN+"/metrics")
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
