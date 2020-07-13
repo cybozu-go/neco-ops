@@ -298,7 +298,6 @@ spec:
 	if !withKind {
 		It("should be accessed from Bastion", func() {
 			By("getting the IP address of the contour LoadBalancer")
-			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(func() error {
 				stdout, stderr, err := ExecAt(boot0,
 					"curl", "-s", "http://"+bastionPushgatewayFQDN+"/-/healthy", "-o", "/dev/null",
