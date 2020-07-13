@@ -237,7 +237,7 @@ func testPushgateway() {
 	manifestBase := `apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: pushgateway-bastion
+  name: pushgateway-bastion-test
   namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: bastion
@@ -254,7 +254,7 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: pushgateway-forest
+  name: pushgateway-forest-test
   namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: forest
@@ -298,12 +298,10 @@ spec:
 	if !withKind {
 		It("should be accessed from Bastion", func() {
 			By("getting the IP address of the contour LoadBalancer")
-			bastionIP, err := getLoadBalancerIP("ingress-bastion", "envoy")
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(func() error {
 				stdout, stderr, err := ExecAt(boot0,
-					"curl", "-s", "--resolve", bastionPushgatewayFQDN+":80:"+bastionIP, "http://"+bastionPushgatewayFQDN+"/-/healthy",
-					"-o", "/dev/null",
+					"curl", "-s", "http://"+bastionPushgatewayFQDN+"/-/healthy", "-o", "/dev/null",
 				)
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
