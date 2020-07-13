@@ -351,7 +351,7 @@ func testIngressHealth() {
 			manifest := fmt.Sprintf(`apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: ingress-health-global
+  name: ingress-health-global-test
   namespace: monitoring
   annotations:
     kubernetes.io/tls-acme: "true"
@@ -360,7 +360,7 @@ spec:
   virtualhost:
     fqdn: %s
     tls:
-      secretName: ingress-health-global-tls
+      secretName: ingress-health-global-test-tls
   routes:
     - conditions:
         - prefix: /
@@ -375,7 +375,7 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: ingress-health-bastion
+  name: ingress-health-bastion-test
   namespace: monitoring
   annotations:
     kubernetes.io/tls-acme: "true"
@@ -384,7 +384,7 @@ spec:
   virtualhost:
     fqdn: %s
     tls:
-      secretName: ingress-health-bastion-tls
+      secretName: ingress-health-bastion-test-tls
   routes:
     - conditions:
         - prefix: /
