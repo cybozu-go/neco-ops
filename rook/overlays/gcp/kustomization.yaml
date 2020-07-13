@@ -11,11 +11,8 @@ patchesJSON6902:
     namespace: ceph-hdd
   patch: |-
     - op: replace
-      path: /spec/mon/count
-      value: 1
-    - op: replace
       path: /spec/mon/volumeClaimTemplate/spec/resources/requests/storage
-      value: 5Gi
+      value: 3Gi
     - op: replace
       path: /spec/storage/storageClassDeviceSets/0/count
       value: 3
@@ -27,11 +24,8 @@ patchesJSON6902:
     namespace: ceph-ssd
   patch: |-
     - op: replace
-      path: /spec/mon/count
-      value: 1
-    - op: replace
       path: /spec/mon/volumeClaimTemplate/spec/resources/requests/storage
-      value: 5Gi
+      value: 3Gi
     - op: replace
       path: /spec/storage/storageClassDeviceSets/0/count
       value: 3
