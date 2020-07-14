@@ -3,11 +3,11 @@ kind: Kustomization
 resources:
   - ../../base
   - grafana-operator/httpproxy.yaml
-  - pushgateway/httpproxy.yaml
-  - ingress-health/httpproxy.yaml
 patchesStrategicMerge:
   - prometheus/statefulset.yaml
   - grafana-operator/grafana.yaml
+  - pushgateway/httpproxy.yaml
+  - ingress-health/httpproxy.yaml
 configMapGenerator:
   - name: alertmanager
     behavior: merge

@@ -83,12 +83,9 @@ var _ = Describe("Test applications", func() {
 	Context("admission", testAdmission)
 	if !withKind {
 		Context("bmc-reverse-proxy", testBMCReverseProxy)
-	}
-	if !withKind {
 		Context("local-pv-provisioner", testLocalPVProvisioner)
-	}
-	if !withKind {
 		Context("rookOperator", testRookOperator)
+		Context("MONPodsSpread", testMONPodsSpreadAll)
 		Context("rookRGW", testRookRGW)
 		Context("rookRBD", testRookRBDAll)
 	}

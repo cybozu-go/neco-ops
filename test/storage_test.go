@@ -188,6 +188,63 @@ func testRookOperator() {
 	}
 }
 
+func testMONPodsSpreadAll() {
+	testMONPodsSpread("ceph-hdd", "ceph-hdd")
+	testMONPodsSpread("ceph-ssd", "ceph-ssd")
+}
+
+func testMONPodsSpread(cephClusterName, cephClusterNamespace string) {
+	It("should be deployed to "+cephClusterNamespace+" successfully", func() {
+		Eventually(func() error {
+			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace="+cephClusterNamespace,
+				"get", "cephcluster", cephClusterName, "-o", "jsonpath='{.status.ceph.health}'")
+			if err != nil {
+				return err
+			}
+			health := strings.TrimSpace(string(stdout))
+			if health != "HEALTH_OK" {
+				return fmt.Errorf("ceph cluster is not HEALTH_OK: %s", health)
+			}
+			return nil
+		}).Should(Succeed())
+	})
+
+	It("should spread MON PODs", func() {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "node", "-l", "node-role.kubernetes.io/cs=true", "-o=json")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+
+		nodes := new(corev1.NodeList)
+		err = json.Unmarshal(stdout, nodes)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "--namespace="+cephClusterNamespace,
+			"get", "pod", "-l", "app=rook-ceph-mon", "-o=json")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+
+		pods := new(corev1.PodList)
+		err = json.Unmarshal(stdout, pods)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		nodeCounts := make(map[string]int)
+		for _, pod := range pods.Items {
+			nodeCounts[pod.Spec.NodeName]++
+		}
+		for node, count := range nodeCounts {
+			Expect(count).To(Equal(1), "node=%s, count=%d", node, count)
+		}
+		Expect(nodeCounts).Should(HaveLen(3))
+
+		rackCounts := make(map[string]int)
+		for _, node := range nodes.Items {
+			rackCounts[node.Labels["topology.kubernetes.io/zone"]] += nodeCounts[node.Name]
+		}
+		for node, count := range nodeCounts {
+			Expect(count).To(Equal(1), "node=%s, count=%d", node, count)
+		}
+		Expect(nodeCounts).Should(HaveLen(3))
+	})
+}
+
 func testOSDPodsSpreadAll() {
 	testOSDPodsSpread("ceph-hdd", "ceph-hdd", "ss")
 	testOSDPodsSpread("ceph-ssd", "ceph-ssd", "cs")
@@ -204,27 +261,6 @@ func testOSDPodsSpread(cephClusterName, cephClusterNamespace, nodeRole string) {
 			health := strings.TrimSpace(string(stdout))
 			if health != "HEALTH_OK" {
 				return fmt.Errorf("ceph cluster is not HEALTH_OK: %s", health)
-			}
-			return nil
-		}).Should(Succeed())
-	})
-
-	It("should deploy OSD POD successfully", func() {
-		Eventually(func() error {
-			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace="+cephClusterNamespace,
-				"get", "deployment/rook-ceph-osd-0", "-o=json")
-			if err != nil {
-				return err
-			}
-
-			deployment := new(appsv1.Deployment)
-			err = json.Unmarshal(stdout, deployment)
-			if err != nil {
-				return err
-			}
-
-			if deployment.Status.AvailableReplicas != *deployment.Spec.Replicas {
-				return fmt.Errorf("OSD deployment's ReadyReplica is not %d: %d", int(*deployment.Spec.Replicas), int(deployment.Status.ReadyReplicas))
 			}
 			return nil
 		}).Should(Succeed())

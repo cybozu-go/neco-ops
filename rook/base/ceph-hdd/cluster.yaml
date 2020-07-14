@@ -19,6 +19,14 @@ spec:
     modules:
       - name: pg_autoscaler
         enabled: true
+  placement:
+    mon:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app: rook-ceph-mon
+          topologyKey: topology.kubernetes.io/zone
   cephVersion:
     image: quay.io/cybozu/ceph:15.2.3.1
   dashboard:

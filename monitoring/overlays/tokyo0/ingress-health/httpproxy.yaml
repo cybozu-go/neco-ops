@@ -5,22 +5,11 @@ metadata:
   namespace: monitoring
   annotations:
     kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: global
 spec:
   virtualhost:
     fqdn: ingress-health-global.monitoring.tokyo0.cybozu-ne.co
     tls:
       secretName: ingress-health-global-tls
-  routes:
-    - conditions:
-        - prefix: /
-      services:
-        - name: ingress-health-http
-          port: 80
-      permitInsecure: true
-      timeoutPolicy:
-        response: 2m
-        idle: 5m
 ---
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
@@ -29,22 +18,11 @@ metadata:
   namespace: monitoring
   annotations:
     kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: bastion
 spec:
   virtualhost:
     fqdn: ingress-health-bastion.monitoring.tokyo0.cybozu-ne.co
     tls:
       secretName: ingress-health-bastion-tls
-  routes:
-    - conditions:
-        - prefix: /
-      services:
-        - name: ingress-health-http
-          port: 80
-      permitInsecure: true
-      timeoutPolicy:
-        response: 2m
-        idle: 5m
 ---
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
@@ -53,19 +31,8 @@ metadata:
   namespace: monitoring
   annotations:
     kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: forest
 spec:
   virtualhost:
     fqdn: ingress-health-forest.monitoring.tokyo0.cybozu-ne.co
     tls:
       secretName: ingress-health-forest-tls
-  routes:
-    - conditions:
-        - prefix: /
-      services:
-        - name: ingress-health-http
-          port: 80
-      permitInsecure: true
-      timeoutPolicy:
-        response: 2m
-        idle: 5m

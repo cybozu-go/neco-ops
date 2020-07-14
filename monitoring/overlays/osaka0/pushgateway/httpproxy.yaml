@@ -3,37 +3,15 @@ kind: HTTPProxy
 metadata:
   name: pushgateway-bastion
   namespace: monitoring
-  annotations:
-    kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: bastion
 spec:
   virtualhost:
     fqdn: pushgateway-bastion.monitoring.osaka0.cybozu-ne.co
-    tls:
-      secretName: pushgateway-bastion-tls
-  routes:
-    - conditions:
-        - prefix: /
-      services:
-        - name: pushgateway
-          port: 9091
 ---
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
   name: pushgateway-forest
   namespace: monitoring
-  annotations:
-    kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: forest
 spec:
   virtualhost:
     fqdn: pushgateway-forest.monitoring.osaka0.cybozu-ne.co
-    tls:
-      secretName: pushgateway-forest-tls
-  routes:
-    - conditions:
-        - prefix: /
-      services:
-        - name: pushgateway
-          port: 9091

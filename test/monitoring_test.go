@@ -34,8 +34,11 @@ var dcJobs = []string{
 	"sabakan",
 }
 var (
-	bastionFQDN = testID + "-pushgateway-bastion.gcp0.dev-ne.co"
-	forestFQDN  = testID + "-pushgateway-forest.gcp0.dev-ne.co"
+	globalHealthFQDN  = testID + "-ingress-health-global.gcp0.dev-ne.co"
+	bastionHealthFQDN = testID + "-ingress-health-bastion.gcp0.dev-ne.co"
+
+	bastionPushgatewayFQDN = testID + "-pushgateway-bastion.gcp0.dev-ne.co"
+	forestPushgatewayFQDN  = testID + "-pushgateway-forest.gcp0.dev-ne.co"
 )
 
 func testMachinesEndpoints() {
@@ -234,7 +237,7 @@ func testPushgateway() {
 	manifestBase := `apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: pushgateway-bastion
+  name: pushgateway-bastion-test
   namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: bastion
@@ -251,7 +254,7 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: pushgateway-forest
+  name: pushgateway-forest-test
   namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: forest
@@ -267,7 +270,7 @@ spec:
 `
 
 	It("should create HTTPProxy for Pushgateway", func() {
-		manifest := fmt.Sprintf(manifestBase, bastionFQDN, forestFQDN)
+		manifest := fmt.Sprintf(manifestBase, bastionPushgatewayFQDN, forestPushgatewayFQDN)
 		_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 	})
@@ -295,12 +298,9 @@ spec:
 	if !withKind {
 		It("should be accessed from Bastion", func() {
 			By("getting the IP address of the contour LoadBalancer")
-			bastionIP, err := getLoadBalancerIP("ingress-bastion", "envoy")
-			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(func() error {
 				stdout, stderr, err := ExecAt(boot0,
-					"curl", "-sL", "--resolve", bastionFQDN+":80:"+bastionIP, "http://"+bastionFQDN+"/-/healthy",
-					"-o", "/dev/null",
+					"curl", "-s", "http://"+bastionPushgatewayFQDN+"/-/healthy", "-o", "/dev/null",
 				)
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
@@ -313,7 +313,7 @@ spec:
 			forestIP, err := getLoadBalancerIP("ingress-forest", "envoy")
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(func() error {
-				return exec.Command("sudo", "nsenter", "-n", "-t", externalPID, "curl", "--resolve", forestFQDN+":80:"+forestIP, forestFQDN+"/-/healthy", "-m", "5").Run()
+				return exec.Command("sudo", "nsenter", "-n", "-t", externalPID, "curl", "--resolve", forestPushgatewayFQDN+":80:"+forestIP, forestPushgatewayFQDN+"/-/healthy", "-m", "5").Run()
 			}).Should(Succeed())
 		})
 	}
@@ -345,6 +345,120 @@ func testIngressHealth() {
 			return nil
 		}).Should(Succeed())
 	})
+
+	if !withKind {
+		It("should create HTTPProxy for ingress-watcher", func() {
+			manifest := fmt.Sprintf(`apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-global-test
+  namespace: monitoring
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: global
+spec:
+  virtualhost:
+    fqdn: %s
+    tls:
+      secretName: ingress-health-global-test-tls
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-http
+          port: 80
+      permitInsecure: true
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-bastion-test
+  namespace: monitoring
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: bastion
+spec:
+  virtualhost:
+    fqdn: %s
+    tls:
+      secretName: ingress-health-bastion-test-tls
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-http
+          port: 80
+      permitInsecure: true
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+`, globalHealthFQDN, bastionHealthFQDN)
+
+			_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
+			Expect(err).NotTo(HaveOccurred(), "failed to create HTTPProxy. stderr: %s", stderr)
+		})
+
+		It("should replace ingress-watcher configuration file", func() {
+			By("comfirming ingress-watcher configuration file")
+			ingressWatcherConfPath := "/etc/ingress-watcher/ingress-watcher.yaml"
+			Eventually(func() error {
+				stdout, stderr, err := ExecAt(boot0, "test", "-f", ingressWatcherConfPath)
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+				return nil
+			}).Should(Succeed())
+
+			By("replacing ingress-watcher configuration file")
+			config := fmt.Sprintf(`
+targetURLs:
+- https://%s
+- http://%s
+- https://%s
+- http://%s
+watchInterval: 10s
+
+pushAddr: %s
+jobName: ingress-watcher-0
+pushInterval: 10s
+permitInsecure: true
+`, bastionHealthFQDN, bastionHealthFQDN, globalHealthFQDN, globalHealthFQDN, bastionPushgatewayFQDN)
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte(config), "sudo", "dd", "of="+ingressWatcherConfPath)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			ExecSafeAt(boot0, "sudo", "systemctl", "restart", "ingress-watcher.service")
+		})
+
+		It("should push metrics to the push-gateway", func() {
+			By("requesting push-gateway server")
+			Eventually(func() error {
+				stdout, stderr, err := ExecAt(boot0, "curl", "-s", "http://"+bastionPushgatewayFQDN+"/metrics")
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+
+				res := string(stdout)
+			OUTER:
+				for _, targetFQDN := range []string{globalHealthFQDN, bastionHealthFQDN} {
+					for _, schema := range []string{"http", "https"} {
+						path := fmt.Sprintf(`path="%s://%s"`, schema, targetFQDN)
+						for _, line := range strings.Split(res, "\n") {
+							if strings.Contains(line, "ingresswatcher_http_get_successful_total") &&
+								strings.Contains(line, `code="200 OK"`) &&
+								strings.Contains(line, path) {
+								continue OUTER
+							}
+						}
+						return fmt.Errorf("metric ingresswatcher_http_get_successful_total does not exist: metrics=%s, path=%s://%s", res, schema, targetFQDN)
+					}
+				}
+
+				return nil
+			}).Should(Succeed())
+		})
+	}
 }
 
 func getLoadBalancerIP(namespace, service string) (string, error) {

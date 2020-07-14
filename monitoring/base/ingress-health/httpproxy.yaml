@@ -1,0 +1,62 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-global
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: global
+spec:
+  virtualhost:
+    fqdn: ingress-health-global.should.be.replaced.example.com
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-http
+          port: 80
+      permitInsecure: true
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-bastion
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: bastion
+spec:
+  virtualhost:
+    fqdn: ingress-health-bastion.should.be.replaced.example.com
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-http
+          port: 80
+      permitInsecure: true
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingress-health-forest
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: forest
+spec:
+  virtualhost:
+    fqdn: ingress-health-forest.should.be.replaced.example.com
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: ingress-health-http
+          port: 80
+      permitInsecure: true
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
