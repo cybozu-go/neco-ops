@@ -4,7 +4,7 @@ metadata:
   name: teleport
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "7"
 spec:
   project: default
   source:

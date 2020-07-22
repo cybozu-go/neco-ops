@@ -52,35 +52,60 @@ func kustomizeBuild(dir string) ([]byte, []byte, error) {
 	return outBuf.Bytes(), errBuf.Bytes(), err
 }
 
-func testApplicationTargetRevision(t *testing.T) {
-	testcase := []struct {
-		targetDirs     string
-		targetRevision string
-	}{
-		{
-			targetDirs:     filepath.Join(manifestDir, "argocd-config", "overlays", "gcp"),
-			targetRevision: "release",
-		},
-		{
-			targetDirs:     filepath.Join(manifestDir, "argocd-config", "overlays", "tokyo0"),
-			targetRevision: "release",
-		},
-		{
-			targetDirs:     filepath.Join(manifestDir, "argocd-config", "overlays", "stage0"),
-			targetRevision: "stage",
-		},
-		{
-			targetDirs:     filepath.Join(manifestDir, "argocd-config", "overlays", "osaka0"),
-			targetRevision: "release",
-		},
+func testApplicationResources(t *testing.T) {
+	targetRevisions := map[string]string{
+		"gcp":    "release",
+		"osaka0": "release",
+		"stage0": "stage",
+		"tokyo0": "release",
+	}
+
+	syncWaves := map[string]string{
+		"namespaces":           "1",
+		"argocd":               "2",
+		"local-pv-provisioner": "3",
+		"secrets":              "3",
+		"cert-manager":         "4",
+		"external-dns":         "4",
+		"metallb":              "4",
+		"ingress":              "5",
+		"topolvm":              "5",
+		"unbound":              "5",
+		"elastic":              "6",
+		"rook":                 "6",
+		"monitoring":           "7",
+		"sandbox":              "7",
+		"teleport":             "7",
+		"network-policy":       "8",
+		"argocd-ingress":       "9",
+		"bmc-reverse-proxy":    "9",
+		"metrics-server":       "9",
+		"neco-admission":       "9",
+		"team-management":      "9",
+		"maneki-apps":          "10",
+	}
+
+	// Getting overlays list
+	overlayDirs := map[string]string{}
+	err := filepath.Walk(filepath.Join(manifestDir, "argocd-config", "overlays"), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && info.Name() != "overlays" {
+			overlayDirs[info.Name()] = path
+		}
+		return nil
+	})
+	if err != nil {
+		t.Error(err)
 	}
 
 	t.Parallel()
-	for _, tc := range testcase {
-		t.Run(tc.targetDirs, func(t *testing.T) {
-			stdout, stderr, err := kustomizeBuild(tc.targetDirs)
+	for overlay, targetDir := range overlayDirs {
+		t.Run(overlay, func(t *testing.T) {
+			stdout, stderr, err := kustomizeBuild(targetDir)
 			if err != nil {
-				t.Error(fmt.Errorf("kustomize build faled. path: %s, stderr: %s, err: %v", tc.targetDirs, stderr, err))
+				t.Error(fmt.Errorf("kustomize build faled. path: %s, stderr: %s, err: %v", targetDir, stderr, err))
 			}
 
 			y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(stdout)))
@@ -97,8 +122,21 @@ func testApplicationTargetRevision(t *testing.T) {
 				if err != nil {
 					t.Error(err)
 				}
-				if app.Spec.Source.TargetRevision != tc.targetRevision {
-					t.Error(fmt.Errorf("invalid targetRevision. application: %s, targetRevision: %s (should be %s)", app.Name, app.Spec.Source.TargetRevision, tc.targetRevision))
+
+				// Check the tergetRevision
+				if targetRevisions[overlay] == "" {
+					t.Error(fmt.Errorf("targetRevision should exist. overlay: %s", overlay))
+				}
+				if app.Spec.Source.TargetRevision != targetRevisions[overlay] {
+					t.Error(fmt.Errorf("invalid targetRevision. application: %s, targetRevision: %s (should be %s)", app.Name, app.Spec.Source.TargetRevision, targetRevisions[overlay]))
+				}
+
+				// Check the sync wave
+				if syncWaves[app.Name] == "" {
+					t.Error(fmt.Errorf("sync-wave should exist. application: %s", app.Name))
+				}
+				if app.GetAnnotations()["argocd.argoproj.io/sync-wave"] != syncWaves[app.Name] {
+					t.Error(fmt.Errorf("invalid sync-wave. application: %s, sync-wave: %s (should be %s)", app.Name, app.GetAnnotations()["argocd.argoproj.io/sync-wave"], syncWaves[app.Name]))
 				}
 			}
 		})
@@ -416,7 +454,7 @@ func TestValidation(t *testing.T) {
 		t.Skip("SSH_PRIVKEY envvar is defined as running e2e test")
 	}
 
-	t.Run("ApplicationTargetRevision", testApplicationTargetRevision)
+	t.Run("ApplicationTargetRevision", testApplicationResources)
 	t.Run("CRDStatus", testCRDStatus)
 	t.Run("CertificateUsages", testCertificateUsages)
 	t.Run("GeneratedSecretName", testGeneratedSecretName)

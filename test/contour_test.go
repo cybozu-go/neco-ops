@@ -463,7 +463,7 @@ func checkCertificate(name, namespace string) error {
 				"reason":             st.Reason,
 				"message":            st.Message,
 			})
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "delete", "-n", "test-ingress", "certificate", "tls")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "delete", "-n", namespace, "certificates", name)
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
