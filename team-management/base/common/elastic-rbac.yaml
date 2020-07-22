@@ -68,6 +68,9 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: elastic
+    namespace: app-elasticsearch
+  - kind: ServiceAccount
+    name: elastic
     namespace: maneki
   - kind: ServiceAccount
     name: elastic

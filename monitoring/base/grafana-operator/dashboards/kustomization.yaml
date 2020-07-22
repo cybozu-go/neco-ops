@@ -12,6 +12,7 @@ resources:
   - cpu-usage.yaml
   - envoy.yaml
   - etcd.yaml
+  - ingress-watcher.yaml
   - kube-apiserver.yaml
   - kube-controller-manager.yaml
   - kubelet.yaml

@@ -19,3 +19,12 @@ groups:
         for: 15m
         labels:
           severity: minor
+      - alert: PushGatewayDown
+        expr: |
+          absent(up{job="pushgateway"} == 1)
+        labels:
+          severity: critical
+        for: 15m
+        annotations:
+          summary: pushgateway is down.
+          runbook: TBD

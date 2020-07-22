@@ -1,0 +1,24 @@
+groups:
+  - name: ingress-watcher
+    rules:
+      - alert: IngressDown
+        expr: |
+          rate(ingresswatcher_http_get_successful_total{job="ingress-watcher", code="200"}[5m])
+            /
+          ignoring(code) rate(ingresswatcher_http_get_total{job="ingress-watcher"}[5m])
+          < 0.95
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: ingress {{ $labels.path }} is down (from {{ $labels.instance }}).
+          runbook: TBD
+      - alert: IngressWatcherDown
+        expr: |
+          rate(ingresswatcher_update_time[5m]) == 0
+        labels:
+          severity: critical
+        for: 10m
+        annotations:
+          summary: ingress watcher {{ $labels.instance }} is down.
+          runbook: TBD

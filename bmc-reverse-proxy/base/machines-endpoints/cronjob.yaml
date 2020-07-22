@@ -19,3 +19,4 @@ spec:
           hostNetwork: true
           restartPolicy: OnFailure
           serviceAccountName: machines-endpoints
+  startingDeadlineSeconds: 30
