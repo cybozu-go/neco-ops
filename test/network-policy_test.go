@@ -299,15 +299,16 @@ func testNetworkPolicy() {
 			}
 
 			stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "internet-egress", "exec", "-i", podName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
-			switch t := err.(type) {
-			case *ssh.ExitError:
-				// telnet command returns 124 when it times out
-				if t.ExitStatus() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", t.ExitStatus(), stdout, stderr, err)
+			var sshError *ssh.ExitError
+			var execError *exec.ExitError
+			switch {
+			case errors.As(err, &sshError):
+				if sshError.ExitStatus() != 124 {
+					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", sshError.ExitStatus(), stdout, stderr, err)
 				}
-			case *exec.ExitError:
-				if t.ExitCode() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", t.ExitCode(), stdout, stderr, err)
+			case errors.As(err, &execError):
+				if execError.ExitCode() != 124 {
+					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", execError.ExitCode(), stdout, stderr, err)
 				}
 			default:
 				return fmt.Errorf("telnet should fail with timeout; stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
@@ -323,15 +324,16 @@ func testNetworkPolicy() {
 		By("accessing DNS port of some node as unbound")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "internet-egress", "exec", "-i", unboundPodName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
-			switch t := err.(type) {
-			case *ssh.ExitError:
-				// telnet command returns 124 when it times out
-				if t.ExitStatus() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", t.ExitStatus(), stdout, stderr, err)
+			var sshError *ssh.ExitError
+			var execError *exec.ExitError
+			switch {
+			case errors.As(err, &sshError):
+				if sshError.ExitStatus() != 124 {
+					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", sshError.ExitStatus(), stdout, stderr, err)
 				}
-			case *exec.ExitError:
-				if t.ExitCode() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", t.ExitCode(), stdout, stderr, err)
+			case errors.As(err, &execError):
+				if execError.ExitCode() != 124 {
+					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", execError.ExitCode(), stdout, stderr, err)
 				}
 			default:
 				return fmt.Errorf("telnet should fail with timeout; stdout: %s, stderr: %s, err: %v", stdout, stderr, err)

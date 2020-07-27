@@ -140,7 +140,11 @@ func ExecAt(host string, args ...string) (stdout, stderr []byte, e error) {
 // WARNING: `input` can contain secret data.  Never output `input` to console.
 func ExecAtWithInput(host string, input []byte, args ...string) (stdout, stderr []byte, e error) {
 	agent := sshClients[host]
-	return doExec(agent, input, args...)
+	stdout, stderr, err := doExec(agent, input, args...)
+	if err != nil {
+		e = fmt.Errorf("Exec failed: args: %v, err: %w", args, err)
+	}
+	return
 }
 
 func doExec(agent *sshAgent, input []byte, args ...string) ([]byte, []byte, error) {
