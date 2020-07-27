@@ -20,7 +20,18 @@ spec:
     spec:
       containers:
         - name: manager
-          args: ["manager", "--log-verbosity=0", "--metrics-port=9001"]
+          args:
+            - "manager"
+            - "--log-verbosity=0"
+            - "--metrics-port=9001"
+            - "--container-registry=docker.elastic.co"
+            - "--max-concurrent-reconciles=3"
+            - "--ca-cert-validity=8760h"
+            - "--ca-cert-rotate-before=24h"
+            - "--cert-validity=8760h"
+            - "--cert-rotate-before=24h"
+            - "--enable-webhook"
+            - "--webhook-cert-dir=/certs/k8s-webhook-server/serving-certs"
           resources:
             limits: null
           ports:
@@ -28,23 +39,6 @@ spec:
               name: metrics
           volumeMounts:
             - $patch: replace
-            - mountPath: /certs
+            - mountPath: /certs/k8s-webhook-server/serving-certs
               name: cert
               readOnly: true
-            - mountPath: /tmp
-              name: tmp
-      initContainers:
-        - image: quay.io/cybozu/ubuntu:18.04
-          name: symlink-certs
-          command: ["sh", "-c"]
-          securityContext:
-            runAsUser: 10000
-            runAsGroup: 10000
-          args:
-            - mkdir -p /tmp/k8s-webhook-server && ln -sf /certs /tmp/k8s-webhook-server/serving-certs
-          volumeMounts:
-            - mountPath: /tmp
-              name: tmp
-      volumes:
-        - name: tmp
-          emptyDir: {}
