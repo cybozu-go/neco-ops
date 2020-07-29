@@ -42,7 +42,6 @@ spec:
         serviceAccountName: elastic
         securityContext:
           runAsUser: 1000
-          fsGroup: 1000
         containers:
           - name: elasticsearch
             env:

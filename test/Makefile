@@ -9,6 +9,7 @@ BASE_BRANCH = master
 COMMIT_ID = $(shell git rev-parse --abbrev-ref HEAD)
 KUSTOMIZATION_DIRS := $(shell find ../ -name "kustomization.yaml" -exec dirname {} \;)
 SUDO = sudo
+WGET=wget --retry-connrefused --no-verbose
 NUM_DASHBOARD = $(shell KUSTOMIZE_ENABLE_ALPHA_COMMANDS=true kustomize config count ../monitoring/base/grafana-operator/dashboards | \
 	grep GrafanaDashboard | cut -d' ' -f2)
 export BOOT0 BOOT1 BOOT2 GINKGO SSH_PRIVKEY TEST_ID COMMIT_ID KUSTOMIZATION_DIRS BOOTSTRAP NUM_DASHBOARD
@@ -82,7 +83,7 @@ setup:
 	go install github.com/onsi/ginkgo/ginkgo
 	curl -sSLf https://github.com/prometheus/prometheus/releases/download/v$(PROMTOOL_VERSION)/prometheus-$(PROMTOOL_VERSION).linux-amd64.tar.gz | tar -xzvf - --strip-components=1 prometheus-$(PROMTOOL_VERSION).linux-amd64/promtool
 	$(SUDO) mv promtool /usr/local/bin/promtool
-	wget -O /tmp/teleport.tgz --no-verbose https://get.gravitational.com/teleport-v$(TELEPORT_VERSION)-linux-amd64-bin.tar.gz
+	$(WGET) -O /tmp/teleport.tgz https://get.gravitational.com/teleport-v$(TELEPORT_VERSION)-linux-amd64-bin.tar.gz
 	tar -xzvf /tmp/teleport.tgz --strip-component=1 teleport/tsh
 	rm -f /tmp/teleport.tgz
 	$(SUDO) mv tsh /usr/local/bin/tsh

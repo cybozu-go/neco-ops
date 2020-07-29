@@ -68,7 +68,6 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources
       priorityClassName: node-bound
       securityContext:
-        fsGroup: 10000
         runAsUser: 10000
       volumes:
         - configMap:

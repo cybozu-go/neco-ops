@@ -70,7 +70,6 @@ spec:
       securityContext:
         runAsUser: 10000
         runAsGroup: 10000
-        fsGroup: 10000
       volumes:
       - name: teleport-auth-secret
         secret:

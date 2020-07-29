@@ -193,7 +193,8 @@ Check [releases](https://github.com/cybozu-go/topolvm/releases) for changes.
 Download the upstream manifest as follows:
 
 ```console
-$ git clone https://github.com/cybozu-go/topolvm
+$ cd $GOPATH/src/github.com/topolvm
+$ git clone https://github.com/topolvm/topolvm
 $ cd topolvm
 $ git checkout vX.Y.Z
 $ cp -r deploy/manifests/* $GOPATH/src/github.com/cybozu-go/neco-apps/topolvm/base/upstream
