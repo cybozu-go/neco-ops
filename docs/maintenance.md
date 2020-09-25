@@ -214,3 +214,5 @@ $ cd topolvm
 $ git checkout vX.Y.Z
 $ cp -r deploy/manifests/* $GOPATH/src/github.com/cybozu-go/neco-apps/topolvm/base/upstream
 ```
+
+Update `images.newTag` in `kustomization.yaml`.
