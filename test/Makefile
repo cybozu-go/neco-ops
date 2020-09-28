@@ -46,7 +46,7 @@ test-alert-rules:
 	promtool test rules alert_test/*.yaml
 
 kustomize-check:
-	./kustomize-check.sh
+	-./kustomize-check.sh
 
 code-check:
 	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"
