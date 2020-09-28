@@ -6,4 +6,4 @@ metadata:
 spec:
   source:
     targetRevision: stage
-    path: rook/overlays/stage0
+    path: rook/overlays/stage0/hdd

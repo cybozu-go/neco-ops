@@ -1,0 +1,9 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook-ssd
+  namespace: argocd
+spec:
+  source:
+    targetRevision: stage
+    path: rook/overlays/stage0/ssd

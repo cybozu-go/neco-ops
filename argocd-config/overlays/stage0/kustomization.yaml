@@ -23,5 +23,6 @@ patchesStrategicMerge:
 - team-management.yaml
 - teleport.yaml
 - topolvm.yaml
-- rook.yaml
+- rook-hdd.yaml
+- rook-ssd.yaml
 - unbound.yaml
