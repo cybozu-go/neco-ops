@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook-ssd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/cybozu-go/neco-apps.git
+    targetRevision: release
+    path: rook/base/ceph-ssd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ceph-ssd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  ignoreDifferences:
+    # count may be changed manually
+    - group: ceph.rook.io
+      kind: CephCluster
+      name: ceph-ssd
+      namespace: ceph-ssd
+      jsonPointers:
+        - /spec/storage/storageClassDeviceSets/0/count

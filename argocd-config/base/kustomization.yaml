@@ -16,7 +16,8 @@ resources:
 - namespaces.yaml
 - neco-admission.yaml
 - network-policy.yaml
-- rook.yaml
+- rook-hdd.yaml
+- rook-ssd.yaml
 - sandbox.yaml
 - secrets.yaml
 - team-management.yaml

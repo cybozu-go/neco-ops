@@ -1,21 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../base
+  - ../../../base/ceph-ssd
 patchesJSON6902:
-- target:
-    group: ceph.rook.io
-    version: v1
-    kind: CephCluster
-    name: ceph-hdd
-    namespace: ceph-hdd
-  patch: |-
-    - op: replace
-      path: /spec/mon/volumeClaimTemplate/spec/resources/requests/storage
-      value: 3Gi
-    - op: replace
-      path: /spec/storage/storageClassDeviceSets/0/count
-      value: 3
 - target:
     group: ceph.rook.io
     version: v1
