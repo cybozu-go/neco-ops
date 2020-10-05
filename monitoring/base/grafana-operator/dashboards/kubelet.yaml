@@ -358,7 +358,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(kubelet_runtime_operations{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m])) by (operation_type)",
+              "expr": "sum(rate(kubelet_runtime_operations_total{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m])) by (operation_type)",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{operation_type}}",
@@ -451,7 +451,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(kubelet_runtime_operations_errors{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m])) by (operation_type)",
+              "expr": "sum(rate(kubelet_runtime_operations_errors_total{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m])) by (operation_type)",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{operation_type}}",
@@ -544,7 +544,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "kubelet_runtime_operations_latency_microseconds{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
+              "expr": "kubelet_runtime_operations_duration_seconds_bucket{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{operation_type}}",
@@ -571,7 +571,7 @@ spec:
           },
           "yaxes": [
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -579,7 +579,7 @@ spec:
               "show": true
             },
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -637,14 +637,14 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(kubelet_pod_start_latency_microseconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m]))",
+              "expr": "sum(rate(kubelet_pod_start_duration_seconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m]))",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "pod",
               "refId": "A"
             },
             {
-              "expr": "sum(rate(kubelet_pod_worker_start_latency_microseconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m]))",
+              "expr": "sum(rate(kubelet_pod_worker_start_duration_seconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m]))",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "worker",
@@ -737,14 +737,14 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "kubelet_pod_start_latency_microseconds{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
+              "expr": "kubelet_pod_start_duration_seconds_bucket{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "pod {{quantile}}",
               "refId": "A"
             },
             {
-              "expr": "kubelet_pod_worker_start_latency_microseconds{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
+              "expr": "kubelet_pod_worker_start_duration_seconds_bucket{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "worker {{quantile}}",
@@ -771,7 +771,7 @@ spec:
           },
           "yaxes": [
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -779,7 +779,7 @@ spec:
               "show": true
             },
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1027,7 +1027,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(kubelet_cgroup_manager_latency_microseconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m])) by (operation_type)",
+              "expr": "sum(rate(kubelet_cgroup_manager_duration_seconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m])) by (operation_type)",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{operation_type}}",
@@ -1120,7 +1120,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "kubelet_cgroup_manager_latency_microseconds{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
+              "expr": "kubelet_cgroup_manager_duration_seconds_bucket{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{operation_type}} {{quantile}}",
@@ -1147,7 +1147,7 @@ spec:
           },
           "yaxes": [
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1155,7 +1155,7 @@ spec:
               "show": true
             },
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1378,7 +1378,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(kubelet_pleg_relist_interval_microseconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m]))",
+              "expr": "sum(rate(kubelet_pleg_relist_interval_seconds_count{job=\"kubernetes-nodes\",instance=~\"$instance\"}[5m]))",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "relist",
@@ -1462,7 +1462,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "kubelet_pleg_relist_interval_microseconds{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
+              "expr": "kubelet_pleg_relist_interval_seconds_bucket{job=\"kubernetes-nodes\",instance=~\"$instance\"}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "relist {{quantile}}",
@@ -1488,7 +1488,7 @@ spec:
           },
           "yaxes": [
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1496,7 +1496,7 @@ spec:
               "show": true
             },
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1677,7 +1677,7 @@ spec:
           },
           "yaxes": [
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1685,7 +1685,7 @@ spec:
               "show": true
             },
             {
-              "format": "µs",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1986,7 +1986,7 @@ spec:
             "multi": false,
             "name": "instance",
             "options": [],
-            "query": "label_values(kubelet_runtime_operations{job=\"kubernetes-nodes\"}, instance)",
+            "query": "label_values(kubelet_runtime_operations_total{job=\"kubernetes-nodes\"}, instance)",
             "refresh": 2,
             "regex": "",
             "skipUrlSync": false,
