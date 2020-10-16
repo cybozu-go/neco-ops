@@ -3,6 +3,19 @@ kind: Application
 metadata:
   name: maneki-apps
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+  labels:
+    is-tenant: "true"
 spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  project: tenant-app-of-apps
   source:
     path: argocd-config/overlays/osaka0
+    repoURL: https://github.com/cybozu-private/maneki-apps.git
+    targetRevision: release
+  syncPolicy:
+    automated:
+      prune: true

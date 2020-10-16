@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - ../../base
+- maneki-apps.yaml
 patchesStrategicMerge:
 - argocd-ingress.yaml
 - argocd.yaml
@@ -12,7 +13,6 @@ patchesStrategicMerge:
 - external-dns.yaml
 - ingress.yaml
 - local-pv-provisioner.yaml
-- maneki-apps.yaml
 - metallb.yaml
 - metrics-server.yaml
 - monitoring.yaml

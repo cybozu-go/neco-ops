@@ -8,7 +8,6 @@ patchesStrategicMerge:
 - cert-manager.yaml
 - external-dns.yaml
 - local-pv-provisioner.yaml
-- maneki-apps.yaml
 - metallb.yaml
 - monitoring.yaml
 - sandbox.yaml

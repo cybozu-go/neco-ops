@@ -10,7 +10,6 @@ resources:
 - external-dns.yaml
 - ingress.yaml
 - local-pv-provisioner.yaml
-- maneki-apps.yaml
 - metallb.yaml
 - metrics-server.yaml
 - monitoring.yaml
