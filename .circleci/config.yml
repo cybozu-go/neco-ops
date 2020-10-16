@@ -212,7 +212,7 @@ jobs:
           name: Test neco-apps
           command: |
             export NECO_DIR=$(pwd)/neco
-            TARGET=dctest-ceph ./bin/run-test.sh
+            OVERLAY=gcp-rook TARGET=dctest-ceph ./bin/run-test.sh
           no_output_timeout: 31m
       - delete-instance
 

@@ -13,4 +13,3 @@ patchesStrategicMerge:
 - sandbox.yaml
 - secrets.yaml
 - teleport.yaml
-- rook.yaml

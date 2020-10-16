@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - ../../base
 - maneki-apps.yaml
+- rook.yaml
 patchesStrategicMerge:
 - argocd-ingress.yaml
 - argocd.yaml
@@ -25,5 +26,4 @@ patchesStrategicMerge:
 - team-management.yaml
 - teleport.yaml
 - topolvm.yaml
-- rook.yaml
 - unbound.yaml

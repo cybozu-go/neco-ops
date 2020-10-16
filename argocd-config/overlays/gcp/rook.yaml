@@ -1,8 +1,0 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: rook
-  namespace: argocd
-spec:
-  source:
-    path: rook/overlays/gcp

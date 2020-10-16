@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/cybozu-go/neco-apps.git
     targetRevision: release
-    path: rook/base
+    path: rook/overlays/gcp
   destination:
     server: https://kubernetes.default.svc
     namespace: ceph-hdd

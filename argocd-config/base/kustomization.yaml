@@ -17,7 +17,6 @@ resources:
 - neco-admission.yaml
 - network-policy.yaml
 - pvc-autoresizer.yaml
-- rook.yaml
 - sandbox.yaml
 - secrets.yaml
 - team-management.yaml
