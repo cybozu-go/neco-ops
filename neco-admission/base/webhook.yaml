@@ -18,6 +18,11 @@ webhooks:
         operator: NotIn
         values:
           - neco-admission
+  namespaceSelector:
+    matchExpressions:
+    - key: control-plane
+      operator: NotIn
+      values: ["true"]
   rules:
   - apiGroups:
     - ""
