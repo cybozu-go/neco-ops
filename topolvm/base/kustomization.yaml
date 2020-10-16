@@ -17,6 +17,7 @@ patchesStrategicMerge:
 - crd.yaml
 - node.yaml
 - scheduler.yaml
+- storageclass.yaml
 
 configMapGenerator:
   - name: scheduler-options
@@ -28,7 +29,7 @@ images:
   - name: quay.io/topolvm/topolvm
     newTag: 0.6.0
 
-patchesJSON6902:
+patchesJson6902:
 - target:
     group: cert-manager.io
     version: v1alpha3

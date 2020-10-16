@@ -1,6 +1,25 @@
 How to maintain neco-apps
 =========================
 
+- [argocd](#argocd)
+- [cert-manager](#cert-manager)
+- [elastic (ECK)](#elastic-eck)
+- [external-dns](#external-dns)
+- [ingress (Contour & Envoy)](#ingress-contour--envoy)
+- [metallb](#metallb)
+- [metrics-server](#metrics-server)
+- [monitoring](#monitoring)
+  - [prometheus, alertmanager, grafana](#prometheus-alertmanager-grafana)
+  - [machines-endpoints](#machines-endpoints)
+  - [kube-state-metrics](#kube-state-metrics)
+- [neco-admission](#neco-admission)
+- [network-policy (Calico)](#network-policy-calico)
+- [pvc-autoresizer](#pvc-autoresizer)
+- [rook](#rook)
+  - [ceph](#ceph)
+- [teleport](#teleport)
+- [topolvm](#topolvm)
+
 ## argocd
 
 1. Check [releases](https://github.com/argoproj/argo-cd/releases) for changes.
@@ -125,6 +144,16 @@ $ curl -sLf -o network-policy/base/calico/upstream/calico-policy-only.yaml https
 Remove the resources related to `calico-kube-controllers` from `calico-policy-only.yaml` because we do not need to use `calico/kube-controllers`.
 See: [Kubernetes controllers configuration](https://docs.projectcalico.org/reference/resources/kubecontrollersconfig)
 
+## pvc-autoresizer
+
+Check [the CHANGELOG](https://github.com/topolvm/pvc-autoresizer/blob/master/CHANGELOG.md).
+
+Download the upstream tar ball from [releases](https://github.com/topolvm/pvc-autoresizer/releases/latest) and generate upstream manifests as follows:
+
+```console
+$ kustomize build ./config/default > /path/to/pvc-autoresizer/base/upstream.yaml
+```
+
 ## rook
 
 *Do not upgrade Rook and Ceph at the same time!*
@@ -184,7 +213,7 @@ $ cd $GOPATH/src/github.com/cybozu-go/neco-apps/
 $ cp $GOPATH/src/github.com/rook/rook/cluster/examples/kubernetes/ceph/toolbox.yaml rook/base/upstream/
 ```
 
-## ceph
+### ceph
 
 *Do not upgrade Rook and Ceph at the same time!*
 

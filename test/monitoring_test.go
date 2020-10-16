@@ -444,8 +444,8 @@ permitInsecure: true
 			}
 
 			res := string(stdout)
-		OUTER:
 			for _, targetFQDN := range []string{globalHealthFQDN, bastionHealthFQDN} {
+			OUTER:
 				for _, schema := range []string{"http", "https"} {
 					path := fmt.Sprintf(`path="%s://%s"`, schema, targetFQDN)
 					for _, line := range strings.Split(res, "\n") {

@@ -5,6 +5,7 @@ resources:
 - argocd.yaml
 - bmc-reverse-proxy.yaml
 - cert-manager.yaml
+- coil.yaml
 - elastic.yaml
 - external-dns.yaml
 - ingress.yaml
@@ -16,6 +17,7 @@ resources:
 - namespaces.yaml
 - neco-admission.yaml
 - network-policy.yaml
+- pvc-autoresizer.yaml
 - rook.yaml
 - sandbox.yaml
 - secrets.yaml

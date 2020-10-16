@@ -11,6 +11,7 @@ resources:
   - policies/monitoring.yaml
   - policies/teleport.yaml
   - global-policies/apiserver.yaml
+  - global-policies/coil-nat.yaml
   - global-policies/controller-manager.yaml
   - global-policies/egress-all-allow.yaml
   - global-policies/egress-backyard-deny.yaml

@@ -1,0 +1,17 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: coil-nat-allow
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  order: 9900.0
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: UDP
+      source:
+        selector: app.kubernetes.io/name == 'coil' && app.kubernetes.io/component == 'egress'
+      destination:
+        ports: [5555]

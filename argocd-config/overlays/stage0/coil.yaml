@@ -1,0 +1,9 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coil
+  namespace: argocd
+spec:
+  source:
+    targetRevision: stage
+    path: coil/overlays/stage0

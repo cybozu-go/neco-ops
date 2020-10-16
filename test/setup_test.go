@@ -280,7 +280,13 @@ func applyAndWaitForApplications(commitID string) {
 		return nil
 	}).Should(Succeed())
 
-	ExecSafeAt(boot0, "cd", "./neco-apps", "&&", "argocd", "app", "sync", "argocd-config", "--local", "argocd-config/overlays/"+overlayName, "--async")
+	Eventually(func() error {
+		stdout, stderr, err := ExecAt(boot0, "cd", "./neco-apps", "&&", "argocd", "app", "sync", "argocd-config", "--local", "argocd-config/overlays/"+overlayName, "--async")
+		if err != nil {
+			return fmt.Errorf("stdout=%s, stderr=%s: %w", string(stdout), string(stderr), err)
+		}
+		return nil
+	}).Should(Succeed())
 
 	By("getting application list")
 	stdout, _, err := kustomizeBuild("../argocd-config/overlays/" + overlayName)

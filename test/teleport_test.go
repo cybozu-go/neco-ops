@@ -84,6 +84,20 @@ func testTeleport() {
 		Expect(err).ShouldNot(HaveOccurred(), "output=%s", output)
 
 		By("logging in using tsh command")
+		Eventually(func() error {
+			cmd = exec.Command("tsh", "--insecure", "--proxy=teleport.gcp0.dev-ne.co:443", "--user=cybozu", "login")
+			ptmx, err := pty.Start(cmd)
+			if err != nil {
+				return fmt.Errorf("pts.Start failed: %w", err)
+			}
+			defer ptmx.Close()
+			_, err = ptmx.Write([]byte("dummypass\n"))
+			if err != nil {
+				return fmt.Errorf("ptmx.Write failed: %w", err)
+			}
+			go func() { io.Copy(os.Stdout, ptmx) }()
+			return cmd.Wait()
+		}).Should(Succeed())
 		cmd = exec.Command("tsh", "--insecure", "--proxy=teleport.gcp0.dev-ne.co:443", "--user=cybozu", "login")
 		ptmx, err := pty.Start(cmd)
 		Expect(err).ShouldNot(HaveOccurred())

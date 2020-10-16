@@ -16,6 +16,7 @@ metadata:
   name: ceph-hdd-block
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    resize.topolvm.io/enabled: "true"
 # Change "rook-ceph" provisioner prefix to match the operator namespace if needed
 provisioner: ceph-hdd.rbd.csi.ceph.com
 parameters:

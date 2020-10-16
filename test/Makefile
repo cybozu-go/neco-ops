@@ -48,12 +48,11 @@ test-alert-rules:
 kustomize-check:
 	./kustomize-check.sh
 
-code-check:
+code-check: test-tools
 	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"
-	test -z "$$(golint $$(go list ./... | grep -v /vendor/) | grep -v '/mtest/.*: should not use dot imports' | tee /dev/stderr)"
-	test -z "$$(nilerr ./... 2>&1 | tee /dev/stderr)"
+	staticcheck ./...
+	nilerr ./...
 	test -z "$$(custom-checker -restrictpkg.packages=html/template,log ./... 2>&1 | tee /dev/stderr)"
-	ineffassign .
 	go vet ./...
 
 test: code-check install.yaml test-alert-rules kustomize-check validation
@@ -121,6 +120,21 @@ setup: $(KUBECTL_DLPATH) $(KUSTOMIZE_DLPATH) $(PROMTOOL_DLPATH) $(TELEPORT_DLPAT
 	$(SUDO) chmod +x /usr/local/bin/argocd
 	$(SUDO) bash -c "argocd completion bash > /etc/bash_completion.d/argocd"
 	go install github.com/onsi/ginkgo/ginkgo
+
+.PHONY: test-tools
+test-tools: staticcheck nilerr
+
+.PHONY: staticcheck
+staticcheck:
+	if ! which staticcheck >/dev/null; then \
+		cd /tmp; env GOFLAGS= GO111MODULE=on go get honnef.co/go/tools/cmd/staticcheck; \
+	fi
+
+.PHONY: nilerr
+nilerr:
+	if ! which nilerr >/dev/null; then \
+		cd /tmp; env GOFLAGS= GO111MODULE=on go get github.com/gostaticanalysis/nilerr/cmd/nilerr; \
+	fi
 
 clean:
 	rm -rf $(DOWNLOAD_DIR)

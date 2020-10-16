@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/prometheus/common/model"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 )
 
@@ -44,12 +45,17 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: topo-pvc
+  annotations:
+    resize.topolvm.io/threshold: 90%
+    resize.topolvm.io/increase: 1Gi
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
+    limits:
+      storage: 3Gi
   storageClassName: topolvm-provisioner
 `
 		stdout, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-n", ns, "-f", "-")
@@ -129,5 +135,48 @@ func testTopoLVM() {
 		// 	}
 		// 	return nil
 		// }).Should(Succeed())
+	})
+
+	It("should be resized automatically by pvc-autoresizer", func() {
+		By("writing large file")
+		ExecSafeAt(boot0, "kubectl", "exec", "-n", ns, "ubuntu", "--", "dd", "if=/dev/zero", "of=/test1/largefile", "bs=1M", "count=110")
+
+		By("waiting for the PV getting resized")
+		Eventually(func() error {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n=monitoring", "exec", "prometheus-0", "-i", "--", "curl", "-sf", "http://localhost:9090/api/v1/query?query=kubelet_volume_stats_capacity_bytes")
+			if err != nil {
+				return fmt.Errorf("stderr=%s: %w", string(stderr), err)
+			}
+
+			result := struct {
+				Data struct {
+					Result model.Vector `json:"result"`
+				} `json:"data"`
+			}{}
+			err = json.Unmarshal(stdout, &result)
+			if err != nil {
+				return err
+			}
+
+			for _, sample := range result.Data.Result {
+				if sample.Metric == nil {
+					continue
+				}
+
+				if string(sample.Metric["namespace"]) != ns {
+					continue
+				}
+				if string(sample.Metric["persistentvolumeclaim"]) != "topo-pvc" {
+					continue
+				}
+				if sample.Value > (1 << 30) {
+					return nil
+				}
+
+				return fmt.Errorf("filesystem capacity is under < 1 GiB: %f", float64(sample.Value))
+			}
+
+			return fmt.Errorf("no metric for PVC")
+		}).Should(Succeed())
 	})
 }

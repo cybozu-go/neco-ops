@@ -1,0 +1,10 @@
+apiVersion: coil.cybozu.com/v2
+kind: Egress
+metadata:
+  name: nat
+  namespace: domestic-egress
+spec:
+  destinations:
+  - 10.32.0.0/16 # Forest Prod Farm14-mgmt
+  - 10.48.0.0/16 # Forest Bk Farm14-mgmt
+  - 10.78.32.0/20 # osaka0 LoadBalancer

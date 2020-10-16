@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: pvc-autoresizer
+  name: pvc-autoresizer-controller
+  namespace: pvc-autoresizer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/name: pvc-autoresizer
+  name: pvc-autoresizer-leader-election-role
+  namespace: pvc-autoresizer
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/name: pvc-autoresizer
+  name: pvc-autoresizer-controller
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: pvc-autoresizer
+  name: pvc-autoresizer-leader-election-rolebinding
+  namespace: pvc-autoresizer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pvc-autoresizer-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: pvc-autoresizer-controller
+  namespace: pvc-autoresizer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: pvc-autoresizer
+  name: pvc-autoresizer-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pvc-autoresizer-controller
+subjects:
+- kind: ServiceAccount
+  name: pvc-autoresizer-controller
+  namespace: pvc-autoresizer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: pvc-autoresizer
+  name: pvc-autoresizer-controller
+  namespace: pvc-autoresizer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/name: pvc-autoresizer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/name: pvc-autoresizer
+    spec:
+      containers:
+      - args:
+        - --prometheus-url=http://prometheus-prometheus-oper-prometheus.prometheus.svc:9090
+        - --interval=10s
+        command:
+        - /pvc-autoresizer
+        image: quay.io/topolvm/pvc-autoresizer:0.1.2
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+        name: manager
+        ports:
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        - containerPort: 8081
+          name: health
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      serviceAccountName: pvc-autoresizer-controller
+      terminationGracePeriodSeconds: 10

@@ -4,6 +4,7 @@ resources:
 - argocd.yaml
 - bmc-reverse-proxy.yaml
 - cert-manager.yaml
+- domestic-egress.yaml
 - elastic.yaml
 - external-dns.yaml
 - ingress.yaml
@@ -11,6 +12,7 @@ resources:
 - kube-system.yaml
 - metallb.yaml
 - monitoring.yaml
+- pvc-autoresizer.yaml
 - rook-ceph.yaml
 - teleport.yaml
 - topolvm.yaml

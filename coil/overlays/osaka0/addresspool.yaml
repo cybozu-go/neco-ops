@@ -1,0 +1,15 @@
+apiVersion: coil.cybozu.com/v2
+kind: AddressPool
+metadata:
+  name: internet-egress
+spec:
+  subnets:
+  - ipv4: 202.253.115.192/28
+---
+apiVersion: coil.cybozu.com/v2
+kind: AddressPool
+metadata:
+  name: domestic-egress
+spec:
+  subnets:
+  - ipv4: 10.78.49.0/26

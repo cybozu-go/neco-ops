@@ -7,6 +7,7 @@ patchesStrategicMerge:
 - argocd.yaml
 - bmc-reverse-proxy.yaml
 - cert-manager.yaml
+- coil.yaml
 - external-dns.yaml
 - maneki-apps.yaml
 - metallb.yaml

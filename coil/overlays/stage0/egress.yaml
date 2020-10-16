@@ -1,0 +1,8 @@
+apiVersion: coil.cybozu.com/v2
+kind: Egress
+metadata:
+  name: nat
+  namespace: domestic-egress
+spec:
+  destinations:
+  - 10.176.0.0/16  # Forest Dev Farm14-mgmt

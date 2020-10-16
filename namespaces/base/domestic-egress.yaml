@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: internet-egress
+  name: domestic-egress
   annotations:
-    coil.cybozu.com/pool: internet-egress
+    coil.cybozu.com/pool: domestic-egress
   labels:
     control-plane: "true"
     topolvm.cybozu.com/webhook: ignore

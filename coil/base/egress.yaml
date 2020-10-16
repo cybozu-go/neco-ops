@@ -1,0 +1,21 @@
+apiVersion: coil.cybozu.com/v2
+kind: Egress
+metadata:
+  name: nat
+  namespace: internet-egress
+spec:
+  replicas: 2
+  destinations:
+  - 0.0.0.0/0
+  sessionAffinity: None
+---
+apiVersion: coil.cybozu.com/v2
+kind: Egress
+metadata:
+  name: nat
+  namespace: domestic-egress
+spec:
+  replicas: 2
+  destinations:
+  - 10.0.3.0/24
+  sessionAffinity: None
