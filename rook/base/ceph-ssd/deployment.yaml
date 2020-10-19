@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: rook-ceph-operator
-        image: "quay.io/cybozu/rook:1.4.4.1"
+        image: "quay.io/cybozu/rook:1.4.6.1"
         imagePullPolicy: IfNotPresent
         args: ["ceph", "operator"]
         env:
@@ -78,3 +78,4 @@ spec:
             memory: 256Mi
           
       serviceAccountName: rook-ceph-system
+

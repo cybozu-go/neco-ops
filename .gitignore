@@ -15,6 +15,7 @@
 /go.sum
 
 # Ignore downloaded files
+/rook/bin
 /test/download
 
 # Editors
