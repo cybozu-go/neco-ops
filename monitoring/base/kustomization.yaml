@@ -8,10 +8,10 @@ resources:
   - machines-endpoints/serviceaccount.yaml
   - machines-endpoints/pod-security-policy.yaml
   - kube-state-metrics/deployment.yaml
-  - kube-state-metrics/role.yaml
-  - kube-state-metrics/rolebinding.yaml
+  - kube-state-metrics/cluster-role.yaml
+  - kube-state-metrics/cluster-role-binding.yaml
   - kube-state-metrics/service.yaml
-  - kube-state-metrics/serviceaccount.yaml
+  - kube-state-metrics/service-account.yaml
   - prometheus/clusterrole.yaml
   - prometheus/clusterrolebinding.yaml
   - prometheus/service.yaml
@@ -54,3 +54,6 @@ configMapGenerator:
 images:
   - name: quay.io/cybozu/prometheus
     newTag: 2.18.1.3
+  - name: quay.io/coreos/kube-state-metrics
+    newName: quay.io/cybozu/kube-state-metrics
+    newTag: 1.9.7.1
