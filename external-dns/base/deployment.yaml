@@ -20,7 +20,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: quay.io/cybozu/external-dns:0.7.2.1
+        image: quay.io/cybozu/external-dns:0.7.4.1
         ports:
         - containerPort: 7979
         args:
