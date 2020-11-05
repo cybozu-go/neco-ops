@@ -40,17 +40,19 @@ Check [the upgrading section](https://cert-manager.io/docs/installation/upgradin
 Download manifests and remove `Namespace` resource from it as follows:
 
 ```console
-$ curl -sLf -o  cert-manager/base/upstream/cert-manager.yaml https://github.com/jetstack/cert-manager/releases/download/vX.Y.Z/cert-manager.yaml
+$ curl -sLf -o cert-manager/base/upstream/cert-manager.yaml https://github.com/jetstack/cert-manager/releases/download/vX.Y.Z/cert-manager.yaml
 $ vi cert-manager/base/upstream/cert-manager.yaml
   (Remove Namespace resources)
 ```
 
 ## elastic (ECK)
 
-To check diffs between versions, download and compare manifests as follows:
+Check the [Upgrade ECK](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-upgrading-eck.html) in the official website.
+
+Download manifests and remove `Namespace` resource from it as follows:
 
 ```console
-$ wget https://download.elastic.co/downloads/eck/X.Y.Z/all-in-one.yaml
+$ curl -sLf -o elastic/base/upstream/all-in-one.yaml https://download.elastic.co/downloads/eck/X.Y.Z/all-in-one.yaml
 $ vi elastic/base/upstream/all-in-one.yaml
   (Remove Namespace resources)
 ```
