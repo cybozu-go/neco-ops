@@ -8,3 +8,10 @@ resources:
   - bastion
 patchesStrategicMerge:
   - patch/crd.yaml
+images:
+  - name: quay.io/cybozu/contour
+    newTag: 1.9.0.1
+  - name: quay.io/cybozu/contour-plus
+    newTag: 0.5.2
+  - name: quay.io/cybozu/envoy
+    newTag: 1.15.1.1
