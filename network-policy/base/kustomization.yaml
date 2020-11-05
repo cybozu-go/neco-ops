@@ -30,3 +30,4 @@ resources:
 patchesStrategicMerge:
   - calico/deployment.yaml
   - calico/daemonset.yaml
+  - calico/crd.yaml
