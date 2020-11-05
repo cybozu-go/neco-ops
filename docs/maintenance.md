@@ -231,7 +231,8 @@ Update `spec.cephVersion.image` field in CephCluster CR.
 ## teleport
 
 There is no official kubernetes manifests actively maintained for teleport.
-So, check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github.
+So, check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github,
+and [Helm chart](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport).
 
 ## topolvm
 
