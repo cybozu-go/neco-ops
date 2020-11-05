@@ -6,23 +6,31 @@ metadata:
   namespace: projectcontour
 data:
   contour.yaml: |
+    #
+    # server:
+    #   determine which XDS Server implementation to utilize in Contour.
+    #   xds-server-type: contour
+    #
     # should contour expect to be running inside a k8s cluster
     # incluster: true
     #
     # path to kubeconfig (if not running inside a k8s cluster)
     # kubeconfig: /path/to/.kube/config
     #
-    # Client request timeout to be passed to Envoy
-    # as the connection manager request_timeout.
-    # Defaults to 0, which Envoy interprets as disabled.
-    # Note that this is the timeout for the whole request,
-    # not an idle timeout.
-    # request-timeout: 0s
-    # disable ingressroute permitInsecure field
+    # disable HTTPProxy permitInsecure field
     disablePermitInsecure: false
     tls:
-    #   minimum TLS version that Contour will negotiate
-    #   minimum-protocol-version: "1.1"
+    # minimum TLS version that Contour will negotiate
+    # minimum-protocol-version: "1.1"
+    # Defines the Kubernetes name/namespace matching a secret to use
+    # as the fallback certificate when requests which don't match the
+    # SNI defined for a vhost.
+      fallback-certificate:
+    #   name: fallback-secret-name
+    #   namespace: projectcontour
+      envoy-client-certificate:
+    #   name: envoy-client-cert-secret-name
+    #   namespace: projectcontour
     # The following config shows the defaults for the leader election.
     # leaderelection:
     #   configmap-name: leader-elect
@@ -58,3 +66,21 @@ data:
     #   - "upstream_service_time"
     #   - "user_agent"
     #   - "x_forwarded_for"
+    #
+    # default-http-versions:
+    # - "HTTP/2"
+    # - "HTTP/1.1"
+    #
+    # The following shows the default proxy timeout settings.
+    # timeouts:
+    #   request-timeout: infinity
+    #   connection-idle-timeout: 60s
+    #   stream-idle-timeout: 5m
+    #   max-connection-duration: infinity
+    #   connection-shutdown-grace-period: 5s
+    #
+    # Envoy cluster settings.
+    # cluster:
+    #   configure the cluster dns lookup family
+    #   valid options are: auto (default), v4, v6
+    #   dns-lookup-family: auto
