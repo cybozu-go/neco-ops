@@ -5,9 +5,9 @@ resources:
   - ../template
   - contour-config.yaml
 patchesStrategicMerge:
-  - rbac.yaml
-  - deployment.yaml
-  - rbac_contour-plus.yaml
-  - service.yaml
   - certificate.yaml
+  - deployment.yaml
   - httpproxy.yaml
+  - rbac_contour-plus.yaml
+  - rbac.yaml
+  - service.yaml

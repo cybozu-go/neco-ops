@@ -18,3 +18,9 @@ rules:
   - patch
   - delete
   - deletecollection
+- apiGroups:
+  - projectcontour.io
+  resources:
+  - httpproxies/status
+  verbs:
+  - get

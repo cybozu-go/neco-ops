@@ -9,9 +9,10 @@ How to maintain neco-apps
 - [metallb](#metallb)
 - [metrics-server](#metrics-server)
 - [monitoring](#monitoring)
-  - [prometheus, alertmanager, grafana](#prometheus-alertmanager-grafana)
+  - [prometheus, alertmanager, pushgateway](#prometheus-alertmanager-pushgateway)
   - [machines-endpoints](#machines-endpoints)
   - [kube-state-metrics](#kube-state-metrics)
+  - [grafana-operator](#grafana-operator)
 - [neco-admission](#neco-admission)
 - [network-policy (Calico)](#network-policy-calico)
 - [pvc-autoresizer](#pvc-autoresizer)
@@ -72,6 +73,8 @@ Then check the diffs by `git diff`.
 
 ## ingress (Contour & Envoy)
 
+Check the [upgrading guide](https://projectcontour.io/resources/upgrading/) in the official website.
+
 Check diffs of projectcontour/contour files as follows:
 
 ```console
@@ -84,6 +87,7 @@ Then, import YAML manifests as follows:
 
 ```console
 $ git checkout vX.Y.Z
+$ rm $GOPATH/src/github.com/cybozu-go/neco-apps/ingress/base/contour/*
 $ cp examples/contour/*.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/ingress/base/contour/
 ```
 
