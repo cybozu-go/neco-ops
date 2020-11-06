@@ -65,12 +65,7 @@ dctest-upgrade:
 	-git worktree remove /tmp/neco-apps
 	git worktree add /tmp/neco-apps $(BASE_BRANCH)
 	cp account.json /tmp/neco-apps/test
-	cd /tmp/neco-apps/test; \
-		if [ -f Makefile.dctest ]; then \
-			$(MAKE) test-apps BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH); \
-		else \
-			$(MAKE) dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH); \
-		fi
+	$(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
 	cp /tmp/neco-apps/test/argocd-password.txt ./
 	CEPH=$(CEPH) OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
 
