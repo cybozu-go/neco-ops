@@ -13,17 +13,17 @@ if [ -n "$SECRET_GITHUB_TOKEN" ]; then
     rm -rf ./neco-apps-secret
     git clone -b $BRANCH $GIT_URL neco-apps-secret 2> /dev/null
 
-    kustomize build ./neco-apps-secret/overlays/osaka0 > expected-secret-osaka0.yaml
-    kustomize build ./neco-apps-secret/overlays/stage0 > expected-secret-stage0.yaml
-    kustomize build ./neco-apps-secret/overlays/tokyo0 > expected-secret-tokyo0.yaml
-    kustomize build ../secrets/base > current-secret.yaml
+    ./bin/kustomize build ./neco-apps-secret/overlays/osaka0 > expected-secret-osaka0.yaml
+    ./bin/kustomize build ./neco-apps-secret/overlays/stage0 > expected-secret-stage0.yaml
+    ./bin/kustomize build ./neco-apps-secret/overlays/tokyo0 > expected-secret-tokyo0.yaml
+    ./bin/kustomize build ../secrets/base > current-secret.yaml
 
 elif [ -n "$SECRET_DIR" ]; then
     # By dir
-    kustomize build ${SECRET_DIR}/overlays/osaka0 > expected-secret-osaka0.yaml
-    kustomize build ${SECRET_DIR}/overlays/stage0 > expected-secret-stage0.yaml
-    kustomize build ${SECRET_DIR}/overlays/tokyo0 > expected-secret-tokyo0.yaml
-    kustomize build ../secrets/base > current-secret.yaml
+    ./bin/kustomize build ${SECRET_DIR}/overlays/osaka0 > expected-secret-osaka0.yaml
+    ./bin/kustomize build ${SECRET_DIR}/overlays/stage0 > expected-secret-stage0.yaml
+    ./bin/kustomize build ${SECRET_DIR}/overlays/tokyo0 > expected-secret-tokyo0.yaml
+    ./bin/kustomize build ../secrets/base > current-secret.yaml
 
 else
     echo "Error: Please set env of SECRET_DIR."

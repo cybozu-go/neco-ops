@@ -45,10 +45,14 @@ func isKustomizationFile(name string) bool {
 func kustomizeBuild(dir string) ([]byte, []byte, error) {
 	outBuf := new(bytes.Buffer)
 	errBuf := new(bytes.Buffer)
-	cmd := exec.Command("kustomize", "build", dir)
+	workdir, err := os.Getwd()
+	if err != nil {
+		return nil, nil, err
+	}
+	cmd := exec.Command(filepath.Join(workdir, "bin", "kustomize"), "build", dir)
 	cmd.Stdout = outBuf
 	cmd.Stderr = errBuf
-	err := cmd.Run()
+	err = cmd.Run()
 	return outBuf.Bytes(), errBuf.Bytes(), err
 }
 
