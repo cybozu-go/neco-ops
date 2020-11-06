@@ -23,7 +23,7 @@ patchesJson6902:
       value: configmaps
 - target:
     group: rbac.authorization.k8s.io
-    version: v1beta1
+    version: v1
     kind: ClusterRoleBinding
     name: metrics-server:system:auth-delegator
   patch: |-
@@ -32,7 +32,7 @@ patchesJson6902:
       value: rbac.authorization.k8s.io/v1
 - target:
     group: rbac.authorization.k8s.io
-    version: v1beta1
+    version: v1
     kind: RoleBinding
     name: metrics-server-auth-reader
     namespace: kube-system
@@ -40,3 +40,7 @@ patchesJson6902:
     - op: replace
       path: /apiVersion
       value: rbac.authorization.k8s.io/v1
+images:
+  - name: k8s.gcr.io/metrics-server/metrics-server
+    newName: quay.io/cybozu/metrics-server
+    newTag: 0.3.7.1

@@ -126,6 +126,8 @@ $ git checkout vX.Y.Z
 $ cp deploy/1.8+/*.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/metrics-server/base/upstream
 ```
 
+Note: The name of `deploy` directory will be changed.
+
 ## monitoring
 
 ### prometheus, alertmanager, pushgateway

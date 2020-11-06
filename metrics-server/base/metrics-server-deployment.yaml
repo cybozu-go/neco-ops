@@ -9,16 +9,8 @@ spec:
     spec:
       containers:
       - name: metrics-server
-        image: quay.io/cybozu/metrics-server:0.3.6.2
+        imagePullPolicy: IfNotPresent
         args:
           - --cert-dir=/tmp
           - --secure-port=4443
           - --kubelet-preferred-address-types=InternalIP
-        ports:
-        - name: main-port
-          containerPort: 4443
-          protocol: TCP
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 1000
