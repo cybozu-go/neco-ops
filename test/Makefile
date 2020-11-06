@@ -9,12 +9,11 @@ CIRCLE_BUILD_NUM ?= -$(USER)
 TEST_ID := test$(CIRCLE_BUILD_NUM)
 BASE_BRANCH = master
 COMMIT_ID = $(shell git rev-parse --abbrev-ref HEAD)
-KUSTOMIZATION_DIRS := $(shell find ../ -name "kustomization.yaml" -exec dirname {} \;)
 SUDO = sudo
 WGET=wget --retry-connrefused --no-verbose
 NUM_DASHBOARD = $(shell KUSTOMIZE_ENABLE_ALPHA_COMMANDS=true ./bin/kustomize cfg count ../monitoring/base/grafana-operator/dashboards | \
 	grep GrafanaDashboard | cut -d' ' -f2)
-export BOOT0 BOOT1 BOOT2 GINKGO SSH_PRIVKEY TEST_ID COMMIT_ID KUSTOMIZATION_DIRS BOOTSTRAP NUM_DASHBOARD
+export BOOT0 BOOT1 BOOT2 GINKGO SSH_PRIVKEY TEST_ID COMMIT_ID BOOTSTRAP NUM_DASHBOARD
 
 ### for Go
 GOFLAGS = -mod=vendor
@@ -47,9 +46,6 @@ validation:
 test-alert-rules:
 	$(PROMTOOL) test rules alert_test/*.yaml
 
-kustomize-check:
-	./kustomize-check.sh
-
 code-check: test-tools
 	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"
 	staticcheck ./...
@@ -57,7 +53,7 @@ code-check: test-tools
 	test -z "$$(custom-checker -restrictpkg.packages=html/template,log ./... 2>&1 | tee /dev/stderr)"
 	go vet ./...
 
-test: code-check install.yaml test-alert-rules kustomize-check validation
+test: code-check install.yaml test-alert-rules validation
 
 dctest: install.yaml
 	CEPH=$(CEPH) OVERLAY=$(OVERLAY) ./test.sh
@@ -127,5 +123,5 @@ clean:
 	rm -f install.yaml
 	rm -rf $(BINDIR)
 
-.PHONY:	validation test-alert-rules kustomize-check code-check test \
+.PHONY:	validation test-alert-rules code-check test \
 		dctest dctest-ceph dctest-reboot dctest-upgrade setup-download setup clean
