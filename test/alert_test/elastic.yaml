@@ -1,2 +1,0 @@
-rule_files:
-  - ../../monitoring/base/prometheus/alert_rules/elastic.yaml

@@ -574,11 +574,11 @@ tests:
       - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="172800"}
         values: '80+0x5'
       - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="21600"}
-        values: '80+0x5'
+        values: '0 1+0x4'
       - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="1800"}
-        values: '80+0x5'
+        values: '0+0x5'
       - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="0"}
-        values: '80+0x5'
+        values: '0+0x5'
     alert_rule_test:
       - eval_time: 5m
         alertname: KubeClientCertificateExpiration
