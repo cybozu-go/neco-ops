@@ -3,6 +3,6 @@ kind: Service
 metadata:
   name: argocd-server
   annotations:
-    contour.heptio.com/upstream-protocol.h2: 443,https
+    projectcontour.io/upstream-protocol.h2: 443,https
 spec:
   type: NodePort
