@@ -200,6 +200,34 @@ func testSetup() {
 		applyAndWaitForApplications(commitID)
 	})
 
+	// Todo: Remove this block after the following PR is released to prod.
+	// https://github.com/cybozu-go/neco-apps/pull/783
+	if doUpgrade {
+		It("should delete IngressRoute CRD", func() {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "ingressroutes.contour.heptio.com")
+			if err != nil {
+				if strings.Contains(string(stderr), "NotFound") {
+					return
+				}
+				Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+			}
+			ExecSafeAt(boot0, "kubectl", "annotate", "crd", "ingressroutes.contour.heptio.com", "i-am-sure-to-delete=ingressroutes.contour.heptio.com")
+			ExecSafeAt(boot0, "kubectl", "delete", "crd", "ingressroutes.contour.heptio.com")
+		})
+
+		It("should delete TLSCertificateDelegation CRD", func() {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "tlscertificatedelegations.contour.heptio.com")
+			if err != nil {
+				if strings.Contains(string(stderr), "NotFound") {
+					return
+				}
+				Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+			}
+			ExecSafeAt(boot0, "kubectl", "annotate", "crd", "tlscertificatedelegations.contour.heptio.com", "i-am-sure-to-delete=tlscertificatedelegations.contour.heptio.com")
+			ExecSafeAt(boot0, "kubectl", "delete", "crd", "tlscertificatedelegations.contour.heptio.com")
+		})
+	}
+
 	It("should set DNS", func() {
 		var ip string
 		By("confirming that unbound is exported")
