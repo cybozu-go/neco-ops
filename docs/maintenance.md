@@ -128,10 +128,18 @@ $ cp deploy/1.8+/*.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/metrics-serve
 
 ## monitoring
 
-### prometheus, alertmanager, grafana
+### prometheus, alertmanager, pushgateway
 
 There is no official kubernetes manifests for prometheus, alertmanager, and grafana.
-So, check changes in release notes on github and take necessary actions.
+So, check changes in release notes on github and helm charts like bellow.
+
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm search repo -l prometheus-community
+helm template prom prometheus-community/prometheus --version=11.5.0 > prom-2.18.1.yaml
+helm template prom prometheus-community/prometheus --version=11.16.7 > prom-2.21.0.yaml
+diff prom-2.18.1.yaml prom-2.21.0.yaml
+```
 
 ### machines-endpoints
 
@@ -140,6 +148,19 @@ Update version following [this link](https://github.com/cybozu/neco-containers/b
 ### kube-state-metrics
 
 Check [examples/standard](https://github.com/kubernetes/kube-state-metrics/tree/master/examples/standard)
+
+### grafana-operator
+
+Check [releases](https://github.com/integr8ly/grafana-operator/releases)
+
+Download the upstream manifest as follows:
+
+```console
+$ git clone https://github.com/integr8ly/grafana-operator
+$ cd grafana-operator
+$ git checkout vX.Y.Z
+$ cp -r deploy/* $GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/grafana-operator/upstream
+```
 
 ## neco-admission
 

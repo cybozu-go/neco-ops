@@ -7,7 +7,6 @@ spec:
     spec:
       containers:
         - name: grafana-operator
-          image: quay.io/cybozu/grafana-operator:3.3.0.1
           args:
             - --grafana-image=quay.io/cybozu/grafana
             - --grafana-image-tag=7.0.4.1
