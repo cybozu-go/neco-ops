@@ -32,12 +32,14 @@ spec:
               path: /-/ready
               port: 9090
             initialDelaySeconds: 30
+            periodSeconds: 5
             timeoutSeconds: 30
           livenessProbe:
             httpGet:
               path: /-/healthy
               port: 9090
             initialDelaySeconds: 30
+            periodSeconds: 15
             timeoutSeconds: 30
           volumeMounts:
             - name: prometheus-config-volume

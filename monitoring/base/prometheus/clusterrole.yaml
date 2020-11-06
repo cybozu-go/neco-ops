@@ -7,13 +7,18 @@ rules:
     resources:
       - nodes
       - nodes/proxy
+      - nodes/metrics
       - services
       - endpoints
       - pods
+      - ingresses
+      - configmaps
     verbs: ["get", "list", "watch"]
   - apiGroups:
       - extensions
+      - networking.k8s.io
     resources:
+      - ingresses/status
       - ingresses
     verbs: ["get", "list", "watch"]
   - nonResourceURLs: ["/metrics"]
