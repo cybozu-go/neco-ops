@@ -6,7 +6,7 @@ data:
   contour.yaml: |
     disablePermitInsecure: false
     tls:
-      minimumProtocolVersion: "1.2"
+      minimum-protocol-version: "1.2"
     leaderelection:
       configmap-name: contour-leader
       configmap-namespace: ingress-forest
