@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -289,11 +290,15 @@ func applyAndWaitForApplications(commitID string) {
 		return nil
 	}).Should(Succeed())
 
-	By("getting application list")
+	By("getting application list and sort the applications with sync wave in ascending order")
 	stdout, _, err := kustomizeBuild("../argocd-config/overlays/" + overlayName)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	var appList []string
+	type nameAndWave struct {
+		name     string
+		syncWave float64
+	}
+	var appList []nameAndWave
 	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(stdout)))
 	for {
 		data, err := y.Read()
@@ -313,16 +318,30 @@ func applyAndWaitForApplications(commitID string) {
 			continue
 		}
 
-		appList = append(appList, app.Name)
+		wave, err := strconv.ParseFloat(app.GetAnnotations()["argocd.argoproj.io/sync-wave"], 32)
+		Expect(err).ShouldNot(HaveOccurred())
+		appList = append(appList, nameAndWave{name: app.Name, syncWave: wave})
 	}
-	fmt.Printf("application list: %v\n", appList)
+
+	sort.Slice(appList, func(i, j int) bool {
+		if appList[i].syncWave != appList[j].syncWave {
+			return appList[i].syncWave < appList[j].syncWave
+		} else {
+			return strings.Compare(appList[i].name, appList[j].name) <= 0
+		}
+	})
+
+	fmt.Printf("application list:\n")
+	for _, app := range appList {
+		fmt.Printf("  %4.1f: %s\n", app.syncWave, app.name)
+	}
 	Expect(appList).ShouldNot(HaveLen(0))
 
 	By("waiting initialization")
 	checkAllAppsSynced := func() error {
 	OUTER:
-		for _, appName := range appList {
-			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", appName)
+		for _, target := range appList {
+			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", target.name)
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", appStdout, stderr, err)
 			}
@@ -332,7 +351,7 @@ func applyAndWaitForApplications(commitID string) {
 				return fmt.Errorf("stdout: %s, err: %v", appStdout, err)
 			}
 			if app.Status.Sync.ComparedTo.Source.TargetRevision != commitID {
-				return errors.New(appName + " does not have correct target yet")
+				return errors.New(target.name + " does not have correct target yet")
 			}
 			if app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
 				app.Status.Health.Status == argocd.HealthStatusHealthy &&
@@ -346,7 +365,7 @@ func applyAndWaitForApplications(commitID string) {
 			if doUpgrade {
 				for _, cond := range app.Status.Conditions {
 					if cond.Type == argocd.ApplicationConditionSyncError {
-						stdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", appName)
+						stdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", target.name)
 						if err != nil {
 							return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 						}
@@ -354,7 +373,7 @@ func applyAndWaitForApplications(commitID string) {
 					}
 				}
 			}
-			return fmt.Errorf("%s is not initialized. argocd app get %s -o json: %s", appName, appName, appStdout)
+			return fmt.Errorf("%s is not initialized. argocd app get %s -o json: %s", target.name, target.name, appStdout)
 		}
 		return nil
 	}
