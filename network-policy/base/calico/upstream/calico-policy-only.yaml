@@ -3549,7 +3549,7 @@ spec:
       securityContext:
         fsGroup: 65534
       containers:
-      - image: calico/typha:v3.16.4
+      - image: calico/typha:v3.16.5
         name: calico-typha
         ports:
         - containerPort: 5473
@@ -3665,7 +3665,7 @@ spec:
         # This container installs the CNI binaries
         # and CNI network config file on each node.
         - name: install-cni
-          image: calico/cni:v3.16.4
+          image: calico/cni:v3.16.5
           command: ["/opt/cni/bin/install"]
           envFrom:
           - configMapRef:
@@ -3700,7 +3700,7 @@ spec:
         # Adds a Flex Volume Driver that creates a per-pod Unix Domain Socket to allow Dikastes
         # to communicate with Felix over the Policy Sync API.
         - name: flexvol-driver
-          image: calico/pod2daemon-flexvol:v3.16.4
+          image: calico/pod2daemon-flexvol:v3.16.5
           volumeMounts:
           - name: flexvol-driver-host
             mountPath: /host/driver
@@ -3711,7 +3711,7 @@ spec:
         # container programs network policy and routes on each
         # host.
         - name: calico-node
-          image: calico/node:v3.16.4
+          image: calico/node:v3.16.5
           envFrom:
           - configMapRef:
               # Allow KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT to be overridden for eBPF mode.

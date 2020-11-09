@@ -3,10 +3,10 @@ kind: Kustomization
 images:
   - name: calico/node
     newName: quay.io/cybozu/calico
-    newTag: 3.16.1.1
+    newTag: 3.16.5.1
   - name: calico/typha
     newName: quay.io/cybozu/calico
-    newTag: 3.16.1.1
+    newTag: 3.16.5.1
 resources:
   - calico/upstream/calico-policy-only.yaml
   - calico/podsecuritypolicy.yaml
