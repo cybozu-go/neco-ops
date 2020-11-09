@@ -43,14 +43,18 @@ spec:
               readOnly: false
             - $patch: delete
               mountPath: /var/run/nodeagent
+            - $patch: delete
+              mountPath: /sys/fs/
       volumes:
         - name: etc-service-enabled
           emptyDir: {}
         - $patch: delete
-          name: policysync
+          name: sysfs
         - $patch: delete
           name: cni-bin-dir
         - $patch: delete
           name: cni-net-dir
+        - $patch: delete
+          name: policysync
         - $patch: delete
           name: flexvol-driver-host
