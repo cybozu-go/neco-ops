@@ -37,6 +37,18 @@ rules:
     verbs:
       - get
   - apiGroups:
+      - externaldns.k8s.io
+    resources:
+      - dnsendpoints
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
       - cert-manager.io
     resources:
       - certificates
