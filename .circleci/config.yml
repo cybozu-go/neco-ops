@@ -66,7 +66,7 @@ commands:
                 name: dctest(bootstrap) TAG=release
                 command: |
                   cd neco
-                  ./bin/run-dctest.sh bootstrap release "" menu-ss.yml
+                  ./bin/run-dctest.sh bootstrap release production menu-ss.yml
                 no_output_timeout: 31m
       - unless:
           condition: <<parameters.neco-release-branch>>
@@ -75,7 +75,7 @@ commands:
                 name: dctest(bootstrap) TAG=""
                 command: |
                   cd neco
-                  ./bin/run-dctest.sh bootstrap "" "" menu-ss.yml
+                  ./bin/run-dctest.sh bootstrap "" production menu-ss.yml
                 no_output_timeout: 31m
 
   delete-instance:
