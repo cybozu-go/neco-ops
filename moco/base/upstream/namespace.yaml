@@ -4,3 +4,8 @@ metadata:
   labels:
     control-plane: moco-controller-manager
   name: system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: moco-dummy-secret

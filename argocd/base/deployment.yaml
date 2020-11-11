@@ -8,6 +8,14 @@ spec:
       containers:
         - image: quay.io/cybozu/argocd
           name: argocd-application-controller
+          command:
+            - argocd-application-controller
+            - --status-processors
+            - "100"
+            - --operation-processors
+            - "20"
+            - --app-resync
+            - "60"
 ---
 apiVersion: apps/v1
 kind: Deployment
