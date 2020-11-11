@@ -38,6 +38,13 @@ var _ = BeforeSuite(func() {
 // This must be the only top-level test container.
 // Other tests and test containers must be listed in this.
 var _ = Describe("Test applications", func() {
+	BeforeEach(func() {
+		fmt.Printf("START: %s\n", time.Now().Format(time.RFC3339))
+	})
+	AfterEach(func() {
+		fmt.Printf("END: %s\n", time.Now().Format(time.RFC3339))
+	})
+
 	Context("prepareNodes", prepareNodes)
 	if doCeph {
 		Context("prepareLoadPods", prepareLoadPods)
