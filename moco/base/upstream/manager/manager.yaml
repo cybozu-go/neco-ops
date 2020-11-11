@@ -1,18 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: moco-controller-manager
+  name: controller-manager
   namespace: system
   labels:
+    app.kubernetes.io/component: controller
     control-plane: moco-controller-manager
 spec:
   selector:
     matchLabels:
+      app.kubernetes.io/component: controller
       control-plane: moco-controller-manager
   replicas: 1
   template:
     metadata:
       labels:
+        app.kubernetes.io/component: controller
         control-plane: moco-controller-manager
       annotations:
         prometheus.io/port: "8080"
@@ -21,14 +24,10 @@ spec:
       - name: manager
         command:
         - /moco-controller
-        image: controller:latest
+        image: ghcr.io/cybozu-go/moco:latest
         resources:
-          limits:
-            cpu: 4000m
-            memory: 2Gi
           requests:
-            cpu: 1000m
-            memory: 512Mi
+            memory: 256Mi
         env:
         - name: POD_NAMESPACE
           valueFrom:
