@@ -5,6 +5,5 @@ resources:
 patchesStrategicMerge:
   - crd.yaml
 images:
-  - name: controller
-    newName: ghcr.io/cybozu-go/moco
-    newTag: 0.3.0
+  - name: ghcr.io/cybozu-go/moco
+    newTag: 0.3.1
