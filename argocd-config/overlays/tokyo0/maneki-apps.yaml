@@ -4,7 +4,7 @@ metadata:
   name: maneki-apps
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "11"
+    argocd.argoproj.io/sync-wave: "10"
   labels:
     is-tenant: "true"
 spec:

@@ -358,7 +358,7 @@ func applyAndWaitForApplications(commitID string) {
 		}
 		return nil
 	}
-	// want to do "Eventually( Consistently(checkAllAppsSynced, 30sec, 1sec) )"
+	// want to do "Eventually( Consistently(checkAllAppsSynced, 15sec, 1sec) )"
 	Eventually(func() error {
 		for i := 0; i < 15; i++ {
 			if i%5 == 1 {
@@ -371,7 +371,7 @@ func applyAndWaitForApplications(commitID string) {
 			time.Sleep(1 * time.Second)
 		}
 		return nil
-	}, 30*time.Minute).Should(Succeed())
+	}, 40*time.Minute).Should(Succeed())
 }
 
 func setupArgoCD() {
