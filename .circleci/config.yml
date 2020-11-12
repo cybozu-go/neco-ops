@@ -171,7 +171,7 @@ jobs:
     steps:
       - checkout
       - boot-dctest:
-          neco-release-branch: <<parameters.neco-release-branch>>
+          neco-release-branch: false
       - run:
           name: Test neco-apps
           command: |
@@ -206,14 +206,10 @@ jobs:
   ceph-bootstrap:
     docker:
       - image: google/cloud-sdk
-    parameters:
-      neco-release-branch:
-        type: boolean
-        default: true
     steps:
       - checkout
       - boot-dctest:
-          neco-release-branch: <<parameters.neco-release-branch>>
+          neco-release-branch: false
       - run:
           name: Test ceph
           command: |
@@ -227,7 +223,8 @@ jobs:
       - image: google/cloud-sdk
     steps:
       - checkout
-      - boot-dctest
+      - boot-dctest:
+          neco-release-branch: false
       - run:
           name: Bootstrap neco-apps at stage and test ceph
           command: |
@@ -245,7 +242,8 @@ jobs:
       - image: google/cloud-sdk
     steps:
       - checkout
-      - boot-dctest
+      - boot-dctest:
+          neco-release-branch: false
       - run:
           name: Bootstrap neco-apps at release and test ceph
           command: |
@@ -263,7 +261,8 @@ jobs:
       - image: google/cloud-sdk
     steps:
       - checkout
-      - boot-dctest
+      - boot-dctest:
+          neco-release-branch: false
       - run:
           name: Bootstrap neco-apps at stage
           command: |
@@ -281,7 +280,8 @@ jobs:
       - image: google/cloud-sdk
     steps:
       - checkout
-      - boot-dctest
+      - boot-dctest:
+          neco-release-branch: false
       - run:
           name: Bootstrap neco-apps at release
           command: |
