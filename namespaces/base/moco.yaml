@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moco-system
+  labels:
+    control-plane: "true"
+    topolvm.cybozu.com/webhook: ignore

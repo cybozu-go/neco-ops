@@ -7,4 +7,4 @@ bases:
 - ./rbac
 - ./manager
 resources:
-- namespace.yaml
+  - secret.yaml
