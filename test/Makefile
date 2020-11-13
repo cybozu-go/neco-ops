@@ -56,10 +56,10 @@ code-check: test-tools
 test: code-check install.yaml test-alert-rules validation
 
 dctest: install.yaml
-	CEPH=$(CEPH) OVERLAY=$(OVERLAY) ./test.sh
+	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) ./test.sh
 
 dctest-reboot: install.yaml
-	CEPH=$(CEPH) OVERLAY=$(OVERLAY) REBOOT=1 ./test.sh
+	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) REBOOT=1 ./test.sh
 
 dctest-upgrade:
 	-git worktree remove /tmp/neco-apps
@@ -67,7 +67,7 @@ dctest-upgrade:
 	cp account.json /tmp/neco-apps/test
 	$(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
 	cp /tmp/neco-apps/test/argocd-password.txt ./
-	CEPH=$(CEPH) OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
+	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
 
 setup-download:
 	if [ -z "$$(which wget)" ]; then \
