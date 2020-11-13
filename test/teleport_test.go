@@ -80,14 +80,18 @@ func testTeleport() {
 		NOTE: Make sure teleport.gcp0.dev-ne.co:443 points at a Teleport proxy which users can access.
 		*/
 		inviteURL := strings.Split(string(stdout), "\n")[1]
-		slashSplited := strings.Split(inviteURL, "/")
-		token := slashSplited[len(slashSplited)-1]
+		slashSplit := strings.Split(inviteURL, "/")
+		token := slashSplit[len(slashSplit)-1]
+		Expect(token).NotTo(BeEmpty(), "token=%s, output=%s", token, string(stdout))
+		fmt.Printf("output: \n%s\n", string(stdout))
+
 		payload, err := json.Marshal(map[string]string{
 			"token":               token,
 			"password":            base64.StdEncoding.EncodeToString([]byte("dummypass")),
 			"second_factor_token": "",
 		})
 		Expect(err).ShouldNot(HaveOccurred())
+		fmt.Printf("payload: \n%s\n", string(payload))
 
 		filename := "teleport_cookie.txt"
 		cmd := exec.Command("curl", "--fail", "-c", filename, "--insecure", inviteURL)
@@ -106,9 +110,10 @@ func testTeleport() {
 		cookieSplit := strings.Split(string(cookie), "\n")
 		lastLine := strings.Split(cookieSplit[len(cookieSplit)-1], " ")
 		csrf := lastLine[len(lastLine)-1]
-		Expect(csrf).NotTo(BeEmpty(), "csrf=%s", csrf)
+		Expect(csrf).NotTo(BeEmpty(), "csrf=%s, cookie=%s", csrf, string(cookie))
+		fmt.Printf("cookie: \n%s\n", string(cookie))
 
-		By("updating password with " + string(payload))
+		By("updating password")
 		cmd = exec.Command(
 			"curl",
 			"--fail", "--insecure",
