@@ -16,5 +16,4 @@ spec:
     namespace: moco-system
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
