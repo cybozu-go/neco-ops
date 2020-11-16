@@ -150,7 +150,7 @@ spec:
 }
 
 func testContour() {
-	It("should be deployed successfully", func() {
+	It("should deploy contour successfully", func() {
 		Eventually(func() error {
 			for _, ns := range ingressNamespaces {
 				stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace="+ns,
@@ -167,6 +167,29 @@ func testContour() {
 
 				if deployment.Status.AvailableReplicas != 2 {
 					return fmt.Errorf("contour deployment's AvailableReplica is not 2 in %s: %d", ns, int(deployment.Status.AvailableReplicas))
+				}
+			}
+			return nil
+		}).Should(Succeed())
+	})
+
+	It("should deploy envoy successfully", func() {
+		Eventually(func() error {
+			for _, ns := range ingressNamespaces {
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace="+ns,
+					"get", "deployment/envoy", "-o=json")
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+
+				deployment := new(appsv1.Deployment)
+				err = json.Unmarshal(stdout, deployment)
+				if err != nil {
+					return err
+				}
+
+				if deployment.Status.AvailableReplicas != 3 {
+					return fmt.Errorf("envoy deployment's AvailableReplica is not 3 in %s: %d", ns, int(deployment.Status.AvailableReplicas))
 				}
 			}
 			return nil
