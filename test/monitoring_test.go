@@ -570,14 +570,27 @@ func testGrafanaOperator() {
 			}
 			var dashboards []struct {
 				ID int `json:"id"`
+				// TODO: this field should be deleted after grafana-operator v3.6.0 is merged to release branch
+				Title string `json:"title"`
 			}
 			err = json.Unmarshal(stdout, &dashboards)
 			if err != nil {
 				return err
 			}
 
+			// TODO: this code block should be deleted after grafana-operator v3.6.0 is merged to release branch
+			offset := 0
+			for _, d := range dashboards {
+				if d.Title == "Node Exporter Full" {
+					offset++
+					break
+				}
+			}
+
 			// NOTE: expectedNum is the number of files under monitoring/base/grafana/dashboards
-			if len(dashboards) != numGrafanaDashboard {
+			// TODO: this comparison logic should be replaced after grafana-operator v3.6.0 is merged to release branch
+			// len(dashboards) != numGrafanaDashboard
+			if len(dashboards)-offset != numGrafanaDashboard-1 {
 				return fmt.Errorf("len(dashboards) should be %d: %d", numGrafanaDashboard, len(dashboards))
 			}
 			return nil
