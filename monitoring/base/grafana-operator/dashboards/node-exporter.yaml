@@ -4,7 +4,7 @@ metadata:
   name: node-exporter
 spec:
   name: node-exporter.json
-  url: https://grafana.com/api/dashboards/1860/revisions/14/download
+  url: https://grafana.com/api/dashboards/1860/revisions/21/download
   datasources:
     - inputName: "DS_PROMETHEUS"
       datasourceName: "prometheus"
