@@ -81,21 +81,6 @@ spec:
 `
 		_, stderr, err = ExecAtWithInput(boot0, []byte(debugYAML), "kubectl", "apply", "-n", "default", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
-
-		patchUbuntu := `-p='[{"op": "add", "path": "/spec/template/spec/containers/-", "value": { "image": "quay.io/cybozu/ubuntu-debug:18.04", "imagePullPolicy": "IfNotPresent", "name": "ubuntu", "command": ["pause"], "securityContext": { "readOnlyRootFilesystem": true, "runAsGroup": 10000, "runAsUser": 10000 }}}]'`
-
-		By("patching squid pods to add ubuntu-debug sidecar container")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "patch", "-n=internet-egress", "deploy", "squid", "--type=json", patchUbuntu)
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-
-		By("patching unbound pods to add ubuntu-debug sidecar container")
-		stdout, stderr, err = ExecAt(boot0,
-			"kubectl", "patch", "-n=internet-egress", "deploy", "unbound", "--type=json", patchUbuntu)
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-
-		By("patching prometheus pods to add ubuntu-debug sidecar container")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "patch", "-n=monitoring", "statefulset", "prometheus", "--type=json", patchUbuntu)
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 	})
 
 	It("should wait for patched pods to become ready", func() {
@@ -271,6 +256,26 @@ func testNetworkPolicy() {
 			Expect(err).To(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 		}
 
+		By("adding an ubuntu-debug container as an ephemeral container to squid")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=squid", "-o", "json")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+		squidPodList := new(corev1.PodList)
+		err = json.Unmarshal(stdout, squidPodList)
+		Expect(err).NotTo(HaveOccurred())
+
+		for _, pod := range squidPodList.Items {
+			stdout, stderr, err := ExecAt(boot0,
+				"kubectl", "alpha", "debug", pod.Name,
+				"-n=internet-egress",
+				"--container=ubuntu",
+				"--image=quay.io/cybozu/ubuntu-debug:18.04",
+				"--target=squid",
+				"--", "pause",
+			)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		}
+
 		By("accessing DNS port of some node as squid")
 		Eventually(func() error {
 			stdout, _, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=squid", "-o", "json")
@@ -316,6 +321,26 @@ func testNetworkPolicy() {
 			return nil
 		}).Should(Succeed())
 
+		By("adding an ubuntu-debug container as an ephemeral container to unbound")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=unbound", "-o", "json")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+		unboundPodList := new(corev1.PodList)
+		err = json.Unmarshal(stdout, unboundPodList)
+		Expect(err).NotTo(HaveOccurred())
+
+		for _, pod := range unboundPodList.Items {
+			stdout, stderr, err := ExecAt(boot0,
+				"kubectl", "alpha", "debug", pod.Name,
+				"-n=internet-egress",
+				"--container=ubuntu",
+				"--image=quay.io/cybozu/ubuntu-debug:18.04",
+				"--target=unbound",
+				"--", "pause",
+			)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		}
+
 		By("getting unbound pod name")
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=unbound", "-o", "go-template='{{ (index .items 0).metadata.name }}'")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
@@ -355,6 +380,17 @@ func testNetworkPolicy() {
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=monitoring", "-l=app.kubernetes.io/name=prometheus", "-o", "go-template='{{ (index .items 0).metadata.name }}'")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 		podName := string(stdout)
+
+		By("adding an ubuntu-debug container as an ephemeral container to prometheus")
+		stdout, stderr, err = ExecAt(boot0,
+			"kubectl", "alpha", "debug", "prometheus-0",
+			"-n=monitoring",
+			"--container=ubuntu",
+			"--image=quay.io/cybozu/ubuntu-debug:18.04",
+			"--target=prometheus",
+			"--", "pause",
+		)
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
 		By("accessing node-expoter port of some node as prometheus")
 		Eventually(func() error {
