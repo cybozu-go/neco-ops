@@ -393,6 +393,7 @@ func applyAndWaitForApplications(commitID string) {
 			if doUpgrade {
 				for _, cond := range app.Status.Conditions {
 					if cond.Type == argocd.ApplicationConditionSyncError {
+						fmt.Printf("%s sync manually: app=%s\n", time.Now().Format(time.RFC3339), target.name)
 						stdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", target.name)
 						if err != nil {
 							return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
@@ -403,21 +404,18 @@ func applyAndWaitForApplications(commitID string) {
 			}
 
 			// Workaround for ArgoCD's improper behavior. When this issue (T.B.D.) is closed, delete this block.
-			if target.name == "network-policy" &&
-				app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
+			if app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
 				app.Status.Health.Status == argocd.HealthStatusHealthy &&
-				app.Operation == nil &&
+				app.Operation != nil &&
 				app.Status.OperationState.Phase == "Running" {
-
-				fmt.Println("network-policy app is running. terminate the operation.")
-
+				fmt.Printf("%s terminate unexpected operation: app=%s\n", time.Now().Format(time.RFC3339), target.name)
 				stdout, stderr, err := ExecAt(boot0, "argocd", "app", "terminate-op", target.name)
 				if err != nil {
-					return fmt.Errorf("failed to terminate running operation. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+					return fmt.Errorf("failed to terminate operation. app: %s, stdout: %s, stderr: %s, err: %v", target.name, stdout, stderr, err)
 				}
 				stdout, stderr, err = ExecAt(boot0, "argocd", "app", "sync", target.name)
 				if err != nil {
-					return fmt.Errorf("failed to sync application. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+					return fmt.Errorf("failed to sync application. app: %s, stdout: %s, stderr: %s, err: %v", target.name, stdout, stderr, err)
 				}
 			}
 
