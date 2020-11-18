@@ -401,6 +401,26 @@ func applyAndWaitForApplications(commitID string) {
 					}
 				}
 			}
+
+			// Workaround for ArgoCD's improper behavior. When this issue (T.B.D.) is closed, delete this block.
+			if target.name == "network-policy" &&
+				app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
+				app.Status.Health.Status == argocd.HealthStatusHealthy &&
+				app.Operation == nil &&
+				app.Status.OperationState.Phase == "Running" {
+
+				fmt.Println("network-policy app is running. terminate the operation.")
+
+				stdout, stderr, err := ExecAt(boot0, "argocd", "app", "terminate-op", target.name)
+				if err != nil {
+					return fmt.Errorf("failed to terminate running operation. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+				stdout, stderr, err = ExecAt(boot0, "argocd", "app", "sync", target.name)
+				if err != nil {
+					return fmt.Errorf("failed to sync application. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+				}
+			}
+
 			return fmt.Errorf("%s is not initialized. argocd app get %s -o json: %s", target.name, target.name, appStdout)
 		}
 		return nil
