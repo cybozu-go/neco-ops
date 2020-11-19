@@ -33,8 +33,10 @@ PROMTOOL_DLPATH := $(DOWNLOAD_DIR)/prometheus-v$(PROMTOOL_VERSION).tar.gz
 TELEPORT_DLPATH := $(DOWNLOAD_DIR)/teleport-v$(TELEPORT_VERSION).tar.gz
 
 BINDIR := $(abspath $(CURDIR)/bin)
+KUBECTL := $(BINDIR)/kubectl
 KUSTOMIZE := $(BINDIR)/kustomize
 PROMTOOL := $(BINDIR)/promtool
+TSH := $(BINDIR)/tsh
 
 install.yaml: $(shell find ../argocd/base)
 	$(KUSTOMIZE) build ../argocd/base/ > install.yaml
@@ -72,33 +74,38 @@ dctest-upgrade:
 	cp /tmp/neco-apps/test/argocd-password.txt ./
 	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
 
+$(KUBECTL):
+	mkdir -p $(BINDIR)
+	$(MAKE) setup-download
+	$(WGET) -O $@ https://storage.googleapis.com/kubernetes-release/release/v$(KUBERNETES_VERSION)/bin/linux/amd64/kubectl
+	chmod +x $@
+
 setup-download:
 	if [ -z "$$(which wget)" ]; then \
 		$(SUDO) apt-get update && $(SUDO) apt-get -y install wget; \
 	fi
 	mkdir -p $(DOWNLOAD_DIR)
 
-$(KUSTOMIZE_DLPATH):
+$(KUSTOMIZE):
+	mkdir -p $(BINDIR)
 	$(MAKE) setup-download
 	$(WGET) -O $(KUSTOMIZE_DLPATH) https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v$(KUSTOMIZE_VERSION)_linux_amd64.tar.gz
+	tar zxf $(KUSTOMIZE_DLPATH) -C $(BINDIR)
+	chmod +x $@
 
-$(PROMTOOL_DLPATH):
+$(PROMTOOL):
+	mkdir -p $(BINDIR)
 	$(MAKE) setup-download
 	$(WGET) -O $(PROMTOOL_DLPATH) https://github.com/prometheus/prometheus/releases/download/v$(PROMTOOL_VERSION)/prometheus-$(PROMTOOL_VERSION).linux-amd64.tar.gz
+	tar zxf $(PROMTOOL_DLPATH) -C $(BINDIR) --strip-components=1 prometheus-$(PROMTOOL_VERSION).linux-amd64/promtool
 
-$(TELEPORT_DLPATH):
+$(TSH):
+	mkdir -p $(BINDIR)
 	$(MAKE) setup-download
 	$(WGET) -O $(TELEPORT_DLPATH) https://get.gravitational.com/teleport-v$(TELEPORT_VERSION)-linux-amd64-bin.tar.gz
+	tar zxf $(TELEPORT_DLPATH) -C $(BINDIR) --strip-component=1 teleport/tsh
 
-setup: $(KUSTOMIZE_DLPATH) $(PROMTOOL_DLPATH) $(TELEPORT_DLPATH)
-	mkdir -p $(BINDIR)
-	tar zxf $(KUSTOMIZE_DLPATH) -C /tmp
-	cp /tmp/kustomize $(BINDIR)/kustomize
-	chmod +x $(BINDIR)/kustomize
-	tar zxf $(PROMTOOL_DLPATH) -C /tmp --strip-components=1 prometheus-$(PROMTOOL_VERSION).linux-amd64/promtool
-	cp /tmp/promtool $(BINDIR)/promtool
-	tar zxf $(TELEPORT_DLPATH) -C /tmp --strip-component=1 teleport/tsh
-	cp /tmp/tsh $(BINDIR)/tsh
+setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH)
 	go install github.com/onsi/ginkgo/ginkgo
 
 .PHONY: test-tools
