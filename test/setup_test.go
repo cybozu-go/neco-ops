@@ -67,6 +67,7 @@ stringData:
       kubernetes:
         enabled: true
         listen_addr: 0.0.0.0:3026
+        public_addr: [ "teleport.gcp0.dev-ne.co:3026" ]
       listen_addr: 0.0.0.0:3023
       public_addr: [ "teleport.gcp0.dev-ne.co:443" ]
       web_listen_addr: 0.0.0.0:3080
