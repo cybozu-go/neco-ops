@@ -155,15 +155,10 @@ func testTeleport() {
 			go func() { io.Copy(os.Stdout, ptmx) }()
 			return cmd.Wait()
 		}).Should(Succeed())
-		cmd = exec.Command("tsh", "--insecure", "--proxy=teleport.gcp0.dev-ne.co:443", "--user=cybozu", "login")
-		ptmx, err := pty.Start(cmd)
-		Expect(err).ShouldNot(HaveOccurred())
-		defer ptmx.Close()
-		_, err = ptmx.Write([]byte("dummypass\n"))
-		Expect(err).ShouldNot(HaveOccurred())
-		go func() { io.Copy(os.Stdout, ptmx) }()
-		err = cmd.Wait()
-		Expect(err).ShouldNot(HaveOccurred())
+
+		By("getting node resources with kubectl via teleport proxy")
+		output, err = exec.Command("kubectl", "get", "nodes").CombinedOutput()
+		Expect(err).ShouldNot(HaveOccurred(), "output=%s", output)
 
 		By("accessing boot servers using tsh command")
 		for _, n := range []string{"boot-0", "boot-1", "boot-2"} {
