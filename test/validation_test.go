@@ -79,6 +79,7 @@ func testApplicationResources(t *testing.T) {
 		"topolvm":              "5",
 		"unbound":              "5",
 		"elastic":              "6",
+		"moco":                 "6",
 		"monitoring":           "7",
 		"sandbox":              "7",
 		"teleport":             "7",

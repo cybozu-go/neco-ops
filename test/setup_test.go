@@ -201,34 +201,6 @@ func testSetup() {
 		applyAndWaitForApplications(commitID)
 	})
 
-	// Todo: Remove this block after the following PR is released to prod.
-	// https://github.com/cybozu-go/neco-apps/pull/783
-	if doUpgrade {
-		It("should delete IngressRoute CRD", func() {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "ingressroutes.contour.heptio.com")
-			if err != nil {
-				if strings.Contains(string(stderr), "NotFound") {
-					return
-				}
-				Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-			}
-			ExecSafeAt(boot0, "kubectl", "annotate", "crd", "ingressroutes.contour.heptio.com", "i-am-sure-to-delete=ingressroutes.contour.heptio.com")
-			ExecSafeAt(boot0, "kubectl", "delete", "crd", "ingressroutes.contour.heptio.com")
-		})
-
-		It("should delete TLSCertificateDelegation CRD", func() {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "tlscertificatedelegations.contour.heptio.com")
-			if err != nil {
-				if strings.Contains(string(stderr), "NotFound") {
-					return
-				}
-				Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-			}
-			ExecSafeAt(boot0, "kubectl", "annotate", "crd", "tlscertificatedelegations.contour.heptio.com", "i-am-sure-to-delete=tlscertificatedelegations.contour.heptio.com")
-			ExecSafeAt(boot0, "kubectl", "delete", "crd", "tlscertificatedelegations.contour.heptio.com")
-		})
-	}
-
 	It("should set DNS", func() {
 		var ip string
 		By("confirming that unbound is exported")
@@ -367,7 +339,6 @@ func applyAndWaitForApplications(commitID string) {
 
 	By("waiting initialization")
 	checkAllAppsSynced := func() error {
-	OUTER:
 		for _, target := range appList {
 			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", target.name)
 			if err != nil {
@@ -387,23 +358,10 @@ func applyAndWaitForApplications(commitID string) {
 				continue
 			}
 
-			// In upgrade test, sync without --force may cause temporal network disruption.
-			// It leads to sync-error of other applications,
-			// so sync manually sync-error apps in upgrade test.
-			if doUpgrade {
-				for _, cond := range app.Status.Conditions {
-					if cond.Type == argocd.ApplicationConditionSyncError {
-						fmt.Printf("%s sync manually: app=%s\n", time.Now().Format(time.RFC3339), target.name)
-						stdout, stderr, err := ExecAt(boot0, "argocd", "app", "sync", target.name)
-						if err != nil {
-							return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-						}
-						continue OUTER
-					}
-				}
-			}
-
-			// Workaround for ArgoCD's improper behavior. When this issue (T.B.D.) is closed, delete this block.
+			// In upgrade test, syncing network-policy app may cause temporal network disruption.
+			// It leads to ArgoCD's improper behavior. In spite of the network-policy app becomes Synced/Healthy, the operation does not end.
+			// So terminate the unexpected operation manually in upgrade test.
+			// TODO: This is workaround for ArgoCD's improper behavior. When this issue (T.B.D.) is closed, delete this block.
 			if app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
 				app.Status.Health.Status == argocd.HealthStatusHealthy &&
 				app.Operation != nil &&
