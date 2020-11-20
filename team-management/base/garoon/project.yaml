@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: garoon
+  namespace: argocd
+spec:
+  sourceRepos:
+  - '*'
+  destinations:
+  - namespace: app-garoon-static
+    server: '*'
+  - namespace: sandbox
+    server: '*'
+  namespaceResourceBlacklist:
+  - group: ''
+    kind: ResourceQuota
+  - group: ''
+    kind: LimitRange
+  - group: 'networking.k8s.io'
+    kind: NetworkPolicy
+  orphanedResources:
+    warn: false
+  roles:
+  - name: admin
+    groups:
+    - cybozu-private:garoon
+    policies:
+    - p, proj:garoon:admin, applications, *, garoon/*, allow

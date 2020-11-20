@@ -617,3 +617,32 @@ scrape_configs:
         regex: ([^:]+)(?::\d+)?
         replacement: ${1}
         target_label: instance
+  - job_name: "coil"
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: ["kube-system", "internet-egress", "domestic-egress"]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: coil
+      - source_labels: [__address__, __meta_kubernetes_pod_label_app_kubernetes_io_component]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;coild
+        replacement: ${1}:9384
+        target_label: __address__
+      - source_labels: [__address__, __meta_kubernetes_pod_label_app_kubernetes_io_component]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;coil-controller
+        replacement: ${1}:9386
+        target_label: __address__
+      - source_labels: [__address__, __meta_kubernetes_pod_label_app_kubernetes_io_component]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;egress
+        replacement: ${1}:8080
+        target_label: __address__
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance

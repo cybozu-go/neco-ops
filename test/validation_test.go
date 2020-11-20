@@ -87,6 +87,7 @@ func testApplicationResources(t *testing.T) {
 		"bmc-reverse-proxy":    "8",
 		"metrics-server":       "8",
 		"team-management":      "8",
+		"customer-egress":      "8",
 		"neco-admission":       "8",
 		"network-policy":       "9",
 		"rook":                 "10",

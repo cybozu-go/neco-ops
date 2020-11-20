@@ -107,6 +107,28 @@ spec:
 		}).Should(Succeed())
 
 		Eventually(func() error {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=customer-egress", "get", "deployment/squid", "-o=json")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+
+			deployment := new(appsv1.Deployment)
+			err = json.Unmarshal(stdout, deployment)
+			if err != nil {
+				return err
+			}
+
+			if deployment.Status.ReadyReplicas != 2 {
+				return fmt.Errorf("squid deployment's ReadyReplicas is not 2: %d", int(deployment.Status.ReadyReplicas))
+			}
+			if deployment.Status.UpdatedReplicas != 2 {
+				return fmt.Errorf("squid deployment's UpdatedReplicas is not 2: %d", int(deployment.Status.UpdatedReplicas))
+			}
+
+			return nil
+		}).Should(Succeed())
+
+		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=internet-egress", "get", "deployment/unbound", "-o=json")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
@@ -242,129 +264,14 @@ func testNetworkPolicy() {
 		}).Should(Succeed())
 	})
 
-	It("should filter packets from squid/unbound to private network", func() {
-		By("accessing to local IP")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "internet-egress", "get", "pods", "-o=json")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		podList := new(corev1.PodList)
-		err = json.Unmarshal(stdout, podList)
-		Expect(err).NotTo(HaveOccurred())
-		testhttpdIP := testhttpdPodList.Items[0].Status.PodIP
+	It("should filter packets from squid/unbound to private network (ns=internet-egress)", func() {
+		includeUnbound := true
+		testFiltersForInternetEgress("internet-egress", testhttpdPodList.Items[0].Status.PodIP, nodeIP, includeUnbound)
+	})
 
-		for _, pod := range podList.Items {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", pod.Namespace, pod.Name, "--", "curl", testhttpdIP, "-m", "5")
-			Expect(err).To(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		}
-
-		By("adding an ubuntu-debug container as an ephemeral container to squid")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=squid", "-o", "json")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-
-		squidPodList := new(corev1.PodList)
-		err = json.Unmarshal(stdout, squidPodList)
-		Expect(err).NotTo(HaveOccurred())
-
-		for _, pod := range squidPodList.Items {
-			stdout, stderr, err := ExecAt(boot0,
-				"kubectl", "alpha", "debug", pod.Name,
-				"-n=internet-egress",
-				"--container=ubuntu",
-				"--image=quay.io/cybozu/ubuntu-debug:18.04",
-				"--target=squid",
-				"--", "pause",
-			)
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		}
-
-		By("accessing DNS port of some node as squid")
-		Eventually(func() error {
-			stdout, _, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=squid", "-o", "json")
-			if err != nil {
-				return err
-			}
-
-			squidPodList := new(corev1.PodList)
-			err = json.Unmarshal(stdout, squidPodList)
-			if err != nil {
-				return err
-			}
-
-			var podName string
-		OUTER:
-			for _, pod := range squidPodList.Items {
-				for _, cond := range pod.Status.Conditions {
-					if cond.Type == corev1.PodReady {
-						podName = pod.Name
-						break OUTER
-					}
-				}
-			}
-			if podName == "" {
-				return errors.New("podName should not be blank")
-			}
-
-			stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "internet-egress", "exec", "-i", podName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
-			var sshError *ssh.ExitError
-			var execError *exec.ExitError
-			switch {
-			case errors.As(err, &sshError):
-				if sshError.ExitStatus() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", sshError.ExitStatus(), stdout, stderr, err)
-				}
-			case errors.As(err, &execError):
-				if execError.ExitCode() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", execError.ExitCode(), stdout, stderr, err)
-				}
-			default:
-				return fmt.Errorf("telnet should fail with timeout; stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			}
-			return nil
-		}).Should(Succeed())
-
-		By("adding an ubuntu-debug container as an ephemeral container to unbound")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=unbound", "-o", "json")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-
-		unboundPodList := new(corev1.PodList)
-		err = json.Unmarshal(stdout, unboundPodList)
-		Expect(err).NotTo(HaveOccurred())
-
-		for _, pod := range unboundPodList.Items {
-			stdout, stderr, err := ExecAt(boot0,
-				"kubectl", "alpha", "debug", pod.Name,
-				"-n=internet-egress",
-				"--container=ubuntu",
-				"--image=quay.io/cybozu/ubuntu-debug:18.04",
-				"--target=unbound",
-				"--", "pause",
-			)
-			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		}
-
-		By("getting unbound pod name")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=internet-egress", "-l=app.kubernetes.io/name=unbound", "-o", "go-template='{{ (index .items 0).metadata.name }}'")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		unboundPodName := string(stdout)
-
-		By("accessing DNS port of some node as unbound")
-		Eventually(func() error {
-			stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "internet-egress", "exec", "-i", unboundPodName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
-			var sshError *ssh.ExitError
-			var execError *exec.ExitError
-			switch {
-			case errors.As(err, &sshError):
-				if sshError.ExitStatus() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", sshError.ExitStatus(), stdout, stderr, err)
-				}
-			case errors.As(err, &execError):
-				if execError.ExitCode() != 124 {
-					return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", execError.ExitCode(), stdout, stderr, err)
-				}
-			default:
-				return fmt.Errorf("telnet should fail with timeout; stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			}
-			return nil
-		}).Should(Succeed())
+	It("should filter packets from squid/unbound to private network (ns=customer-egress)", func() {
+		includeUnbound := false
+		testFiltersForInternetEgress("customer-egress", testhttpdPodList.Items[0].Status.PodIP, nodeIP, includeUnbound)
 	})
 
 	It("should pass packets to node network for system services", func() {
@@ -438,4 +345,132 @@ func testNetworkPolicy() {
 		Expect(eg.Wait()).Should(HaveOccurred())
 		// switch -- not tested for now because address range for switches is 10.0.1.0/24 in placemat env, not 10.72.0.0/20.
 	})
+}
+
+func testFiltersForInternetEgress(namespace string, localPodIP, nodeIP string, includeUnbound bool) {
+	By("adding an ubuntu-debug container as an ephemeral container to squid")
+	stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pods", "-n="+namespace, "-l=app.kubernetes.io/name=squid", "-o", "json")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+	squidPodList := new(corev1.PodList)
+	err = json.Unmarshal(stdout, squidPodList)
+	Expect(err).NotTo(HaveOccurred())
+
+	for _, pod := range squidPodList.Items {
+		stdout, stderr, err := ExecAt(boot0,
+			"kubectl", "alpha", "debug", pod.Name,
+			"-n="+namespace,
+			"--container=ubuntu",
+			"--image=quay.io/cybozu/ubuntu-debug:18.04",
+			"--target=squid",
+			"--", "pause",
+		)
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+	}
+
+	By("accessing to local IP")
+	stdout, stderr, err = ExecAt(boot0, "kubectl", "-n="+namespace, "get", "pods", "-o=json")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+	podList := new(corev1.PodList)
+	err = json.Unmarshal(stdout, podList)
+	Expect(err).NotTo(HaveOccurred())
+
+	for _, pod := range podList.Items {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", pod.Namespace, pod.Name, "--", "curl", localPodIP, "-m", "5")
+		Expect(err).To(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+	}
+
+	By("accessing DNS port of some node as squid")
+	Eventually(func() error {
+		stdout, _, err = ExecAt(boot0, "kubectl", "get", "pods", "-n="+namespace, "-l=app.kubernetes.io/name=squid", "-o", "json")
+		if err != nil {
+			return err
+		}
+
+		squidPodList := new(corev1.PodList)
+		err = json.Unmarshal(stdout, squidPodList)
+		if err != nil {
+			return err
+		}
+
+		var podName string
+	OUTER:
+		for _, pod := range squidPodList.Items {
+			for _, cond := range pod.Status.Conditions {
+				if cond.Type == corev1.PodReady {
+					podName = pod.Name
+					break OUTER
+				}
+			}
+		}
+		if podName == "" {
+			return errors.New("podName should not be blank")
+		}
+
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n="+namespace, "exec", "-i", podName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
+		var sshError *ssh.ExitError
+		var execError *exec.ExitError
+		switch {
+		case errors.As(err, &sshError):
+			if sshError.ExitStatus() != 124 {
+				return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", sshError.ExitStatus(), stdout, stderr, err)
+			}
+		case errors.As(err, &execError):
+			if execError.ExitCode() != 124 {
+				return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", execError.ExitCode(), stdout, stderr, err)
+			}
+		default:
+			return fmt.Errorf("telnet should fail with timeout; stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		}
+		return nil
+	}).Should(Succeed())
+
+	if !includeUnbound {
+		return
+	}
+
+	By("adding an ubuntu-debug container as an ephemeral container to unbound")
+	stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n="+namespace, "-l=app.kubernetes.io/name=unbound", "-o", "json")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+	unboundPodList := new(corev1.PodList)
+	err = json.Unmarshal(stdout, unboundPodList)
+	Expect(err).NotTo(HaveOccurred())
+
+	for _, pod := range unboundPodList.Items {
+		stdout, stderr, err := ExecAt(boot0,
+			"kubectl", "alpha", "debug", pod.Name,
+			"-n="+namespace,
+			"--container=ubuntu",
+			"--image=quay.io/cybozu/ubuntu-debug:18.04",
+			"--target=unbound",
+			"--", "pause",
+		)
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+	}
+
+	By("getting unbound pod name")
+	stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n="+namespace, "-l=app.kubernetes.io/name=unbound", "-o", "go-template='{{ (index .items 0).metadata.name }}'")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+	unboundPodName := string(stdout)
+
+	By("accessing DNS port of some node as unbound")
+	Eventually(func() error {
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n="+namespace, "exec", "-i", unboundPodName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
+		var sshError *ssh.ExitError
+		var execError *exec.ExitError
+		switch {
+		case errors.As(err, &sshError):
+			if sshError.ExitStatus() != 124 {
+				return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", sshError.ExitStatus(), stdout, stderr, err)
+			}
+		case errors.As(err, &execError):
+			if execError.ExitCode() != 124 {
+				return fmt.Errorf("exit status should be 124: %d, stdout: %s, stderr: %s, err: %v", execError.ExitCode(), stdout, stderr, err)
+			}
+		default:
+			return fmt.Errorf("telnet should fail with timeout; stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		}
+		return nil
+	}).Should(Succeed())
 }

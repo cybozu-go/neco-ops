@@ -32,7 +32,7 @@ KUSTOMIZE_DLPATH := $(DOWNLOAD_DIR)/kustomize-v$(KUSTOMIZE_VERSION).tar.gz
 PROMTOOL_DLPATH := $(DOWNLOAD_DIR)/prometheus-v$(PROMTOOL_VERSION).tar.gz
 TELEPORT_DLPATH := $(DOWNLOAD_DIR)/teleport-v$(TELEPORT_VERSION).tar.gz
 
-BINDIR := $(abspath $(PWD)/bin)
+BINDIR := $(abspath $(CURDIR)/bin)
 KUSTOMIZE := $(BINDIR)/kustomize
 PROMTOOL := $(BINDIR)/promtool
 
@@ -65,7 +65,10 @@ dctest-upgrade:
 	-git worktree remove /tmp/neco-apps
 	git worktree add /tmp/neco-apps $(BASE_BRANCH)
 	cp account.json /tmp/neco-apps/test
-	$(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
+	# workaround for fixing BINDIR evaluation
+	# please replace the below line after this code is released
+	# $(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
+	cd /tmp/neco-apps/test; $(MAKE) setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
 	cp /tmp/neco-apps/test/argocd-password.txt ./
 	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
 

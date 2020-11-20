@@ -13,3 +13,4 @@ configMapGenerator:
       - conf/admin-role.yaml
       - conf/neco-readonly-role.yaml
       - conf/maneki-role.yaml
+      - conf/garoon-role.yaml

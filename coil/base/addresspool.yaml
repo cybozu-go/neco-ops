@@ -19,6 +19,15 @@ spec:
 apiVersion: coil.cybozu.com/v2
 kind: AddressPool
 metadata:
+  name: customer-egress
+spec:
+  blockSizeBits: 0
+  subnets:
+  - ipv4: 172.19.0.32/28
+---
+apiVersion: coil.cybozu.com/v2
+kind: AddressPool
+metadata:
   name: domestic-egress
 spec:
   blockSizeBits: 0

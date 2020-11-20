@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: customer-egress
+  annotations:
+    coil.cybozu.com/pool: customer-egress
+  labels:
+    control-plane: "true"
+    topolvm.cybozu.com/webhook: ignore
+    team: neco

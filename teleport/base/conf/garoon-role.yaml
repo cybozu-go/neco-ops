@@ -1,0 +1,20 @@
+version: v3
+kind: role
+metadata:
+  name: garoon
+spec:
+  allow:
+    kubernetes_groups:
+    - garoon
+    logins:
+    - dummy
+    node_labels:
+      '*': '*'
+    rules: []
+  deny:
+    logins: null
+  options:
+    cert_format: standard
+    forward_agent: true
+    max_session_ttl: 30h0m0s
+    port_forwarding: true

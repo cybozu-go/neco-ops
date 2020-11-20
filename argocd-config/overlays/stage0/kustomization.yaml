@@ -10,6 +10,7 @@ patchesStrategicMerge:
 - bmc-reverse-proxy.yaml
 - cert-manager.yaml
 - coil.yaml
+- customer-egress.yaml
 - elastic.yaml
 - external-dns.yaml
 - ingress.yaml

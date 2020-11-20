@@ -21,6 +21,7 @@ How to maintain neco-apps
 - [teleport](#teleport)
 - [topolvm](#topolvm)
 - [moco](#moco)
+- [customer-egress](#customer-egress)
 
 ## argocd
 
@@ -299,6 +300,18 @@ $ git clone https://github.com/moco/moco
 $ cd moco
 $ git checkout vX.Y.Z
 $ cp -r config/* $GOPATH/src/github.com/cybozu-go/neco-apps/moco/base/upstream
+```
+
+Update `images.newTag` in `kustomization.yaml`.
+
+
+## customer-egress
+
+Download [neco/etc/squid.yaml](https://github.com/cybozu-go/neco/blob/release/etc/squid.yml) and replace some fileds:
+```console
+$ cd $GOPATH/src/github.com/cybozu-go/neco-apps/customer-egress/base
+$ curl https://raw.githubusercontent.com/cybozu-go/neco/release/etc/squid.yml -o neco/squid.yaml
+$ sed -e 's/internet-egress/customer-egress/g' -e 's/{{ .squid }}/quay.io\/cybozu\/squid/g' -e 's/{{ index . "cke-unbound" }}/quay.io\/cybozu\/unbound/g' -e '/nodePort: 30128/d' neco/squid.yaml > squid.yaml
 ```
 
 Update `images.newTag` in `kustomization.yaml`.
