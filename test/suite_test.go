@@ -101,4 +101,5 @@ var _ = Describe("Test applications", func() {
 	Context("local-pv-provisioner", testLocalPVProvisioner)
 	Context("teleport", testTeleport)
 	Context("team-management", testTeamManagement)
+	Context("cursotmer-egress", testCustomerEgress)
 })

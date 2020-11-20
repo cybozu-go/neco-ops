@@ -1,0 +1,29 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkSet
+metadata:
+  name: private
+  namespace: customer-egress
+  labels:
+    role: private
+spec:
+  nets:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-squid
+  namespace: customer-egress
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  order: 100.0
+  selector: app.kubernetes.io/name == 'squid'
+  types:
+    - Egress
+  egress:
+    - action: Deny
+      destination:
+        selector: role == 'private'

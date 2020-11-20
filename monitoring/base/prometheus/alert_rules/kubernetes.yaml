@@ -432,6 +432,15 @@ groups:
         for: 15m
         labels:
           severity: minor
+      - alert: KubeNodeUnschedulable
+        annotations:
+          summary: '{{ $labels.node }} has been unschedulable for more than 15 minutes.'
+          runbook: TBD
+        expr: |
+          kube_node_spec_unschedulable{job="kube-state-metrics"} == 1
+        for: 15m
+        labels:
+          severity: minor
       - alert: KubeVersionMismatch
         annotations:
           summary: There are {{ $value }} different semantic versions of Kubernetes

@@ -14,6 +14,7 @@ resources:
   - policies/bmc-reverse-proxy.yaml
   - policies/ingress.yaml
   - policies/internet-egress.yaml
+  - policies/customer-egress.yaml
   - policies/kube-system.yaml
   - policies/monitoring.yaml
   - policies/teleport.yaml

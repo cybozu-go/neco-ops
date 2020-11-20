@@ -415,6 +415,21 @@ tests:
               summary: 10.0.0.1 has been unready for more than 15 minutes.
   - interval: 1m
     input_series:
+      - series: 'kube_node_spec_unschedulable{job="kube-state-metrics", node="10.0.0.1"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeNodeUnschedulable
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              node: 10.0.0.1
+            exp_annotations:
+              runbook: TBD
+              summary: 10.0.0.1 has been unschedulable for more than 15 minutes.
+  - interval: 1m
+    input_series:
       - series: 'kubernetes_build_info{job="kubernetes-nodes", gitVersion="v1.99.9", instance="10.0.0.1"}'
         values: '1+0x15'
       - series: 'kubernetes_build_info{job="kubernetes-nodes", gitVersion="v1.99.9", instance="10.0.0.2"}'
