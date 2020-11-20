@@ -1,0 +1,10 @@
+apiVersion: coil.cybozu.com/v2
+kind: Egress
+metadata:
+  name: nat
+  namespace: customer-egress
+spec:
+  replicas: 2
+  destinations:
+  - 0.0.0.0/0
+  sessionAffinity: None
