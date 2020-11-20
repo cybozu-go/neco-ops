@@ -185,6 +185,41 @@ func testSetup() {
 		})
 	}
 
+	// TODO: remove this block after this code is released.
+	if doUpgrade {
+		It("should recreate teleport secrets", func() {
+			stdout, stderr, err := ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
+				"get", "--print-value-only", "/neco/teleport/auth-token")
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+			teleportToken := strings.TrimSpace(string(stdout))
+			teleportTmpl := template.Must(template.New("").Parse(teleportSecret))
+			buf := bytes.NewBuffer(nil)
+			err = teleportTmpl.Execute(buf, struct {
+				Token string
+			}{
+				Token: teleportToken,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			stdout, stderr, err = ExecAtWithInput(boot0, buf.Bytes(), "kubectl", "apply", "-n", "teleport", "-f", "-")
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+			stdout, stderr, err = ExecAt(boot0,
+				"kubectl", "get", "po",
+				"-n=teleport",
+				"--selector app.kubernetes.io/component=proxy,app.kubernetes.io/name=teleport",
+				"-o", "json",
+			)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+			var podList corev1.PodList
+			err = json.Unmarshal(stdout, &podList)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s", stdout)
+			Expect(podList.Items).To(HaveLen(1))
+			stdout, stderr, err = ExecAt(boot0, "kubectl", "delete", "pod", "-n", "teleport", podList.Items[0].Name)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		})
+	}
+
 	It("should checkout neco-apps repository@"+commitID, func() {
 		ExecSafeAt(boot0, "rm", "-rf", "neco-apps")
 
