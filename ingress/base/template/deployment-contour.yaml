@@ -1,11 +1,10 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: contour
+    app.kubernetes.io/name: contour
   name: contour
-  namespace: projectcontour
+  namespace: ingress
 spec:
   replicas: 2
   strategy:
@@ -16,14 +15,14 @@ spec:
       maxSurge: 50%
   selector:
     matchLabels:
-      app: contour
+      app.kubernetes.io/name: contour
   template:
     metadata:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
       labels:
-        app: contour
+        app.kubernetes.io/name: contour
     spec:
       affinity:
         podAntiAffinity:
@@ -31,8 +30,8 @@ spec:
           - podAffinityTerm:
               labelSelector:
                 matchLabels:
-                  app: contour
-              topologyKey: kubernetes.io/hostname
+                  app.kubernetes.io/name: contour
+              topologyKey: cke.cybozu.com/rack
             weight: 100
       containers:
       - args:
@@ -40,15 +39,15 @@ spec:
         - --incluster
         - --xds-address=0.0.0.0
         - --xds-port=8001
-        - --envoy-service-http-port=80
-        - --envoy-service-https-port=443
+        - --envoy-service-http-port=8080
+        - --envoy-service-https-port=8443
         - --contour-cafile=/certs/ca.crt
         - --contour-cert-file=/certs/tls.crt
         - --contour-key-file=/certs/tls.key
         - --config-path=/config/contour.yaml
         command: ["contour"]
-        image: docker.io/projectcontour/contour:v1.10.0
-        imagePullPolicy: Always
+        image: quay.io/cybozu/contour
+        imagePullPolicy: IfNotPresent
         name: contour
         ports:
         - containerPort: 8001
@@ -77,22 +76,22 @@ spec:
             mountPath: /config
             readOnly: true
         env:
-        - name: CONTOUR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
         - name: POD_NAME
           valueFrom:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 5"]
+      - image: quay.io/cybozu/contour-plus
+        name: contour-plus
+        env:
+        - name: CP_DEFAULT_ISSUER_NAME
+          value: clouddns
       dnsPolicy: ClusterFirst
       serviceAccountName: contour
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        runAsGroup: 65534
       volumes:
         - name: contourcert
           secret:
@@ -100,7 +99,7 @@ spec:
         - name: contour-config
           configMap:
             name: contour
-            defaultMode: 0644
+            defaultMode: 420
             items:
             - key: contour.yaml
               path: contour.yaml

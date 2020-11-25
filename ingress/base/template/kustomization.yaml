@@ -3,7 +3,8 @@ kind: Kustomization
 resources:
   - certificate.yaml
   - common.yaml
-  - deployment.yaml
+  - deployment-contour.yaml
+  - deployment-envoy.yaml
   - httpproxy.yaml
   - pdb.yaml
   - rbac_contour-plus.yaml

@@ -81,15 +81,23 @@ Check diffs of projectcontour/contour files as follows:
 ```console
 $ git clone https://github.com/projectcontour/contour
 $ cd contour
+$ git checkout vX.Y.Z
 $ git diff vA.B.C...vX.Y.Z examples/contour
 ```
 
 Then, import YAML manifests as follows:
 
 ```console
-$ git checkout vX.Y.Z
-$ rm $GOPATH/src/github.com/cybozu-go/neco-apps/ingress/base/contour/*
-$ cp examples/contour/*.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/ingress/base/contour/
+$ cd $GOPATH/src/github.com/cybozu-go/neco-apps
+$ rm ./ingress/base/contour/*
+$ cp $GOPATH/src/github.com/projectcontour/contour/examples/contour/*.yaml ./ingress/base/contour/
+```
+
+Check diffs of contour and envoy deployments as follows:
+
+```console
+$ diff -u ingress/base/contour/03-contour.yaml ingress/base/template/deployment-contour.yaml
+$ diff -u ingress/base/contour/03-envoy.yaml ingress/base/template/deployment-envoy.yaml
 ```
 
 Note that:
