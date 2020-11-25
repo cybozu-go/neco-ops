@@ -67,10 +67,7 @@ dctest-upgrade:
 	-git worktree remove /tmp/neco-apps
 	git worktree add /tmp/neco-apps $(BASE_BRANCH)
 	cp account.json /tmp/neco-apps/test
-	# workaround for fixing BINDIR evaluation
-	# please replace the below line after this code is released
-	# $(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
-	cd /tmp/neco-apps/test; $(MAKE) setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
+	$(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
 	cp /tmp/neco-apps/test/argocd-password.txt ./
 	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
 
