@@ -646,3 +646,8 @@ scrape_configs:
         regex: ([^:]+)(?::\d+)?
         replacement: ${1}
         target_label: instance
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+        action: replace
+        regex: (.*)
+        replacement: ${1}
+        target_label: component
