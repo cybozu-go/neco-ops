@@ -328,6 +328,10 @@ func testGeneratedSecretName(t *testing.T) {
 
 	OUTER:
 		for _, es := range expected {
+			// TODO: remove this check when using this secret
+			if es.Name == "vmalertmanager-config" {
+				continue
+			}
 			var appeared bool
 			err = filepath.Walk(manifestDir, func(path string, info os.FileInfo, err error) error {
 				if err != nil {
