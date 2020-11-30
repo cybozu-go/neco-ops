@@ -8,6 +8,7 @@ resources:
   - argocd.yaml
   - calico.yaml
   - cert-manager.yaml
+  - coil.yaml
   - contour.yaml
   - cpu-usage.yaml
   - envoy.yaml
