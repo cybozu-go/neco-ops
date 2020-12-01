@@ -92,6 +92,7 @@ func testApplicationResources(t *testing.T) {
 		"neco-admission":       "8",
 		"network-policy":       "9",
 		"rook":                 "10",
+		"ept-apps":             "11",
 		"maneki-apps":          "11",
 	}
 
