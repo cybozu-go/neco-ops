@@ -106,11 +106,6 @@ webhooks:
     resources:
     - networkpolicies
 - name: vapplication.kb.io
-  namespaceSelector:
-    matchExpressions:
-    - key: control-plane
-      operator: NotIn
-      values: ["true"]
   clientConfig:
     service:
       name: neco-admission
