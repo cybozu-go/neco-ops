@@ -57,15 +57,6 @@ func kustomizeBuild(dir string) ([]byte, []byte, error) {
 }
 
 func testApplicationResources(t *testing.T) {
-	targetRevisions := map[string]string{
-		"gcp":      "release",
-		"gcp-rook": "release",
-		"neco-dev": "release",
-		"osaka0":   "release",
-		"stage0":   "stage",
-		"tokyo0":   "release",
-	}
-
 	syncWaves := map[string]string{
 		"namespaces":           "1",
 		"argocd":               "2",
@@ -94,6 +85,25 @@ func testApplicationResources(t *testing.T) {
 		"rook":                 "10",
 		"ept-apps":             "11",
 		"maneki-apps":          "11",
+	}
+
+	necoAppsTargetRevisions := map[string]string{
+		"gcp":      "release",
+		"gcp-rook": "release",
+		"neco-dev": "release",
+		"osaka0":   "release",
+		"stage0":   "stage",
+		"tokyo0":   "release",
+	}
+	tenantAppsTargetRevisions := map[string]map[string]string{
+		"ept-apps": {
+			"stage0": "main",
+		},
+		"maneki-apps": {
+			"osaka0": "release",
+			"stage0": "stage",
+			"tokyo0": "release",
+		},
 	}
 
 	// Getting overlays list
@@ -134,21 +144,29 @@ func testApplicationResources(t *testing.T) {
 					t.Error(err)
 				}
 
-				// Check the tergetRevision
-				if targetRevisions[overlay] == "" {
-					t.Error(fmt.Errorf("targetRevision should exist. overlay: %s", overlay))
-				}
-				if app.Spec.Source.TargetRevision != targetRevisions[overlay] {
-					t.Error(fmt.Errorf("invalid targetRevision. application: %s, targetRevision: %s (should be %s)", app.Name, app.Spec.Source.TargetRevision, targetRevisions[overlay]))
-				}
-
 				// Check the sync wave
 				if syncWaves[app.Name] == "" {
-					t.Error(fmt.Errorf("sync-wave should exist. application: %s", app.Name))
+					t.Error(fmt.Errorf("expected sync-wave should be defined. application: %s", app.Name))
 				}
 				if app.GetAnnotations()["argocd.argoproj.io/sync-wave"] != syncWaves[app.Name] {
 					t.Error(fmt.Errorf("invalid sync-wave. application: %s, sync-wave: %s (should be %s)", app.Name, app.GetAnnotations()["argocd.argoproj.io/sync-wave"], syncWaves[app.Name]))
 				}
+
+				// Check the tergetRevision
+				var expectedTargetRevision string
+				if app.GetLabels()["is-tenant"] == "true" {
+					expectedTargetRevision = tenantAppsTargetRevisions[app.Name][overlay]
+				} else {
+					expectedTargetRevision = necoAppsTargetRevisions[overlay]
+				}
+
+				if expectedTargetRevision == "" {
+					t.Error(fmt.Errorf("expected targetRevision should be defined. application: %s, overlay: %s", app.Name, overlay))
+				}
+				if app.Spec.Source.TargetRevision != expectedTargetRevision {
+					t.Error(fmt.Errorf("invalid targetRevision. application: %s, targetRevision: %s (should be %s)", app.Name, app.Spec.Source.TargetRevision, expectedTargetRevision))
+				}
+
 			}
 		})
 	}
