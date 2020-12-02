@@ -363,11 +363,8 @@ func applyAndWaitForApplications(commitID string) {
 			// It leads to ArgoCD's improper behavior. In spite of the network-policy app becomes Synced/Healthy, the operation does not end.
 			// So terminate the unexpected operation manually in upgrade test.
 			// TODO: This is workaround for ArgoCD's improper behavior. When this issue (T.B.D.) is closed, delete this block.
-			if app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
-				app.Status.Health.Status == argocd.HealthStatusHealthy &&
-				app.Operation != nil &&
-				app.Status.OperationState.Phase == "Running" {
-				fmt.Printf("%s terminate unexpected operation: app=%s\n", time.Now().Format(time.RFC3339), target.name)
+			if isStuck(app) {
+				fmt.Printf("%s terminate unexpected operation: app=%s, sync=%s, health=%s\n", time.Now().Format(time.RFC3339), target.name, app.Status.Sync.Status, app.Status.Health.Status)
 				stdout, stderr, err := ExecAt(boot0, "argocd", "app", "terminate-op", target.name)
 				if err != nil {
 					return fmt.Errorf("failed to terminate operation. app: %s, stdout: %s, stderr: %s, err: %v", target.name, stdout, stderr, err)
@@ -396,6 +393,23 @@ func applyAndWaitForApplications(commitID string) {
 		}
 		return nil
 	}, 40*time.Minute).Should(Succeed())
+}
+
+func isStuck(app argocd.Application) bool {
+	if app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
+		app.Status.Health.Status == argocd.HealthStatusHealthy &&
+		app.Operation != nil &&
+		app.Status.OperationState.Phase == argocd.OperationRunning {
+		return true
+	}
+	if app.Status.Sync.Status == argocd.SyncStatusCodeOutOfSync &&
+		app.Status.Health.Status == argocd.HealthStatusMissing &&
+		app.Operation != nil &&
+		app.Status.OperationState.Phase == argocd.OperationRunning &&
+		app.Status.OperationState.StartedAt.Add(5*time.Minute).Before(time.Now().UTC()) {
+		return true
+	}
+	return false
 }
 
 func setupArgoCD() {
