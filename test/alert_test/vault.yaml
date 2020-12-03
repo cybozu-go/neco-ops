@@ -1,0 +1,51 @@
+rule_files:
+  - ../../monitoring/base/prometheus/alert_rules/vault.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vault", instance="10.69.0.3"}'
+        values: '0+0x15'
+      - series: 'up{job="vault", instance="10.69.0.195"}'
+        values: '0+0x15'
+      - series: 'up{job="vault", instance="10.69.1.131"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VaultDown
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: vault
+              instance: 10.69.0.3
+            exp_annotations:
+              summary: Vault on 10.69.0.3 is down.
+              runbook: Please check the vault status on 10.69.0.3.
+          - exp_labels:
+              severity: warning
+              job: vault
+              instance: 10.69.0.195
+            exp_annotations:
+              summary: Vault on 10.69.0.195 is down.
+              runbook: Please check the vault status on 10.69.0.195.
+  - interval: 1m
+    input_series:
+      # 10.69.0.3 is up and sealed.
+      - series: 'up{job="vault", instance="10.69.0.3"}'
+        values: '1+0x15'
+      # 10.69.0.195 is up and unsealed.
+      - series: 'up{job="vault", instance="10.69.0.195"}'
+        values: '1+0x15'
+      - series: 'vault_barrier_get_count{job="vault", instance="10.69.0.195"}'
+        values: '0+1x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VaultSealed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: vault
+              instance: 10.69.0.3
+            exp_annotations:
+              summary: Vault on 10.69.0.3 is sealed.
+              runbook: Please check the vault status on 10.69.0.3.

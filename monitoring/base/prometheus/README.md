@@ -18,7 +18,7 @@ neco-apps
 |   │   |   ├── alert_rules # alert rules for each ArgoCD app and particular components (e.g. k8s node)
 |   |   |   │   ├── argocd.yaml
 |   |   |   │   ├── ...
-|   |   |   │   └── topolvm.yaml
+|   |   |   │   └── vault.yaml
 |   |   |   ├── record_rules.yaml # record rules used in `alert_rules`
 |   │   |   └── ...
 |   │   └── ...
@@ -27,7 +27,7 @@ neco-apps
     ├── alert_test # test for each application
     │   ├── argocd.yaml
     │   ├── ...
-    │   └── topolvm.yaml
+    │   └── vault.yaml
     └── ...
 ```
 
