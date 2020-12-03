@@ -1,4 +1,4 @@
-#! /bin/sh -e
+#! /bin/sh -ex
 PROJECT=neco-test
 ZONE=gcp0
 GCLOUD_DNS="gcloud dns --project=$PROJECT record-sets"

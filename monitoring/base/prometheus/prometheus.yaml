@@ -429,6 +429,31 @@ scrape_configs:
         regex: ([^:]+)(?::\d+)?
         replacement: ${1}:10081
         target_label: __address__
+  - job_name: "vault"
+    metrics_path: "/v1/sys/metrics"
+    params:
+      format: ['prometheus']
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names: ["monitoring"]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: bootserver-etcd-metrics
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: instance
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:8200
+        target_label: __address__
   - job_name: "contour"
     kubernetes_sd_configs:
       - role: endpoints

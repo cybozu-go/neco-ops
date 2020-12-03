@@ -28,6 +28,7 @@ spec:
         selector: role == 'node'
         ports:
           - 7472
+          - 8200
           - 9093
           - 9100
           - 9105
