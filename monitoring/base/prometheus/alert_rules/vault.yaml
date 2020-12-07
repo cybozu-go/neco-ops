@@ -1,0 +1,23 @@
+groups:
+  - name: vault
+    rules:
+      - alert: VaultDown
+        expr: |
+          up{job="vault"} == 0
+        labels:
+          severity: warning
+        for: 15m
+        annotations:
+          summary: Vault on {{ $labels.instance }} is down.
+          runbook: Please check the vault status on {{ $labels.instance }}.
+      - alert: VaultSealed
+        # TODO: Refine this rule after upgrading vault to v1.5.0 or higher.
+        # The new vault exposes the `vault.core.unsealed` metrics. It makes it easier to check the seal or unseal state.
+        expr: |
+          (up{job="vault"} == 1) unless (rate(vault_barrier_get_count{job="vault"}[1m]) > 0)
+        labels:
+          severity: warning
+        for: 15m
+        annotations:
+          summary: Vault on {{ $labels.instance }} is sealed.
+          runbook: Please check the vault status on {{ $labels.instance }}.

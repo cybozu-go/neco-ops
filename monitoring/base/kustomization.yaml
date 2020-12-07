@@ -48,6 +48,7 @@ configMapGenerator:
       - prometheus/alert_rules/sabakan.yaml
       - prometheus/alert_rules/teleport.yaml
       - prometheus/alert_rules/topolvm.yaml
+      - prometheus/alert_rules/vault.yaml
   - name: alertmanager
     files:
       - alertmanager/neco.template

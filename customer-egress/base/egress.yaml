@@ -7,4 +7,7 @@ spec:
   replicas: 2
   destinations:
   - 0.0.0.0/0
-  sessionAffinity: None
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 43200  # 12 hours

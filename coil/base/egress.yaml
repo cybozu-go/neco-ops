@@ -7,7 +7,10 @@ spec:
   replicas: 2
   destinations:
   - 0.0.0.0/0
-  sessionAffinity: None
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 43200  # 12 hours
 ---
 apiVersion: coil.cybozu.com/v2
 kind: Egress
@@ -18,4 +21,7 @@ spec:
   replicas: 2
   destinations:
   - 10.0.3.0/24
-  sessionAffinity: None
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 43200  # 12 hours
