@@ -21,7 +21,7 @@ groups:
           severity: minor
       - alert: CKEOperationTakesLongTime
         expr: |
-          sum(cke_operation_phase{phase!="completed"}) > 0
+          sum(cke_operation_phase{phase!~"completed|reboot-nodes"}) > 0
         labels:
           severity: warning
         for: 30m
@@ -39,12 +39,21 @@ groups:
           runbook: TBD
       - alert: CKEDoesNotPerformAnyOps
         expr: |
-          rate(cke_operation_phase_timestamp_seconds[1h]) == 0
+          rate(cke_operation_phase_timestamp_seconds[5m]) == 0
         labels:
           severity: warning
-        for: 15m
+        for: 1h
         annotations:
           summary: CKE does not perform any operations for more than 1 hour.
+          runbook: TBD
+      - alert: CKERebootQueueStuck
+        expr: |
+          sum(rate(cke_reboot_queue_entries[5m])) == 0 and sum(cke_reboot_queue_entries) > 0
+        labels:
+          severity: warning
+        for: 1h
+        annotations:
+          summary: CKE reboot queue is stuck for more than 1 hour.
           runbook: TBD
       - alert: CKESabakanIntegrationSeemsToBeFailed
         expr: |
@@ -57,7 +66,7 @@ groups:
           runbook: TBD
       - alert: CKESabakanIntegrationDoesNotPerformAnyOps
         expr: |
-          rate(cke_sabakan_integration_timestamp_seconds[1h]) == 0
+          sum(rate(cke_sabakan_integration_timestamp_seconds[5m])) == 0 and sum(cke_operation_phase{phase="reboot-nodes"}) == 0
         labels:
           severity: warning
         for: 60m
