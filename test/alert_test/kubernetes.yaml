@@ -31,7 +31,7 @@ tests:
       - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
         values: 0+0x15
     alert_rule_test:
-      - eval_time: 10m
+      - eval_time: 15m
         alertname: K8sAPIServersDegraded
         exp_alerts:
           - exp_labels:
@@ -48,7 +48,7 @@ tests:
       - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
         values: 1+0x15
     alert_rule_test:
-      - eval_time: 10m
+      - eval_time: 15m
         alertname: K8sAPIServersDegraded
         exp_alerts: []
   - interval: 1m
@@ -294,11 +294,11 @@ tests:
   - interval: 1m
     input_series:
       - series: 'kube_daemonset_status_number_ready{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
-        values: '8+0x15'
+        values: '8+0x30'
       - series: 'kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
-        values: '10+0x15'
+        values: '10+0x30'
     alert_rule_test:
-      - eval_time: 15m
+      - eval_time: 30m
         alertname: KubeDaemonSetRolloutStuck
         exp_alerts:
           - exp_labels:
@@ -400,6 +400,8 @@ tests:
     input_series:
       - series: 'kube_node_status_condition{job="kube-state-metrics", condition="Ready", status="true", node="10.0.0.1"}'
         values: '0+0x15'
+      - series: 'kube_node_spec_unschedulable{job="kube-state-metrics", node="10.0.0.1"}'
+        values: '0+0x15'
     alert_rule_test:
       - eval_time: 15m
         alertname: KubeNodeNotReady
@@ -415,10 +417,20 @@ tests:
               summary: 10.0.0.1 has been unready for more than 15 minutes.
   - interval: 1m
     input_series:
+      - series: 'kube_node_status_condition{job="kube-state-metrics", condition="Ready", status="true", node="10.0.0.1"}'
+        values: '0+0x15'
       - series: 'kube_node_spec_unschedulable{job="kube-state-metrics", node="10.0.0.1"}'
         values: '1+0x15'
     alert_rule_test:
       - eval_time: 15m
+        alertname: KubeNodeNotReady
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'kube_node_spec_unschedulable{job="kube-state-metrics", node="10.0.0.1"}'
+        values: '1+0x60'
+    alert_rule_test:
+      - eval_time: 60m
         alertname: KubeNodeUnschedulable
         exp_alerts:
           - exp_labels:
@@ -427,7 +439,7 @@ tests:
               node: 10.0.0.1
             exp_annotations:
               runbook: TBD
-              summary: 10.0.0.1 has been unschedulable for more than 15 minutes.
+              summary: 10.0.0.1 has been unschedulable for more than 1 hour.
   - interval: 1m
     input_series:
       - series: 'kubernetes_build_info{job="kubernetes-nodes", gitVersion="v1.99.9", instance="10.0.0.1"}'
