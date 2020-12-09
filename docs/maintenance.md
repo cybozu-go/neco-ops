@@ -177,6 +177,14 @@ $ cp -r deploy/* $GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/graf
 
 Update version following [this link](https://github.com/cybozu/neco-containers/blob/master/admission/TAG)
 
+Download the upstream manifest as follows:
+
+```console
+$ git clone https://github.com/cybozu/neco-containers
+$ cd neco-containers
+$ cp admission/config/webhook/manifests.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/neco-admission/base/upstream
+```
+
 ## network-policy (Calico)
 
 Check [the release notes](https://docs.projectcalico.org/release-notes/).

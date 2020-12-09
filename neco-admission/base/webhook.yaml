@@ -1,135 +1,89 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: neco-admission
+  name: mutating-webhook-configuration
   annotations:
     cert-manager.io/inject-ca-from: kube-system/neco-admission
+  creationTimestamp: null
 webhooks:
+- name: mhttpproxy.kb.io
+  clientConfig:
+    caBundle: null
+    service:
+      name: neco-admission
+      namespace: kube-system
+  namespaceSelector:
+    matchExpressions:
+    - key: control-plane
+      operator: NotIn
+      values:
+      - "true"
 - name: mpod.kb.io
   clientConfig:
+    caBundle: null
     service:
       name: neco-admission
       namespace: kube-system
-      path: /mutate-pod
-  failurePolicy: Fail
+  namespaceSelector:
+    matchExpressions:
+    - key: control-plane
+      operator: NotIn
+      values:
+      - "true"
   objectSelector:
     matchExpressions:
-      - key: app.kubernetes.io/name
-        operator: NotIn
-        values:
-          - neco-admission
-  namespaceSelector:
-    matchExpressions:
-    - key: control-plane
+    - key: app.kubernetes.io/name
       operator: NotIn
-      values: ["true"]
-  rules:
-  - apiGroups:
-    - ""
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    resources:
-    - pods
-- name: mhttpproxy.kb.io
-  namespaceSelector:
-    matchExpressions:
-    - key: control-plane
-      operator: NotIn
-      values: ["true"]
-  clientConfig:
-    service:
-      name: neco-admission
-      namespace: kube-system
-      path: /mutate-projectcontour-io-httpproxy
-  failurePolicy: Fail
-  rules:
-  - apiGroups:
-    - projectcontour.io
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    resources:
-    - httpproxies
+      values:
+      - neco-admission
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: neco-admission
+  name: validating-webhook-configuration
   annotations:
     cert-manager.io/inject-ca-from: kube-system/neco-admission
+  creationTimestamp: null
 webhooks:
 - name: vhttpproxy.kb.io
+  clientConfig:
+    caBundle: null
+    service:
+      name: neco-admission
+      namespace: kube-system
   namespaceSelector:
     matchExpressions:
     - key: control-plane
       operator: NotIn
-      values: ["true"]
-  clientConfig:
-    service:
-      name: neco-admission
-      namespace: kube-system
-      path: /validate-projectcontour-io-httpproxy
-  failurePolicy: Fail
-  rules:
-  - apiGroups:
-    - projectcontour.io
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - httpproxies
+      values:
+      - "true"
 - name: vnetworkpolicy.kb.io
+  clientConfig:
+    caBundle: null
+    service:
+      name: neco-admission
+      namespace: kube-system
   namespaceSelector:
     matchExpressions:
     - key: control-plane
       operator: NotIn
-      values: ["true"]
-  clientConfig:
-    service:
-      name: neco-admission
-      namespace: kube-system
-      path: /validate-projectcalico-org-networkpolicy
-  failurePolicy: Fail
-  rules:
-  - apiGroups:
-    - crd.projectcalico.org
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - networkpolicies
+      values:
+      - "true"
 - name: vapplication.kb.io
   clientConfig:
+    caBundle: null
     service:
       name: neco-admission
       namespace: kube-system
-      path: /validate-argoproj-io-application
-  failurePolicy: Fail
-  rules:
-  - apiGroups:
-    - argoproj.io
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - applications
 - name: vdelete.kb.io
   clientConfig:
+    caBundle: null
     service:
       name: neco-admission
       namespace: kube-system
-      path: /validate-delete
-  failurePolicy: Fail
   matchPolicy: Equivalent
+  # According to this code https://github.com/kubernetes-sigs/controller-tools/blob/master/pkg/webhook/parser.go#L183,
+  # `rules` cannot be generated with multiple GVK, so we should add new GVK manually here.
   rules:
   - apiGroups:
     - apiextensions.k8s.io
@@ -158,3 +112,10 @@ webhooks:
     - cephblockpools
     - cephclusters
     - cephobjectstores
+- name: vgrafanadashboard.kb.io
+  clientConfig:
+    caBundle: null
+    service:
+      name: neco-admission
+      namespace: kube-system
+  matchPolicy: Equivalent
