@@ -3,6 +3,5 @@ kind: Namespace
 metadata:
   name: kube-system
   labels:
-    openpolicyagent.org/webhook: ignore
     control-plane: "true"
     topolvm.cybozu.com/webhook: ignore

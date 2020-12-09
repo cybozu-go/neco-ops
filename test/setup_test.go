@@ -17,7 +17,9 @@ import (
 	argocd "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	k8sYaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 )
@@ -220,6 +222,7 @@ func testSetup() {
 
 	It("should setup applications", func() {
 		if !doUpgrade {
+			applyNetworkPolicy()
 			setupArgoCD()
 		}
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/base/*.yaml")
@@ -421,6 +424,99 @@ func applyAndWaitForApplications(commitID string) {
 		}
 		return nil
 	}, 40*time.Minute).Should(Succeed())
+}
+
+// Sometimes synchronization fails when argocd applies network policies.
+// So, apply the network policies before argocd synchronization.
+// TODO: This is a workaround. When this issue is solved, delete this func.
+func applyNetworkPolicy() {
+	By("apply namespaces")
+	namespaceManifest, stderr, err := kustomizeBuild("../namespaces/base/")
+	Expect(err).ShouldNot(HaveOccurred(), "failed to kustomize build: stderr=%s", stderr)
+
+	stdout, stderr, err := ExecAtWithInput(boot0, namespaceManifest, "kubectl", "apply", "-f", "-")
+	Expect(err).ShouldNot(HaveOccurred(), "failed to apply namespaces: stdout=%s, stderr=%s", stdout, stderr)
+
+	stdout, stderr, err = ExecAt(boot0, "kubectl", "apply", "-f", "./neco-apps/customer-egress/base/namespace.yaml")
+	Expect(err).ShouldNot(HaveOccurred(), "failed to apply customer-egress namespace: stdout=%s, stderr=%s", stdout, stderr)
+
+	By("apply network-policies")
+	netpolManifest, stderr, err := kustomizeBuild("../network-policy/base/")
+	Expect(err).ShouldNot(HaveOccurred(), "failed to kustomize build: stderr=%s", stderr)
+
+	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(netpolManifest)))
+	for {
+		data, err := y.Read()
+		if err == io.EOF {
+			break
+		}
+		Expect(err).ShouldNot(HaveOccurred())
+
+		var crd extv1beta1.CustomResourceDefinition
+		err = yaml.Unmarshal(data, &crd)
+		if err != nil {
+			continue
+		}
+		if crd.Kind != "CustomResourceDefinition" {
+			continue
+		}
+
+		stdout, stderr, err = ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
+		Expect(err).ShouldNot(HaveOccurred(), "failed to apply crd: stdout=%s, stderr=%s", stdout, stderr)
+
+		Eventually(func() error {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "crd/"+crd.Name, "-o=json")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+			gotcrd := new(extv1beta1.CustomResourceDefinition)
+			err = json.Unmarshal(stdout, gotcrd)
+			if err != nil {
+				return err
+			}
+			for _, cond := range gotcrd.Status.Conditions {
+				if cond.Type == extv1beta1.Established && cond.Status == extv1beta1.ConditionTrue {
+					return nil
+				}
+			}
+			return fmt.Errorf("CRD is not established: %s", crd.Name)
+		}, 1*time.Minute).Should(Succeed())
+	}
+
+	stdout, stderr, err = ExecAtWithInput(boot0, netpolManifest, "kubectl", "apply", "-f", "-")
+	Expect(err).ShouldNot(HaveOccurred(), "failed to apply network-policy: stdout=%s, stderr=%s", stdout, stderr)
+
+	Eventually(func() error {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=kube-system", "get", "deployment/calico-typha", "-o=json")
+		if err != nil {
+			return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		}
+		deployment := new(appsv1.Deployment)
+		err = json.Unmarshal(stdout, deployment)
+		if err != nil {
+			return err
+		}
+		if deployment.Status.Replicas != deployment.Status.ReadyReplicas {
+			return fmt.Errorf("calico-typha deployment's ReadyReplicas is not %d: %d", int(deployment.Status.Replicas), int(deployment.Status.ReadyReplicas))
+		}
+		return nil
+	}, 3*time.Minute).Should(Succeed())
+
+	Eventually(func() error {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=kube-system", "get", "daemonset/calico-node", "-o=json")
+		if err != nil {
+			return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		}
+		daemonset := new(appsv1.DaemonSet)
+		err = json.Unmarshal(stdout, daemonset)
+		if err != nil {
+			return err
+		}
+		if daemonset.Status.DesiredNumberScheduled != daemonset.Status.NumberReady {
+			return fmt.Errorf("calico-node daemonset's NumberReady is not %d: %d", int(daemonset.Status.DesiredNumberScheduled), int(daemonset.Status.NumberReady))
+		}
+		return nil
+	}, 3*time.Minute).Should(Succeed())
 }
 
 func setupArgoCD() {

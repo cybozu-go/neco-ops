@@ -6,9 +6,26 @@ resources:
 - role.yaml
 - rolebinding.yaml
 - serviceaccount.yaml
-- webhook.yaml
+- upstream/manifests.yaml
 configMapGenerator:
   - name: neco-admission-config
     files:
       - config.yaml
 namespace: kube-system
+patchesStrategicMerge:
+  - webhook.yaml
+patches:
+- target:
+    kind: MutatingWebhookConfiguration
+    name: mutating-webhook-configuration
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: neco-admission
+- target:
+    kind: ValidatingWebhookConfiguration
+    name: validating-webhook-configuration
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: neco-admission

@@ -4,6 +4,8 @@ metadata:
   name: neco-readonly
 spec:
   allow:
+    app_labels:
+      'team': 'neco-readonly'
     kubernetes_groups:
     - neco-readonly
     logins:
@@ -12,8 +14,6 @@ spec:
       '*': '*'
     rules: []
   deny:
-    app_labels:
-      '*': '*'
     logins: null
   options:
     cert_format: standard
