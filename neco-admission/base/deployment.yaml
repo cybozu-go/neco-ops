@@ -56,7 +56,11 @@ spec:
             path: /metrics
             port: 8080
             scheme: HTTP
-      terminationGracePeriodSeconds: 10
+        lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+      terminationGracePeriodSeconds: 15
       volumes:
         - name: certs
           secret:
