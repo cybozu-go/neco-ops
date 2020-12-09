@@ -408,7 +408,10 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: minor
+              condition: Ready
+              job: kube-state-metrics
               node: 10.0.0.1
+              status: true
             exp_annotations:
               runbook: TBD
               summary: 10.0.0.1 has been unready for more than 15 minutes.

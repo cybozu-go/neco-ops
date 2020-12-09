@@ -428,7 +428,7 @@ groups:
           summary: '{{ $labels.node }} has been unready for more than 15 minutes.'
           runbook: TBD
         expr: |
-          sum by(node) (kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"}) == 0 and sum by(node) (kube_node_spec_unschedulable{job="kube-state-metrics"}) == 0
+          (kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"} == 0) and ignoring(condition,status) (kube_node_spec_unschedulable{job="kube-state-metrics"} == 0)
         for: 15m
         labels:
           severity: minor

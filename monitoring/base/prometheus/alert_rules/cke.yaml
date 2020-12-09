@@ -39,7 +39,7 @@ groups:
           runbook: TBD
       - alert: CKEDoesNotPerformAnyOps
         expr: |
-          rate(cke_operation_phase_timestamp_seconds[5m]) == 0
+          (cke_operation_phase_timestamp_seconds - cke_operation_phase_timestamp_seconds offset 5m) == 0
         labels:
           severity: warning
         for: 1h
@@ -48,7 +48,7 @@ groups:
           runbook: TBD
       - alert: CKERebootQueueStuck
         expr: |
-          sum(rate(cke_reboot_queue_entries[5m])) == 0 and sum(cke_reboot_queue_entries) > 0
+          (cke_reboot_queue_entries - cke_reboot_queue_entries offset 5m) == 0 and cke_reboot_queue_entries > 0
         labels:
           severity: warning
         for: 1h
@@ -66,7 +66,7 @@ groups:
           runbook: TBD
       - alert: CKESabakanIntegrationDoesNotPerformAnyOps
         expr: |
-          sum(rate(cke_sabakan_integration_timestamp_seconds[5m])) == 0 and sum(cke_operation_phase{phase="reboot-nodes"}) == 0
+          ((cke_sabakan_integration_timestamp_seconds - cke_sabakan_integration_timestamp_seconds offset 5m) == 0) and ignoring(phase) (cke_operation_phase{phase="reboot-nodes"} == 0)
         labels:
           severity: warning
         for: 60m
