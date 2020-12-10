@@ -26,3 +26,7 @@ spec:
     - name: alertmanager-config-volume
       configMap:
         name: vmalertmanager
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi

@@ -119,3 +119,10 @@ webhooks:
       name: neco-admission
       namespace: kube-system
   matchPolicy: Equivalent
+- name: vservice.kb.io
+  clientConfig:
+    caBundle: null
+    service:
+      name: neco-admission
+      namespace: kube-system
+  matchPolicy: Equivalent
