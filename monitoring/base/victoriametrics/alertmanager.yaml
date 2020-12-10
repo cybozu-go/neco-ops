@@ -1,0 +1,28 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlertmanager
+metadata:
+  name: vmalertmanager
+  namespace: monitoring
+spec:
+  image:
+    # Specify original version of our image.
+    # This info is used to construct command arguments of alertmanager.
+    tag: v0.21.0
+  containers:
+    - name: alertmanager
+      image: quay.io/cybozu/alertmanager:0.21.0.1
+    - name: config-reloader
+      image: quay.io/cybozu/configmap-reload:0.4.0.1
+  replicaCount: 1
+  # VMAlertmanager is able to detect configSecret content change and to reload alertmanager.
+  # We don't need to use secretGenerator for alertmanager.yaml unlike monitoring/base/alertmanager/deployment.yaml
+  configSecret: vmalertmanager-config
+  volumeMounts:
+    - name: alertmanager-config-volume
+      mountPath: /etc/vm/configs/vmalertmanager
+  volumes:
+    # However, it is not able to detect this configMap content change. So use configMapGenerator.
+    # Note that we don't use VMAlertmanager.spec.configMaps because they use name of ConfigMap (which is changed any time) as mount point.
+    - name: alertmanager-config-volume
+      configMap:
+        name: vmalertmanager

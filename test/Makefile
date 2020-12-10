@@ -45,8 +45,22 @@ validation:
 	./fetch-secret.sh
 	env SSH_PRIVKEY= go test -v ./validation_test.go
 
-test-alert-rules:
+.PHONY: test-alert-rules
+test-alert-rules: test-promalert-rules test-vmalert-rules
+
+.PHONY: test-promalert-rules
+test-promalert-rules:
 	$(PROMTOOL) test rules alert_test/*.yaml
+
+VMRULESDIR := ../monitoring/base/victoriametrics/rules
+.PHONY: test-vmalert-rules
+test-vmalert-rules:
+	rm -rf $(VMRULESDIR)/converted
+	mkdir $(VMRULESDIR)/converted
+	for F in $$(cd $(VMRULESDIR); ls *rule.yaml); do \
+		go run vmrule-convert/vmrule-convert.go < $(VMRULESDIR)/$$F > $(VMRULESDIR)/converted/$$F ; \
+	done
+	$(PROMTOOL) test rules vmalert_test/*.yaml
 
 code-check: test-tools
 	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"

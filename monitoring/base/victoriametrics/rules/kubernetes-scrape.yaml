@@ -1,0 +1,55 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: kubernetes
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [default]
+  selector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes
+  endpoints:
+  - port: https
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabelConfigs:
+      - replacement: kubernetes-apiservers
+        targetLabel: job
+      - sourceLabels: [__address__]
+        regex: ([^:]+)(?::\d+)?
+        action: replace
+        targetLabel: instance
+  - port: https
+    scheme: http
+    relabelConfigs:
+      - replacement: kube-controller-manager
+        targetLabel: job
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:10252
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        regex: ([^:]+)(?::\d+)?
+        action: replace
+        targetLabel: instance
+  - port: https
+    scheme: http
+    relabelConfigs:
+      - replacement: kube-scheduler
+        targetLabel: job
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:10251
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        regex: ([^:]+)(?::\d+)?
+        action: replace
+        targetLabel: instance

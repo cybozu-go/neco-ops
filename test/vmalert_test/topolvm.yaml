@@ -1,0 +1,2 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/topolvm-alertrule.yaml
