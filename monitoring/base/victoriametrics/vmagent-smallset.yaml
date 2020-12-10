@@ -76,6 +76,10 @@ spec:
   serviceAccountName: vmagent-smallset
   remoteWrite:
     - url: "http://vmsingle-vmsingle-smallset-0.monitoring.svc:8429/api/v1/write"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
 ---
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
