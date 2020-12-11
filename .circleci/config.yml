@@ -10,7 +10,14 @@ commands:
       - add_ssh_keys:
           fingerprints:
             - "ea:f2:f4:11:35:3f:87:04:bb:c4:84:50:ba:64:a1:5d"
-
+  teleport-dns-cname:
+    steps:
+      - run:
+          name: Add CNAME record for Teleport
+          command: |
+            echo $GCLOUD_SERVICE_ACCOUNT > account.json
+            gcloud auth activate-service-account --key-file=account.json
+            bin/teleport-cname.sh
   boot-dctest:
     description: "datacenter test"
     parameters:
@@ -172,6 +179,7 @@ jobs:
       - checkout
       - boot-dctest:
           neco-release-branch: <<parameters.neco-release-branch>>
+      - teleport-dns-cname
       - run:
           name: Test neco-apps
           command: |
@@ -264,6 +272,7 @@ jobs:
     steps:
       - checkout
       - boot-dctest
+      - teleport-dns-cname
       - run:
           name: Bootstrap neco-apps at stage
           command: |
@@ -282,6 +291,7 @@ jobs:
     steps:
       - checkout
       - boot-dctest
+      - teleport-dns-cname
       - run:
           name: Bootstrap neco-apps at release
           command: |

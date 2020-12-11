@@ -3,7 +3,6 @@ package test
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,13 +10,17 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 	"text/template"
 
 	argocd "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	k8sYaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 )
@@ -54,6 +57,111 @@ func kustomizeBuild(dir string) ([]byte, []byte, error) {
 	cmd.Stderr = errBuf
 	err = cmd.Run()
 	return outBuf.Bytes(), errBuf.Bytes(), err
+}
+
+func testNamespaceResources(t *testing.T) {
+	t.Parallel()
+
+	// All namespaces defined in neco-apps should have the `team` label.
+	// Exceptionally, `sandbox` ns should not have the `team` label.
+	doCheckKustomizedYaml(t, func(t *testing.T, data []byte) {
+		var meta struct {
+			metav1.TypeMeta   `json:",inline"`
+			metav1.ObjectMeta `json:"metadata,omitempty"`
+		}
+		err := yaml.Unmarshal(data, &meta)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if meta.Kind != "Namespace" {
+			return
+		}
+
+		// `sandbox` namespace should not have a team label.
+		if meta.Name == "sandbox" {
+			if _, ok := meta.Labels["team"]; ok {
+				t.Errorf("sandbox ns has team label: value=%s", meta.Labels["team"])
+			}
+			return
+		}
+
+		// other namespace should have a team label.
+		if meta.Labels["team"] == "" {
+			t.Errorf("%s ns doesn't have team label", meta.Name)
+		}
+	})
+}
+
+func testAppProjectResources(t *testing.T) {
+	// Verify the destination namespaces in the AppPorject for unprivileged team are listed correctly.
+	targetDir := filepath.Join(manifestDir, "team-management", "base")
+
+	namespacesByTeam := map[string][]string{}
+	namespacesInAppProject := map[string][]string{}
+
+	stdout, stderr, err := kustomizeBuild(targetDir)
+	if err != nil {
+		t.Fatalf("kustomize build failed. path: %s, stderr: %s, err: %v", targetDir, stderr, err)
+	}
+	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(stdout)))
+	for {
+		data, err := y.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			t.Fatal(err)
+		}
+
+		var meta struct {
+			metav1.TypeMeta   `json:",inline"`
+			metav1.ObjectMeta `json:"metadata,omitempty"`
+		}
+		err = yaml.Unmarshal(data, &meta)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Make lists from each resources.
+		switch meta.Kind {
+		case "Namespace":
+			if meta.Name == "sandbox" {
+				// Skip. sandbox ns does not have team label.
+				continue
+			}
+
+			team := meta.Labels["team"]
+			namespacesByTeam[team] = append(namespacesByTeam[team], meta.Name)
+
+		case "AppProject":
+			if meta.Name == "default" || meta.Name == "tenant-app-of-apps" {
+				// Skip. default app and tenant-app-of-apps app are privileged.
+				continue
+			}
+
+			var proj argocd.AppProject
+			err = yaml.Unmarshal(data, &proj)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var namespaces []string
+			for _, dest := range proj.Spec.Destinations {
+				namespaces = append(namespaces, dest.Namespace)
+			}
+			sort.Strings(namespaces)
+			namespacesInAppProject[proj.Name] = namespaces
+		}
+	}
+
+	for team, namespaces := range namespacesByTeam {
+		namespaces = append(namespaces, "sandbox")
+		sort.Strings(namespaces)
+		namespacesByTeam[team] = namespaces
+	}
+
+	if !cmp.Equal(namespacesByTeam, namespacesInAppProject) {
+		t.Errorf("namespaces in AppProjects are not listed correctly: %s", cmp.Diff(namespacesByTeam, namespacesInAppProject))
+	}
 }
 
 func testApplicationResources(t *testing.T) {
@@ -126,7 +234,7 @@ func testApplicationResources(t *testing.T) {
 		t.Run(overlay, func(t *testing.T) {
 			stdout, stderr, err := kustomizeBuild(targetDir)
 			if err != nil {
-				t.Error(fmt.Errorf("kustomize build faled. path: %s, stderr: %s, err: %v", targetDir, stderr, err))
+				t.Errorf("kustomize build failed. path: %s, stderr: %s, err: %v", targetDir, stderr, err)
 			}
 
 			y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(stdout)))
@@ -146,10 +254,10 @@ func testApplicationResources(t *testing.T) {
 
 				// Check the sync wave
 				if syncWaves[app.Name] == "" {
-					t.Error(fmt.Errorf("expected sync-wave should be defined. application: %s", app.Name))
+					t.Errorf("expected sync-wave should be defined. application: %s", app.Name)
 				}
 				if app.GetAnnotations()["argocd.argoproj.io/sync-wave"] != syncWaves[app.Name] {
-					t.Error(fmt.Errorf("invalid sync-wave. application: %s, sync-wave: %s (should be %s)", app.Name, app.GetAnnotations()["argocd.argoproj.io/sync-wave"], syncWaves[app.Name]))
+					t.Errorf("invalid sync-wave. application: %s, sync-wave: %s (should be %s)", app.Name, app.GetAnnotations()["argocd.argoproj.io/sync-wave"], syncWaves[app.Name])
 				}
 
 				// Check the tergetRevision
@@ -161,10 +269,10 @@ func testApplicationResources(t *testing.T) {
 				}
 
 				if expectedTargetRevision == "" {
-					t.Error(fmt.Errorf("expected targetRevision should be defined. application: %s, overlay: %s", app.Name, overlay))
+					t.Errorf("expected targetRevision should be defined. application: %s, overlay: %s", app.Name, overlay)
 				}
 				if app.Spec.Source.TargetRevision != expectedTargetRevision {
-					t.Error(fmt.Errorf("invalid targetRevision. application: %s, targetRevision: %s (should be %s)", app.Name, app.Spec.Source.TargetRevision, expectedTargetRevision))
+					t.Errorf("invalid targetRevision. application: %s, targetRevision: %s (should be %s)", app.Name, app.Spec.Source.TargetRevision, expectedTargetRevision)
 				}
 
 			}
@@ -198,7 +306,7 @@ func testCRDStatus(t *testing.T) {
 			return
 		}
 		if crd.Status != nil {
-			t.Error(errors.New(".status(Status) exists in " + crd.Metadata.Name + ", remove it to prevent occurring OutOfSync by Argo CD"))
+			t.Errorf(".status(Status) exists in %s, remove it to prevent occurring OutOfSync by Argo CD", crd.Metadata.Name)
 		}
 	})
 }
@@ -236,8 +344,8 @@ func testCertificateUsages(t *testing.T) {
 		} else {
 			expected = []string{"digital signature", "key encipherment", "server auth", "client auth"}
 		}
-		if !reflect.DeepEqual(cert.Spec.Usages, expected) {
-			t.Error(errors.New(".spec.usages has incorrect list in " + cert.Metadata.Name))
+		if !cmp.Equal(cert.Spec.Usages, expected) {
+			t.Errorf(".spec.usages has incorrect list in %s: %s", cert.Metadata.Name, cmp.Diff(cert.Spec.Usages, expected))
 		}
 	})
 }
@@ -272,7 +380,7 @@ func doCheckKustomizedYaml(t *testing.T, checkFunc func(*testing.T, []byte)) {
 		t.Run(path, func(t *testing.T) {
 			stdout, stderr, err := kustomizeBuild(path)
 			if err != nil {
-				t.Error(fmt.Errorf("kustomize build faled. path: %s, stderr: %s, err: %v", path, stderr, err))
+				t.Errorf("kustomize build failed. path: %s, stderr: %s, err: %v", path, stderr, err)
 			}
 
 			y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(stdout)))
@@ -366,14 +474,16 @@ func testGeneratedSecretName(t *testing.T) {
 					return err
 				}
 
-				// These lines test all secrets to be used.
 				// grafana-admin-credentials is skipped because it is used internally in Grafana Operator.
 				if es.Name == "grafana-admin-credentials" {
 					appeared = true
 				}
+
+				// These lines test all secrets to be used.
 				if strings.Contains(string(str), "secretName: "+es.Name) {
 					appeared = true
 				}
+
 				// These lines test secrets to be used as references, such like:
 				// - secretRef:
 				//     name: <key>
@@ -381,6 +491,12 @@ func testGeneratedSecretName(t *testing.T) {
 				if strings.Contains(strCondensed, "secretRef:name:"+es.Name) {
 					appeared = true
 				}
+
+				// This line tests VMAlertmanager.spec.configSecret
+				if strings.Contains(string(str), "configSecret: "+es.Name) {
+					appeared = true
+				}
+
 				return nil
 			})
 			if err != nil {
@@ -478,14 +594,234 @@ func testAlertRules(t *testing.T) {
 	}
 }
 
+type resourceMeta struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+}
+
+// shrinked version of github.com/VictoriaMetrics/operator/api/v1beta1.VMAgent
+type VMAgent struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              struct {
+		ServiceScrapeSelector          *metav1.LabelSelector `json:"serviceScrapeSelector,omitempty"`
+		ServiceScrapeNamespaceSelector *metav1.LabelSelector `json:"serviceScrapeNamespaceSelector,omitempty"`
+		PodScrapeSelector              *metav1.LabelSelector `json:"podScrapeSelector,omitempty"`
+		PodScrapeNamespaceSelector     *metav1.LabelSelector `json:"podScrapeNamespaceSelector,omitempty"`
+		ProbeSelector                  *metav1.LabelSelector `json:"probeSelector,omitempty"`
+		ProbeNamespaceSelector         *metav1.LabelSelector `json:"probeNamespaceSelector,omitempty"`
+	} `json:"spec"`
+}
+
+// shrinked version of github.com/VictoriaMetrics/operator/api/v1beta1.VMAlert
+type VMAlert struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              struct {
+		RuleSelector          *metav1.LabelSelector `json:"ruleSelector,omitempty"`
+		RuleNamespaceSelector *metav1.LabelSelector `json:"ruleNamespaceSelector,omitempty"`
+	} `json:"spec"`
+}
+
+func testVMCustomResources(t *testing.T) {
+	vmBaseDir := filepath.Join(manifestDir, "monitoring/base/victoriametrics")
+
+	// expected resource names of each CRs which are handled by smallset cluster (must be sorted)
+	expectedSmallsetServiceScrapes := []string{
+		"kube-state-metrics",
+		"kubernetes",
+	}
+	expectedSmallsetPodScrapes := []string{
+		"topolvm",
+	}
+	expectedSmallsetProbes := []string{}
+	expectedSmallsetRules := []string{
+		"kube-state-metrics",
+		"kubernetes",
+		"topolvm",
+	}
+
+	// gather CRs actually applied
+
+	kustomizeResult, err := exec.Command("bin/kustomize", "build", vmBaseDir).Output()
+	if err != nil {
+		t.Fatalf("failed to kustomize build: %v", err)
+	}
+
+	reader := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(kustomizeResult)))
+
+	var serviceScrapes []resourceMeta
+	var podScrapes []resourceMeta
+	var probes []resourceMeta
+	var rules []resourceMeta
+
+	for {
+		data, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			t.Fatalf("failed to read yaml: %v", err)
+		}
+		var r resourceMeta
+		yaml.Unmarshal(data, &r)
+		switch r.Kind {
+		case "VMServiceScrape":
+			serviceScrapes = append(serviceScrapes, r)
+		case "VMPodScrape":
+			podScrapes = append(podScrapes, r)
+		case "VMProbe":
+			probes = append(probes, r)
+		case "VMRule":
+			rules = append(rules, r)
+		}
+	}
+
+	// read VMAgent/VMAlert CRs (their label selectors)
+
+	file, err := os.Open(filepath.Join(vmBaseDir, "vmagent-smallset.yaml"))
+	if err != nil {
+		t.Fatalf("failed open vmagent-smallset.yaml: %v", err)
+	}
+	defer file.Close()
+	reader = k8sYaml.NewYAMLReader(bufio.NewReader(file))
+	var smallsetVMAgent *VMAgent
+	for {
+		data, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			t.Fatalf("failed to read yaml: %v", err)
+		}
+		var r VMAgent
+		err = yaml.Unmarshal(data, &r)
+		if err != nil {
+			continue
+		}
+		if r.Kind == "VMAgent" && r.Name == "vmagent-smallset" {
+			// There is only one vmagent-smallset.
+			smallsetVMAgent = &r
+			break
+		}
+	}
+	if smallsetVMAgent == nil {
+		t.Fatalf("failed to get vmagent-smallset")
+	}
+
+	file, err = os.Open(filepath.Join(vmBaseDir, "vmalert-smallset.yaml"))
+	if err != nil {
+		t.Fatalf("failed open vmalert-smallset.yaml: %v", err)
+	}
+	defer file.Close()
+	reader = k8sYaml.NewYAMLReader(bufio.NewReader(file))
+	var smallsetVMAlert *VMAlert
+	for {
+		data, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			t.Fatalf("failed to read yaml: %v", err)
+		}
+		var r VMAlert
+		err = yaml.Unmarshal(data, &r)
+		if err != nil {
+			continue
+		}
+		if r.Kind == "VMAlert" && strings.HasPrefix(r.Name, "vmalert-smallset-") {
+			// There may be multiple vmalert-smallset's
+			if smallsetVMAlert != nil {
+				if !reflect.DeepEqual(smallsetVMAlert.Spec.RuleNamespaceSelector, r.Spec.RuleNamespaceSelector) ||
+					!reflect.DeepEqual(smallsetVMAlert.Spec.RuleSelector, r.Spec.RuleSelector) {
+					t.Fatalf("multiple vmalerts have different rule selector")
+				}
+			} else {
+				smallsetVMAlert = &r
+			}
+		}
+	}
+	if smallsetVMAlert == nil {
+		t.Fatalf("failed to get vmalert-smallset")
+	}
+
+	// check namespace label selectors
+
+	expectedNamespaceSelector := metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			"team": "neco",
+		},
+	}
+
+	if !reflect.DeepEqual(smallsetVMAgent.Spec.ServiceScrapeNamespaceSelector, &expectedNamespaceSelector) ||
+		!reflect.DeepEqual(smallsetVMAgent.Spec.PodScrapeNamespaceSelector, &expectedNamespaceSelector) ||
+		!reflect.DeepEqual(smallsetVMAgent.Spec.ProbeNamespaceSelector, &expectedNamespaceSelector) ||
+		!reflect.DeepEqual(smallsetVMAlert.Spec.RuleNamespaceSelector, &expectedNamespaceSelector) {
+		t.Errorf("bad namespace selector")
+	}
+
+	// filter CRs by label selectors and check the results
+
+	selections := []struct {
+		Name     string
+		Selector *metav1.LabelSelector
+		Objects  []resourceMeta
+		Expected []string
+	}{
+		{
+			Name:     "VMServiceScrape",
+			Selector: smallsetVMAgent.Spec.ServiceScrapeSelector,
+			Objects:  serviceScrapes,
+			Expected: expectedSmallsetServiceScrapes,
+		},
+		{
+			Name:     "VMPodScrape",
+			Selector: smallsetVMAgent.Spec.PodScrapeSelector,
+			Objects:  podScrapes,
+			Expected: expectedSmallsetPodScrapes,
+		},
+		{
+			Name:     "VMProbe",
+			Selector: smallsetVMAgent.Spec.ProbeSelector,
+			Objects:  probes,
+			Expected: expectedSmallsetProbes,
+		},
+		{
+			Name:     "VMRule",
+			Selector: smallsetVMAlert.Spec.RuleSelector,
+			Objects:  rules,
+			Expected: expectedSmallsetRules,
+		},
+	}
+
+	for _, selection := range selections {
+		actual := []string{}
+		selector, err := metav1.LabelSelectorAsSelector(selection.Selector)
+		if err != nil {
+			t.Errorf("cannot convert label selector: %v", err)
+			continue
+		}
+		for _, r := range selection.Objects {
+			if selector.Matches(labels.Set(r.Labels)) {
+				actual = append(actual, r.Name)
+			}
+		}
+		sort.Strings(actual)
+		if !reflect.DeepEqual(actual, selection.Expected) {
+			t.Errorf("smallset %s mismatch: actual=%v, expected=%v", selection.Name, actual, selection.Expected)
+			continue
+		}
+	}
+}
+
 func TestValidation(t *testing.T) {
 	if os.Getenv("SSH_PRIVKEY") != "" {
 		t.Skip("SSH_PRIVKEY envvar is defined as running e2e test")
 	}
 
+	t.Run("AppProjectNamespaces", testAppProjectResources)
 	t.Run("ApplicationTargetRevision", testApplicationResources)
 	t.Run("CRDStatus", testCRDStatus)
 	t.Run("CertificateUsages", testCertificateUsages)
 	t.Run("GeneratedSecretName", testGeneratedSecretName)
 	t.Run("AlertRules", testAlertRules)
+	t.Run("NamespaceLabels", testNamespaceResources)
+	t.Run("VictoriaMetricsCustomResources", testVMCustomResources)
 }

@@ -14,3 +14,7 @@ configMapGenerator:
     behavior: merge
     files:
       - alertmanager/env.template
+  - name: vmalertmanager
+    behavior: merge
+    files:
+      - victoriametrics/env.template

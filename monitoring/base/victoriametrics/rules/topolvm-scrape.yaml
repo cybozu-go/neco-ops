@@ -1,0 +1,30 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: topolvm
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [topolvm-system]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: topolvm
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_pod_container_name]
+        regex: topolvm-node
+        action: keep
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:8080
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        targetLabel: instance

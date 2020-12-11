@@ -138,3 +138,21 @@ webhooks:
     - UPDATE
     resources:
     - networkpolicies
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-service
+  failurePolicy: Fail
+  name: vservice.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - services

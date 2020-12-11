@@ -1,0 +1,42 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  name: vmsingle-smallset-0
+  namespace: monitoring
+spec:
+  podMetadata:
+    labels:
+      vmsingle-smallset-cluster: "true"
+  image:
+    repository: quay.io/cybozu/victoriametrics-vmsingle
+    tag: 1.47.0.1
+  retentionPeriod: "15d"
+  extraArgs:
+    dedup.minScrapeInterval: 30s # should be equal to VMAgent's scrapeInterval (default 30s)
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+      limit:
+        storage: 10Gi
+    storageClassName: topolvm-provisioner
+  resources:
+    requests:
+      cpu: 100m
+      memory: 500Mi
+---
+#apiVersion: policy/v1beta1
+#kind: PodDisruptionBudget
+#metadata:
+#  name: vmsingle-smallset
+#  namespace: monitoring
+#spec:
+#  minAvailable: 1
+#  selector:
+#    matchLabels:
+#      app.kubernetes.io/component: monitoring
+#      app.kubernetes.io/name: vmsingle
+#      managed-by: vm-operator
+#      vmsingle-smallset-cluster: "true"

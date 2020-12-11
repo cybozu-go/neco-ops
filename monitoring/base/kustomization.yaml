@@ -25,6 +25,7 @@ resources:
   - ingress-health/deployment.yaml
   - ingress-health/httpproxy.yaml
   - ingress-health/service.yaml
+  - victoriametrics
 configMapGenerator:
   - name: prometheus-server-conf
     files:

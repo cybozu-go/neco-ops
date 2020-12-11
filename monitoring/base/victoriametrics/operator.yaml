@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: monitoring
+  name: victoriametrics-operator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: victoriametrics-operator
+  name: victoriametrics-operator
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: victoriametrics-operator
+  template:
+    metadata:
+      labels:
+        control-plane: victoriametrics-operator
+    spec:
+      containers:
+      - args:
+        - --enable-leader-election
+        command:
+        - manager
+        env:
+        - name: WATCH_NAMESPACE
+          value: ""
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: victoriametrics-operator
+        image: quay.io/cybozu/victoriametrics-operator:0.5.0.1
+        imagePullPolicy: IfNotPresent
+        name: manager
+        resources:
+          requests:
+            cpu: 80m
+            memory: 120Mi
+      serviceAccountName: victoriametrics-operator
+      terminationGracePeriodSeconds: 10

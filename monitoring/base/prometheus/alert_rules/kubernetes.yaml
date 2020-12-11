@@ -366,7 +366,7 @@ groups:
           kube_daemonset_status_number_ready{job="kube-state-metrics",namespace!~"app-.+|maneki|sandbox"}
             /
           kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics",namespace!~"app-.+|maneki|sandbox"} * 100 < 100
-        for: 15m
+        for: 30m
         labels:
           severity: minor
       - alert: KubeDaemonSetNotScheduled
@@ -428,17 +428,17 @@ groups:
           summary: '{{ $labels.node }} has been unready for more than 15 minutes.'
           runbook: TBD
         expr: |
-          kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"} == 0
+          (kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"} == 0) and ignoring(condition,status) (kube_node_spec_unschedulable{job="kube-state-metrics"} == 0)
         for: 15m
         labels:
           severity: minor
       - alert: KubeNodeUnschedulable
         annotations:
-          summary: '{{ $labels.node }} has been unschedulable for more than 15 minutes.'
+          summary: '{{ $labels.node }} has been unschedulable for more than 1 hour.'
           runbook: TBD
         expr: |
           kube_node_spec_unschedulable{job="kube-state-metrics"} == 1
-        for: 15m
+        for: 1h
         labels:
           severity: minor
       - alert: KubeVersionMismatch
@@ -561,7 +561,7 @@ groups:
         expr: count(up{job="kubernetes-apiservers"} == 1) < 3
         labels:
           severity: warning
-        for: 10m
+        for: 15m
         annotations:
           summary: The number of kube-apiserver is less than 3.
           runbook: Please consider to find root causes, and solve the problems

@@ -1,0 +1,45 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: vmalert-smallset-0
+  namespace: monitoring
+spec:
+  podMetadata:
+    labels:
+      vmalert-smallset-cluster: "true"
+  replicaCount: 1
+  image:
+    repository: quay.io/cybozu/victoriametrics-vmalert
+    tag: 1.47.0.1
+  containers:
+    - name: config-reloader
+      image: quay.io/cybozu/configmap-reload:0.4.0.1
+  datasource:
+    url: "http://vmsingle-vmsingle-smallset-0.monitoring.svc:8429"
+  notifier:
+    url: "http://vmalertmanager-vmalertmanager.monitoring.svc:9093"
+  evaluationInterval: "30s"
+  ruleNamespaceSelector:
+    matchLabels:
+      team: neco
+  ruleSelector:
+    matchLabels:
+      smallset: "true"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+---
+#apiVersion: policy/v1beta1
+#kind: PodDisruptionBudget
+#metadata:
+#  name: vmalert-smallset
+#  namespace: monitoring
+#spec:
+#  minAvailable: 1
+#  selector:
+#    matchLabels:
+#      app.kubernetes.io/component: monitoring
+#      app.kubernetes.io/name: vmalert
+#      managed-by: vm-operator
+#      vmalert-smallset-cluster: "true"

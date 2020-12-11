@@ -37,3 +37,10 @@ data:
       url: http://prometheus.monitoring.svc:9090
       isDefault: true
       editable: false
+    - name: 'vmsingle-smallset-0'
+      type: prometheus
+      access: proxy
+      orgId: 1
+      url: http://vmsingle-vmsingle-smallset-0.monitoring.svc:8429
+      isDefault: false
+      editable: false

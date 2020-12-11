@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vmagent-smallset
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: vmagent-smallset
+rules:
+  - apiGroups: ["","networking.k8s.io","extensions"]
+    resources:
+      - nodes
+      - nodes/proxy # required for "kubernetes-nodes" job
+      - services
+      - endpoints
+      - pods
+      - app
+      - ingresses
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources:
+      - configmaps
+    verbs: ["get"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: vmagent-smallset
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vmagent-smallset
+subjects:
+  - kind: ServiceAccount
+    name: vmagent-smallset
+    namespace: monitoring
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: vmagent-smallset
+  namespace: monitoring
+spec:
+  image:
+    repository: quay.io/cybozu/victoriametrics-vmagent
+    tag: 1.47.0.1
+  containers:
+    - name: config-reloader
+      image: quay.io/cybozu/prometheus-config-reloader:0.43.2.1
+  serviceScrapeNamespaceSelector:
+    matchLabels:
+      team: neco
+  serviceScrapeSelector:
+    matchLabels:
+      smallset: "true"
+  podScrapeNamespaceSelector:
+    matchLabels:
+      team: neco
+  podScrapeSelector:
+    matchLabels:
+      smallset: "true"
+  probeNamespaceSelector:
+    matchLabels:
+      team: neco
+  probeSelector:
+    matchLabels:
+      smallset: "true"
+  additionalScrapeConfigs:
+    name: vmagent-smallset-additional-scrape-configs
+    key: vmagent-smallset-additional-scrape-configs.yaml
+  replicaCount: 2
+  serviceAccountName: vmagent-smallset
+  remoteWrite:
+    - url: "http://vmsingle-vmsingle-smallset-0.monitoring.svc:8429/api/v1/write"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vmagent-smallset
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmagent-smallset
+      app.kubernetes.io/name: vmagent
+      managed-by: vm-operator

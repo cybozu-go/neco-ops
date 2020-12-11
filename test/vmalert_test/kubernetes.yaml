@@ -1,0 +1,694 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/kubernetes-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
+        values: 0+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.2"}'
+        values: 0+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
+        values: 0+0x15
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: K8sAPIServersDegraded
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: No kube-apiserver is running.
+              runbook: Please consider to find root causes, and solve the problems
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.2"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
+        values: 0+0x15
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: K8sAPIServersDegraded
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: The number of kube-apiserver is less than 3.
+              runbook: Please consider to find root causes, and solve the problems
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.1"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.2"}'
+        values: 1+0x15
+      - series: 'up{job="kubernetes-apiservers",instance="10.0.0.3"}'
+        values: 1+0x15
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: K8sAPIServersDegraded
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kube-state-metrics"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeStateMetricsDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: KubeStateMetrics has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-cadvisor"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KubernetesCAdvisorDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: KubernetesCAdvisor has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="kubernetes-nodes"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: KubernetesNodesDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: KubernetesNodes has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'kube_pod_container_status_restarts_total{job="kube-state-metrics", namespace="kube-system", pod="calico-node", container="unbound"}'
+        values: '1+1x30'
+      - series: 'kube_pod_container_status_restarts_total{job="kube-state-metrics", namespace="app-gorush", pod="gorush", container="gorush"}'
+        values: '1+1x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: KubePodCrashLooping
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              namespace: kube-system
+              pod: calico-node
+              container: unbound
+            exp_annotations:
+              runbook: TBD
+              summary: Pod kube-system/calico-node (unbound) is restarting 5.00 times / 5 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_pod_container_status_restarts_total{job="kube-state-metrics", namespace="maneki", pod="calico-node", container="unbound"}'
+        values: '1+1x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: KubePodCrashLooping
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'kube_pod_owner{owner_kind="DaemonSet", job="kube-state-metrics", namespace="kube-system", pod="calico-node"}'
+        values: '1+1x30'
+      - series: 'kube_pod_owner{owner_kind="Job", job="kube-state-metrics", namespace="monitoring", pod="machines-endpoints"}'
+        values: '1+1x30'
+      - series: 'kube_pod_status_phase{job="kube-state-metrics", phase="Failed", namespace="kube-system", pod="calico-node", container="unbound"}'
+        values: '1+1x30'
+      - series: 'kube_pod_status_phase{job="kube-state-metrics", phase="Failed", namespace="monitoring", pod="machines-endpoints", container="machines-endpoints"}'
+        values: '1+1x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: KubePodNotReady
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              namespace: kube-system
+              pod: calico-node
+            exp_annotations:
+              runbook: TBD
+              summary: Pod kube-system/calico-node has been in a non-ready state for longer than 15 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_pod_owner{owner_kind="DaemonSet", job="kube-state-metrics", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '1+1x40'
+      - series: 'kube_pod_owner{owner_kind="Job", job="kube-state-metrics", namespace="monitoring", pod="machines-endpoints"}'
+        values: '1+1x40'
+      - series: 'kube_pod_status_ready{job="kube-state-metrics", condition="false", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '1+1x40'
+      - series: 'kube_pod_status_ready{job="kube-state-metrics", condition="false", namespace="monitoring", pod="machines-endpoints"}'
+        values: '1+1x40'
+      - series: 'kube_pod_container_status_ready{job="kube-state-metrics", container="container-1", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '1+1x40'
+      - series: 'kube_pod_container_status_ready{job="kube-state-metrics", container="container-2", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '1+1x40'
+      - series: 'kube_pod_container_status_ready{job="kube-state-metrics", container="container-a", namespace="monitoring", pod="machines-endpoints"}'
+        values: '1+1x40'
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: KubePodNotReadyWithContainersReady
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              frequency: daily
+              namespace: kube-system
+              pod: topolvm-scheduler
+              owner_kind: DaemonSet
+            exp_annotations:
+              runbook: TBD
+              summary: Pod kube-system/topolvm-scheduler has been in a non-ready state though containers are in a ready state for longer than 30 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_pod_owner{owner_kind="DaemonSet", job="kube-state-metrics", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '1+1x40'
+      - series: 'kube_pod_status_ready{job="kube-state-metrics", condition="false", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '1+1x40'
+      - series: 'kube_pod_container_status_ready{job="kube-state-metrics", container="container-1", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '1+1x40'
+      - series: 'kube_pod_container_status_ready{job="kube-state-metrics", container="container-2", namespace="kube-system", pod="topolvm-scheduler"}'
+        values: '0+0x40'
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: KubePodNotReadyWithContainersReady
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'kube_deployment_status_observed_generation{job="kube-state-metrics", namespace="kube-system", deployment="a"}'
+        values: '1+0x30'
+      - series: 'kube_deployment_metadata_generation{job="kube-state-metrics", namespace="kube-system", deployment="a"}'
+        values: '1+0x14 2+0x16'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: KubeDeploymentGenerationMismatch
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              namespace: kube-system
+              deployment: a
+            exp_annotations:
+              runbook: TBD
+              summary: Deployment generation for kube-system/a does not match, this indicates that the Deployment has failed but has not been rolled back.
+  - interval: 1m
+    input_series:
+      - series: 'kube_deployment_spec_replicas{job="kube-state-metrics", namespace="monitoring", deployment="alertmanager"}'
+        values: '2+0x60'
+      - series: 'kube_deployment_status_replicas_available{job="kube-state-metrics", namespace="monitoring", deployment="alertmanager"}'
+        values: '2+0x28 1+0x32'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: KubeDeploymentReplicasMismatch
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              frequency: daily
+              job: kube-state-metrics
+              namespace: monitoring
+              deployment: alertmanager
+            exp_annotations:
+              runbook: TBD
+              summary: Deployment monitoring/alertmanager has not matched the expected number of replicas for longer than 30 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_statefulset_status_replicas{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '2+0x60'
+      - series: 'kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '2+0x28 1+0x32'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: KubeStatefulSetReplicasMismatch
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              frequency: daily
+              job: kube-state-metrics
+              namespace: monitoring
+              statefulset: prometheus
+            exp_annotations:
+              runbook: TBD
+              summary: StatefulSet monitoring/prometheus has not matched the expected number of replicas for longer than 30 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '1+0x30'
+      - series: 'kube_statefulset_metadata_generation{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '1+0x14 2+0x16'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: KubeStatefulSetGenerationMismatch
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              namespace: monitoring
+              statefulset: prometheus
+            exp_annotations:
+              runbook: TBD
+              summary: StatefulSet generation for monitoring/prometheus does not match, this indicates that the StatefulSet has failed but has not been rolled back.
+  - interval: 1m
+    input_series:
+      - series: 'kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus", revision="prometheus-abc"}'
+        values: '1+0x15'
+      - series: 'kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus", revision="prometheus-abc"}'
+        values: '1+0x15'
+      - series: 'kube_statefulset_replicas{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '2+0x15'
+      - series: 'kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeStatefulSetUpdateNotRolledOut
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'kube_statefulset_status_current_revision{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus", revision="prometheus-abc"}'
+        values: '1+0x15'
+      - series: 'kube_statefulset_status_update_revision{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus", revision="prometheus-def"}'
+        values: '1+0x15'
+      - series: 'kube_statefulset_replicas{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '2+0x15'
+      - series: 'kube_statefulset_status_replicas_updated{job="kube-state-metrics", namespace="monitoring", statefulset="prometheus"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeStatefulSetUpdateNotRolledOut
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              namespace: monitoring
+              statefulset: prometheus
+            exp_annotations:
+              runbook: TBD
+              summary: StatefulSet monitoring/prometheus update has not been rolled out.
+  - interval: 1m
+    input_series:
+      - series: 'kube_daemonset_status_number_ready{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
+        values: '8+0x30'
+      - series: 'kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
+        values: '10+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: KubeDaemonSetRolloutStuck
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              namespace: kube-system
+              daemonset: calico-node
+            exp_annotations:
+              runbook: TBD
+              summary: Only 80% of the desired Pods of DaemonSet kube-system/calico-node are scheduled and ready.
+  - interval: 1m
+    input_series:
+      - series: 'kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
+        values: '9+0x15'
+      - series: 'kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace="kube-system", daemonset="calico-node"}'
+        values: '10+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeDaemonSetNotScheduled
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              namespace: kube-system
+              daemonset: calico-node
+            exp_annotations:
+              runbook: TBD
+              summary: 1 Pods of DaemonSet kube-system/calico-node are not scheduled.
+  - interval: 1m
+    input_series:
+      - series: 'kube_daemonset_status_number_unavailable{job="kube-state-metrics", namespace="topolvm-system", daemonset="node"}'
+        values: '0+0x28 1+1x32'
+      - series: 'kube_daemonset_status_number_unavailable{job="kube-state-metrics", namespace="topolvm-system", daemonset="topolvm-scheduler"}'
+        values: '1+1x28 0+0x32'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: KubeDaemonSetReplicasMismatch
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              frequency: daily
+              job: kube-state-metrics
+              namespace: topolvm-system
+              daemonset: node
+            exp_annotations:
+              runbook: TBD
+              summary: DaemonSet topolvm-system/node has not matched the expected number of replicas for longer than 30 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_cronjob_next_schedule_time{job="kube-state-metrics",namespace="default",cronjob="test-cronjob"}'
+        values: 0+60x60 3600+0x130
+    alert_rule_test:
+      - eval_time: 3h10m
+        alertname: KubeCronJobRunning
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: default
+              job: kube-state-metrics
+              cronjob: test-cronjob
+            exp_annotations:
+              runbook: TBD
+              summary: CronJob default/test-cronjob is taking more than 1h to complete.
+  - interval: 1m
+    input_series:
+      - series: 'kube_job_spec_completions{job="kube-state-metrics",namespace="default",job_name="test-job"}'
+        values: 1+0x60 3+0x70
+      - series: 'kube_job_status_succeeded{job="kube-state-metrics",namespace="default",job_name="test-job"}'
+        values: 1+0x130
+    alert_rule_test:
+      - eval_time: 2h10m
+        alertname: KubeJobCompletion
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: default
+              job: kube-state-metrics
+              job_name: test-job
+            exp_annotations:
+              runbook: TBD
+              summary: Job default/test-job is taking more than one hour to complete.
+  - interval: 1m
+    input_series:
+      - series: 'kube_job_failed{job="kube-state-metrics",namespace="default",job_name="test-job"}'
+        values: 0+0x14 1+0x16
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: KubeJobFailed
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              namespace: default
+              job: kube-state-metrics
+              job_name: test-job
+            exp_annotations:
+              runbook: TBD
+              summary: Job default/test-job failed to complete.
+  - interval: 1m
+    input_series:
+      - series: 'kube_node_status_condition{job="kube-state-metrics", condition="Ready", status="true", node="10.0.0.1"}'
+        values: '0+0x15'
+      - series: 'kube_node_spec_unschedulable{job="kube-state-metrics", node="10.0.0.1"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeNodeNotReady
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              condition: Ready
+              job: kube-state-metrics
+              node: 10.0.0.1
+              status: true
+            exp_annotations:
+              runbook: TBD
+              summary: 10.0.0.1 has been unready for more than 15 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_node_status_condition{job="kube-state-metrics", condition="Ready", status="true", node="10.0.0.1"}'
+        values: '0+0x15'
+      - series: 'kube_node_spec_unschedulable{job="kube-state-metrics", node="10.0.0.1"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeNodeNotReady
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'kube_node_spec_unschedulable{job="kube-state-metrics", node="10.0.0.1"}'
+        values: '1+0x60'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: KubeNodeUnschedulable
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kube-state-metrics
+              node: 10.0.0.1
+            exp_annotations:
+              runbook: TBD
+              summary: 10.0.0.1 has been unschedulable for more than 1 hour.
+  - interval: 1m
+    input_series:
+      - series: 'kubernetes_build_info{job="kubernetes-nodes", gitVersion="v1.99.9", instance="10.0.0.1"}'
+        values: '1+0x15'
+      - series: 'kubernetes_build_info{job="kubernetes-nodes", gitVersion="v1.99.9", instance="10.0.0.2"}'
+        values: '1+0x15'
+      - series: 'kubernetes_build_info{job="kubernetes-nodes", gitVersion="v2.0.0", instance="10.0.0.3"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeVersionMismatch
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              runbook: TBD
+              summary: There are 2 different semantic versions of Kubernetes components running.
+  - interval: 1m
+    input_series:
+      - series: 'rest_client_requests_total{job="kubernetes-apiservers", instance="10.0.0.1", code="502"}'
+        values: '0+1x20'
+      - series: 'rest_client_requests_total{job="kubernetes-apiservers", instance="10.0.0.1", code="404"}'
+        values: '0+1x20'
+      - series: 'rest_client_requests_total{job="kubernetes-apiservers", instance="10.0.0.1", code="200"}'
+        values: '0+1x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: KubeClientErrors
+        exp_alerts:
+          - exp_labels:
+              job: kubernetes-apiservers
+              instance: 10.0.0.1
+              severity: warning
+            exp_annotations:
+              runbook: TBD
+              summary: Kubernetes API server client 'kubernetes-apiservers/10.0.0.1' is experiencing 33% errors.
+  - interval: 1m
+    input_series:
+      - series: 'kubelet_running_pod_count{job="kubernetes-nodes", instance="10.0.0.1"}'
+        values: '96+0x15'
+      - series: 'kubelet_node_name{job="kubernetes-nodes", instance="10.0.0.1", node="node-a"}'
+        values: '1+0x15'
+      - series: 'kube_node_status_capacity_pods{job="kube-state-metrics", instance="10.0.0.1", node="node-a"}'
+        values: '100+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeletTooManyPods
+        exp_alerts:
+          - exp_labels:
+              node: node-a
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: Kubelet 'node-a' is running at 96% of its Pod capacity.
+  - interval: 1m
+    input_series:
+      - series: 'cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99",verb="GET",resource="foo"}'
+        values: '1.1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeAPILatencyHigh
+        exp_alerts:
+          - exp_labels:
+              job: kubernetes-apiservers
+              quantile: 0.99
+              verb: GET
+              resource: foo
+              severity: warning
+            exp_annotations:
+              runbook: TBD
+              summary: The API server has a 99th percentile latency of 1.1 seconds for GET foo.
+  - interval: 1m
+    input_series:
+      - series: 'cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99",verb="GET",resource="foo"}'
+        values: '4.1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubeAPILatencyHigh
+        exp_alerts:
+          - exp_labels:
+              job: kubernetes-apiservers
+              quantile: 0.99
+              verb: GET
+              resource: foo
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: The API server has a 99th percentile latency of 4.1 seconds for GET foo.
+          - exp_labels:
+              job: kubernetes-apiservers
+              quantile: 0.99
+              verb: GET
+              resource: foo
+              severity: warning
+            exp_annotations:
+              runbook: TBD
+              summary: The API server has a 99th percentile latency of 4.1 seconds for GET foo.
+  - interval: 1m
+    input_series:
+      - series: apiserver_request_total{job="kubernetes-apiservers",code="500",verb="GET",resource="foo",subresource="bar"}
+        values: '0+2x20'
+      - series: apiserver_request_total{job="kubernetes-apiservers",code="200",verb="GET",resource="foo",subresource="bar"}
+        values: '0+98x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: KubeAPIErrorsHigh
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: API server is returning errors for 2% of requests.
+  - interval: 1m
+    input_series:
+      - series: apiserver_request_total{job="kubernetes-apiservers",code="500",verb="GET",resource="foo",subresource="bar"}
+        values: '0+2x20'
+      - series: apiserver_request_total{job="kubernetes-apiservers",code="200",verb="GET",resource="foo",subresource="bar"}
+        values: '0+8x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: KubeAPIErrorsHigh
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests.
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests.
+          - exp_labels:
+              verb: GET
+              resource: foo
+              subresource: bar
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests for GET foo bar.
+          - exp_labels:
+              verb: GET
+              resource: foo
+              subresource: bar
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: API server is returning errors for 20% of requests for GET foo bar.
+  - interval: 1m
+    input_series:
+      - series: apiserver_client_certificate_expiration_seconds_count{job="kubernetes-apiservers"}
+        values: '1+0x5'
+      - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="+Inf"}
+        values: '100+0x5'
+      - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="1.5552e+07"}
+        values: '80+0x5'
+      - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="2.592e+06"}
+        values: '80+0x5'
+      - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="172800"}
+        values: '80+0x5'
+      - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="21600"}
+        values: '0 1+0x4'
+      - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="1800"}
+        values: '0+0x5'
+      - series: apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers", le="0"}
+        values: '0+0x5'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: KubeClientCertificateExpiration
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: kubernetes-apiservers
+            exp_annotations:
+              runbook: TBD
+              summary: A client certificate used to authenticate to the apiserver is expiring in less than 7.0 days.
+          - exp_labels:
+              severity: minor
+              job: kubernetes-apiservers
+            exp_annotations:
+              runbook: TBD
+              summary: A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours.
+  - interval: 1m
+    input_series:
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume1", namespace="foo"}
+        values: '0 9 90 90 90 90'
+      - series: kubelet_volume_stats_capacity_bytes{job="prometheus", persistentvolumeclaim="volume1", namespace="foo"}
+        values: '100+0x5'
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume2", namespace="bar"}
+        values: '0 91 91 0 0 0'
+      - series: kubelet_volume_stats_capacity_bytes{job="prometheus", persistentvolumeclaim="volume2", namespace="bar"}
+        values: '100+0x5'
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume3", namespace="baz"}
+        values: '0 0 0 0 91 91'
+      - series: kubelet_volume_stats_capacity_bytes{job="prometheus", persistentvolumeclaim="volume3", namespace="baz"}
+        values: '100+0x5'
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume4", namespace="sandbox"}
+        values: '0 0 0 0 91 91'
+      - series: kubelet_volume_stats_capacity_bytes{job="prometheus", persistentvolumeclaim="volume4", namespace="sandbox"}
+        values: '100+0x5'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: PersistentVolumeSpaceExceeded
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: prometheus
+              namespace: bar
+              persistentvolumeclaim: volume2
+            exp_annotations:
+              runbook: Please consider resizing volume
+              summary: Disk usage of `volume2, bar` is more than 90%.
+      - eval_time: 5m
+        alertname: PersistentVolumeSpaceExceeded
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: prometheus
+              namespace: baz
+              persistentvolumeclaim: volume3
+            exp_annotations:
+              runbook: Please consider resizing volume
+              summary: Disk usage of `volume3, baz` is more than 90%.
+  - interval: 1m
+    input_series:
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume1", namespace="foo"}
+        values: '0+1073741824x10' # 0 1GiB 2GiB ... 10GiB
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume2", namespace="bar"}
+        values: '0+1073741825x10' # 0 1GiB+1 2GiB+2 ... 10GiB+10
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume3", namespace="baz"}
+        values: '0+0x5 10737418240+0x4' # 0 0 0 0 0 0 10GiB 10GiB 10GiB 10GiB 10GiB
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume4", namespace="foobar"}
+        values: '0+0x5 10737418241+0x4' # 0 0 0 0 0 0 10GiB+1 10GiB+1 10GiB+1 10GiB+1 10GiB+1
+      - series: kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume5", namespace="sandbox"}
+        values: '0+0x5 10737418241+0x4' # 0 0 0 0 0 0 10GiB+1 10GiB+1 10GiB+1 10GiB+1 10GiB+1
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: PersistentVolumeUsageRapidIncrease
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: prometheus
+              namespace: bar
+              persistentvolumeclaim: volume2
+            exp_annotations:
+              runbook: TBD
+              summary: Disk usage of `volume2, bar` increases rapidly over 10GiB in 10 minutes.
+          - exp_labels:
+              severity: warning
+              job: prometheus
+              namespace: foobar
+              persistentvolumeclaim: volume4
+            exp_annotations:
+              runbook: TBD
+              summary: Disk usage of `volume4, foobar` increases rapidly over 10GiB in 10 minutes.

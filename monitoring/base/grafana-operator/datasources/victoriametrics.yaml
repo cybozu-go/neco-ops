@@ -1,0 +1,17 @@
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDataSource
+metadata:
+  name: victoriametrics
+spec:
+  name: victoriametrics.yaml
+  datasources:
+    - name: vmsingle-smallset-0
+      type: prometheus
+      access: proxy
+      url: http://vmsingle-vmsingle-smallset-0.monitoring.svc:8429
+      version: 1
+      isDefault: false
+      editable: false
+      jsonData:
+        tlsSkipVerify: true
+        timeInterval: "5s"

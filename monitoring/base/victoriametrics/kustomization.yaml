@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - upstream/crd
+  - rbac
+  - operator.yaml
+  - alertmanager.yaml
+  - vmagent-smallset.yaml
+  - vmalert-smallset.yaml
+  - vmsingle-smallset.yaml
+  - rules/kubernetes-scrape.yaml
+  - rules/kubernetes-alertrule.yaml
+  - rules/kube-state-metrics-scrape.yaml
+  - rules/kube-state-metrics-alertrule.yaml
+  - rules/topolvm-scrape.yaml
+  - rules/topolvm-alertrule.yaml
+patchesStrategicMerge:
+  - remove_crd_status.yaml
+configMapGenerator:
+  - name: vmalertmanager
+    files:
+      - neco.template
+secretGenerator:
+  - name: vmagent-smallset-additional-scrape-configs
+    namespace: monitoring
+    files:
+      - vmagent-smallset-additional-scrape-configs.yaml
+configurations:
+- kustomizeconfig.yaml
