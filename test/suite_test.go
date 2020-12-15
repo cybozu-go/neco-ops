@@ -46,9 +46,7 @@ var _ = Describe("Test applications", func() {
 	})
 
 	Context("prepareNodes", prepareNodes)
-	if doCeph {
-		Context("prepareLoadPods", prepareLoadPods)
-	}
+	Context("prepareLoadPods", prepareLoadPods)
 	Context("setup", testSetup)
 	if doBootstrap {
 		return
@@ -57,17 +55,8 @@ var _ = Describe("Test applications", func() {
 		Context("reboot", testRebootAllNodes)
 	}
 
-	if doCeph {
-		Context("rookOperator", testRookOperator)
-		Context("clusterStable", testClusterStable)
-		Context("OSDPodsSpread", testOSDPodsSpreadAll)
-		Context("MONPodsSpread", testMONPodsSpreadAll)
-		Context("rookRGW", testRookRGW)
-		Context("rookRBD", testRookRBDAll)
-		return
-	}
-
 	// preparing resources before test to make things faster
+	Context("preparing rook-ceph", prepareRookCeph)
 	Context("preparing argocd-ingress", prepareArgoCDIngress)
 	Context("preparing contour", prepareContour)
 	Context("preparing elastic", prepareElastic)
@@ -80,6 +69,7 @@ var _ = Describe("Test applications", func() {
 	Context("preparing network-policy", prepareNetworkPolicy) // this must be the last preparation.
 
 	// running tests
+	Context("rook-ceph", testRookCeph)
 	Context("network-policy", testNetworkPolicy)
 	Context("metallb", testMetalLB)
 	Context("contour", testContour)

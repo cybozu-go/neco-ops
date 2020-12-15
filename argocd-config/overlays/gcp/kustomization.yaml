@@ -10,6 +10,7 @@ patchesStrategicMerge:
 - local-pv-provisioner.yaml
 - metallb.yaml
 - monitoring.yaml
+- rook.yaml
 - sandbox.yaml
 - secrets.yaml
 - teleport.yaml

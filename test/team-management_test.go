@@ -37,4 +37,18 @@ func testTeamManagement() {
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "alpha", "debug", "-i", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:18.04", "--target=neco-ephemeral-test", "--as test", "--as-group sys:authenticated", "--as-group maneki", "--", "echo a")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 	})
+
+	// This test confirming the configuration of RBAC so it should be at team-management_test.go but rook/ceph isn't deployed for GCP (without gcp-ceph)
+	It("should deploy OBC resource with maneki role", func() {
+		podPvcYaml := `apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: hdd-ob
+  namespace: maneki
+spec:
+  generateBucketName: obc-poc
+  storageClassName: ceph-hdd-bucket`
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podPvcYaml), "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	})
 }

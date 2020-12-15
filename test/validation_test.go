@@ -179,6 +179,7 @@ func testApplicationResources(t *testing.T) {
 		"unbound":              "5",
 		"elastic":              "6",
 		"moco":                 "6",
+		"rook":                 "6",
 		"monitoring":           "7",
 		"sandbox":              "7",
 		"teleport":             "7",
@@ -190,7 +191,6 @@ func testApplicationResources(t *testing.T) {
 		"customer-egress":      "8",
 		"neco-admission":       "8",
 		"network-policy":       "9",
-		"rook":                 "10",
 		"ept-apps":             "11",
 		"maneki-apps":          "11",
 	}
