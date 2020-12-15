@@ -5,4 +5,4 @@ metadata:
   namespace: argocd
 spec:
   source:
-    path: rook/overlays/osaka0
+    path: rook/overlays/gcp

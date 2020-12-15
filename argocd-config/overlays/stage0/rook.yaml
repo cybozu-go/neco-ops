@@ -3,32 +3,7 @@ kind: Application
 metadata:
   name: rook
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
 spec:
-  project: default
   source:
-    repoURL: https://github.com/cybozu-go/neco-apps.git
     targetRevision: stage
     path: rook/overlays/stage0
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: ceph-hdd
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-  ignoreDifferences:
-    # count may be changed manually
-    - group: ceph.rook.io
-      kind: CephCluster
-      name: ceph-ssd
-      namespace: ceph-ssd
-      jsonPointers:
-        - /spec/storage/storageClassDeviceSets/0/count
-    - group: ceph.rook.io
-      kind: CephCluster
-      name: ceph-hdd
-      namespace: ceph-hdd
-      jsonPointers:
-        - /spec/storage/storageClassDeviceSets/0/count

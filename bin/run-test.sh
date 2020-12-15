@@ -4,8 +4,6 @@
 
 TARGET=${TARGET:-dctest}
 BASE_BRANCH=${BASE_BRANCH:-master}
-CEPH=${CEPH:-0}
-OVERLAY=${OVERLAY:-gcp}
 
 cat >run.sh <<EOF
 #!/bin/sh -ex
@@ -26,7 +24,7 @@ git checkout -qf ${CIRCLE_SHA1}
 cd test
 cp /home/cybozu/account.json ./
 make setup
-make $TARGET COMMIT_ID=${CIRCLE_SHA1} BASE_BRANCH=${BASE_BRANCH} CEPH=${CEPH} OVERLAY=${OVERLAY}
+make $TARGET COMMIT_ID=${CIRCLE_SHA1} BASE_BRANCH=${BASE_BRANCH}
 EOF
 chmod +x run.sh
 

@@ -1,4 +1,3 @@
-CEPH ?= 0
 OVERLAY ?= gcp
 BOOT0 = 10.72.48.0
 BOOT1 = 10.72.48.1
@@ -72,10 +71,10 @@ code-check: test-tools
 test: code-check install.yaml test-alert-rules validation
 
 dctest: install.yaml
-	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) ./test.sh
+	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) ./test.sh
 
 dctest-reboot: install.yaml
-	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) REBOOT=1 ./test.sh
+	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) REBOOT=1 ./test.sh
 
 dctest-upgrade:
 	-git worktree remove /tmp/neco-apps
@@ -83,7 +82,7 @@ dctest-upgrade:
 	cp account.json /tmp/neco-apps/test
 	$(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
 	cp /tmp/neco-apps/test/argocd-password.txt ./
-	PATH=$(BINDIR):$$PATH CEPH=$(CEPH) OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
+	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
 
 $(KUBECTL):
 	mkdir -p $(BINDIR)
@@ -140,4 +139,4 @@ clean:
 	rm -rf $(BINDIR)
 
 .PHONY:	validation test-alert-rules code-check test \
-		dctest dctest-ceph dctest-reboot dctest-upgrade setup-download setup clean
+		dctest dctest-reboot dctest-upgrade setup-download setup clean

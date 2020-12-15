@@ -56,7 +56,7 @@ data:
         hs = {}
         if obj.status ~= nil then
           if obj.status.ceph ~= nil then
-            if obj.status.ceph.health == "HEALTH_OK" then
+            if obj.status.ceph.health == "HEALTH_OK" or obj.status.ceph.health == "HEALTH_WARN" then
               hs.status = "Healthy"
               hs.message = obj.status.message
               return hs
@@ -65,7 +65,7 @@ data:
         end
 
         hs.status = "Progressing"
-        hs.message = "Waiting for Ceph cluster to become HEALTH_OK"
+        hs.message = "Waiting for Ceph cluster to become HEALTH_OK or HEALTH_WARN"
         return hs
   resource.compareoptions: |
     ignoreAggregatedRoles: true
