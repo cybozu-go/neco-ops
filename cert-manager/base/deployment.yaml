@@ -23,6 +23,9 @@ metadata:
     prometheus.io/port: "9402"
 spec:
   template:
+    metadata:
+      annotations:
+        egress.coil.cybozu.com/internet-egress: nat
     spec:
       containers:
         - name: cert-manager
@@ -33,15 +36,7 @@ spec:
           - --v=2
           - --cluster-resource-namespace=$(POD_NAMESPACE)
           - --leader-election-namespace=kube-system
-          - --dns01-recursive-nameservers-only
           - --enable-certificate-owner-ref
-          env:
-          - name: NO_PROXY
-            value: 10.0.0.0/8
-          - name: HTTP_PROXY
-            value: http://squid.internet-egress.svc.cluster.local:3128
-          - name: HTTPS_PROXY
-            value: http://squid.internet-egress.svc.cluster.local:3128
 ---
 apiVersion: apps/v1
 kind: Deployment
