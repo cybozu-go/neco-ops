@@ -52,7 +52,9 @@ var _ = Describe("Test applications", func() {
 		return
 	}
 	if doReboot {
+		Context("prepare reboot rook-ceph", prepareRebootRookCeph)
 		Context("reboot", testRebootAllNodes)
+		Context("reboot rook-ceph", testRebootRookCeph)
 	}
 
 	// preparing resources before test to make things faster
