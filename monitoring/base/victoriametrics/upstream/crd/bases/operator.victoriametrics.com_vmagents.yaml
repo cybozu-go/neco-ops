@@ -211,7 +211,7 @@ spec:
                 type: string
               type: array
             containers:
-              description: Containers property allows to inject additions sidecars. It can be useful for proxies, backup, etc.
+              description: Containers property allows to inject additions sidecars or to patch existing containers. It can be useful for proxies, backup, etc.
               items:
                 description: A single application container that you want to run within a pod.
                 required:
@@ -381,6 +381,66 @@ spec:
                 - FATAL
                 - PANIC
               type: string
+            nodeScrapeNamespaceSelector:
+              description: NodeScrapeNamespaceSelector defines Namespaces to be selected for VMNodeScrape discovery. If nil, only check own namespace.
+              properties:
+                matchExpressions:
+                  description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                  items:
+                    description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                    properties:
+                      key:
+                        description: key is the label key that the selector applies to.
+                        type: string
+                      operator:
+                        description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                        type: string
+                      values:
+                        description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                        items:
+                          type: string
+                        type: array
+                    required:
+                      - key
+                      - operator
+                    type: object
+                  type: array
+                matchLabels:
+                  additionalProperties:
+                    type: string
+                  description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                  type: object
+              type: object
+            nodeScrapeSelector:
+              description: NodeScrapeSelector defines VMNodeScrape to be selected for scraping. if neither PodScrapeNamespaceSelector nor ProbeSelector nor PodScrapeSelector nor NodeScrapeSelector are specified, configuration is unmanaged.
+              properties:
+                matchExpressions:
+                  description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                  items:
+                    description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                    properties:
+                      key:
+                        description: key is the label key that the selector applies to.
+                        type: string
+                      operator:
+                        description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                        type: string
+                      values:
+                        description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                        items:
+                          type: string
+                        type: array
+                    required:
+                      - key
+                      - operator
+                    type: object
+                  type: array
+                matchLabels:
+                  additionalProperties:
+                    type: string
+                  description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                  type: object
+              type: object
             overrideHonorLabels:
               description: OverrideHonorLabels if set to true overrides all user configured honor_labels. If HonorLabels is set in ServiceScrape or PodScrape to true, this overrides honor_labels to false.
               type: boolean
@@ -435,7 +495,7 @@ spec:
                   type: object
               type: object
             podScrapeSelector:
-              description: PodScrapeSelector defines PodScrapes to be selected for target discovery. if neither PodScrapeNamespaceSelector nor ProbeSelector nor PodScrapeSelector are specified, configuration is unmanaged.
+              description: PodScrapeSelector defines PodScrapes to be selected for target discovery. if neither PodScrapeNamespaceSelector nor ProbeSelector nor PodScrapeSelector nor NodeScrapeSelector are specified, configuration is unmanaged.
               properties:
                 matchExpressions:
                   description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
@@ -504,7 +564,7 @@ spec:
                   type: object
               type: object
             probeSelector:
-              description: ProbeSelector defines VMProbe to be selected for target probing. if neither PodScrapeNamespaceSelector, nor ProbeSelector nor PodScrapeSelector are specified, configuration is unmanaged.
+              description: ProbeSelector defines VMProbe to be selected for target probing. if neither PodScrapeNamespaceSelector nor ProbeSelector nor PodScrapeSelector nor NodeScrapeSelector are specified, configuration is unmanaged.
               properties:
                 matchExpressions:
                   description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
@@ -602,34 +662,15 @@ spec:
                     required:
                       - key
                     type: object
-                  flushInterval:
-                    description: Interval for flushing the data to remote storage. (default 1s)
-                    pattern: '[0-9]+(ms|s|m|h)'
-                    type: string
                   label:
                     additionalProperties:
                       type: string
                     description: Optional labels in the form 'name=value' to add to all the metrics before sending them
                     type: object
-                  maxBlockSize:
-                    description: The maximum size in bytes of unpacked request to send to remote storage
-                    format: int32
-                    type: integer
-                  maxDiskUsagePerURL:
-                    description: The maximum file-based buffer size in bytes at -remoteWrite.tmpDataPath
-                    format: int32
-                    type: integer
-                  queues:
-                    description: The number of concurrent queues
-                    format: int32
-                    type: integer
                   sendTimeout:
                     description: Timeout for sending a single block of data to -remoteWrite.url (default 1m0s)
                     pattern: '[0-9]+(ms|s|m|h)'
                     type: string
-                  showURL:
-                    description: Whether to show -remoteWrite.url in the exported metrics. It is hidden by default, since it can contain sensistive auth info
-                    type: boolean
                   tlsConfig:
                     description: TLSConfig describes tls configuration for remote write target
                     properties:
@@ -732,9 +773,6 @@ spec:
                         description: Used to verify the hostname for the targets.
                         type: string
                     type: object
-                  tmpDataPath:
-                    description: Path to directory where temporary data for remote write component is stored (default "vmagent-remotewrite-data")
-                    type: string
                   url:
                     description: URL of the endpoint to send samples to.
                     type: string
@@ -757,6 +795,32 @@ spec:
                   - url
                 type: object
               type: array
+            remoteWriteSettings:
+              description: RemoteWriteSettings defines global settings for all remoteWrite urls.
+              properties:
+                flushInterval:
+                  description: Interval for flushing the data to remote storage. (default 1s)
+                  pattern: '[0-9]+(ms|s|m|h)'
+                  type: string
+                maxBlockSize:
+                  description: The maximum size in bytes of unpacked request to send to remote storage
+                  format: int32
+                  type: integer
+                maxDiskUsagePerURL:
+                  description: The maximum file-based buffer size in bytes at -remoteWrite.tmpDataPath
+                  format: int32
+                  type: integer
+                queues:
+                  description: The number of concurrent queues
+                  format: int32
+                  type: integer
+                showURL:
+                  description: Whether to show -remoteWrite.url in the exported metrics. It is hidden by default, since it can contain sensitive auth info
+                  type: boolean
+                tmpDataPath:
+                  description: Path to directory where temporary data for remote write component is stored (default vmagent-remotewrite-data)
+                  type: string
+              type: object
             replicaCount:
               description: ReplicaCount is the expected size of the VMAgent cluster. The controller will eventually make the size of the running cluster equal to the expected size. NOTE enable VMSingle deduplication for replica usage
               format: int32
@@ -905,7 +969,7 @@ spec:
                   type: object
               type: object
             serviceScrapeSelector:
-              description: ServiceScrapeSelector defines ServiceScrapes to be selected for target discovery. if neither serviceScrapeNamespaceSelector nor ProbeSelector nor serviceScrapeSelector are specified, configuration is unmanaged.
+              description: ServiceScrapeSelector defines ServiceScrapes to be selected for target discovery. if if neither PodScrapeNamespaceSelector nor ProbeSelector nor PodScrapeSelector nor NodeScrapeSelector are specified, configuration is unmanaged.
               properties:
                 matchExpressions:
                   description: matchExpressions is a list of label selector requirements. The requirements are ANDed.

@@ -6,10 +6,16 @@ metadata:
   name: clouddns
 spec:
   acme:
+    externalAccountBinding:
+      keyID: wwxKZVO5df00sc1950lnjQ
+      keySecretRef:
+        name: zero-ssl-eabsecret-20201221
+        key: eab-hmac-key
+      keyAlgorithm: HS256
     email: neco@cybozu.com
     privateKeySecretRef:
-      name: letsencrypt-prod
-    server: https://acme-v02.api.letsencrypt.org/directory
+      name: zerossl-secret
+    server: https://acme.zerossl.com/v2/DV90
     solvers:
       - dns01:
           clouddns:

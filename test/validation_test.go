@@ -17,7 +17,6 @@ import (
 
 	argocd "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/google/go-cmp/cmp"
-	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -398,124 +397,6 @@ func doCheckKustomizedYaml(t *testing.T, checkFunc func(*testing.T, []byte)) {
 	}
 }
 
-func readSecret(path string) ([]corev1.Secret, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	var secrets []corev1.Secret
-	y := k8sYaml.NewYAMLReader(bufio.NewReader(f))
-	for {
-		data, err := y.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, err
-		}
-
-		var s corev1.Secret
-		err = yaml.Unmarshal(data, &s)
-		if err != nil {
-			return nil, err
-		}
-		secrets = append(secrets, s)
-	}
-	return secrets, nil
-}
-
-func testGeneratedSecretName(t *testing.T) {
-	const currentSecretFile = "./current-secret.yaml"
-	expectedSecretFiles := []string{
-		"./expected-secret-osaka0.yaml",
-		"./expected-secret-stage0.yaml",
-		"./expected-secret-tokyo0.yaml",
-	}
-
-	t.Parallel()
-
-	defer func() {
-		for _, f := range expectedSecretFiles {
-			os.Remove(f)
-		}
-		os.Remove(currentSecretFile)
-	}()
-
-	dummySecrets, err := readSecret(currentSecretFile)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for _, f := range expectedSecretFiles {
-		expected, err := readSecret(f)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-	OUTER:
-		for _, es := range expected {
-			var appeared bool
-			err = filepath.Walk(manifestDir, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				for _, exDir := range excludeDirs {
-					if strings.HasPrefix(path, exDir) {
-						// Skip files in the directory
-						return filepath.SkipDir
-					}
-				}
-				if info.IsDir() || !strings.HasSuffix(path, ".yaml") {
-					return nil
-				}
-				str, err := ioutil.ReadFile(path)
-				if err != nil {
-					return err
-				}
-
-				// grafana-admin-credentials is skipped because it is used internally in Grafana Operator.
-				if es.Name == "grafana-admin-credentials" {
-					appeared = true
-				}
-
-				// These lines test all secrets to be used.
-				if strings.Contains(string(str), "secretName: "+es.Name) {
-					appeared = true
-				}
-
-				// These lines test secrets to be used as references, such like:
-				// - secretRef:
-				//     name: <key>
-				strCondensed := strings.Join(strings.Fields(string(str)), "")
-				if strings.Contains(strCondensed, "secretRef:name:"+es.Name) {
-					appeared = true
-				}
-
-				// This line tests VMAlertmanager.spec.configSecret
-				if strings.Contains(string(str), "configSecret: "+es.Name) {
-					appeared = true
-				}
-
-				return nil
-			})
-			if err != nil {
-				t.Fatal("failed to walk manifest directories")
-			}
-			if !appeared {
-				t.Error("secret:", es.Name, "was not found in any manifests")
-			}
-
-			for _, cs := range dummySecrets {
-				if cs.Name == es.Name && cs.Namespace == es.Namespace {
-					continue OUTER
-				}
-			}
-			t.Error("secret:", es.Namespace+"/"+es.Name, "was not found in dummy secrets")
-		}
-	}
-}
-
 // These struct types are copied from the following link:
 // https://github.com/prometheus/prometheus/blob/master/pkg/rulefmt/rulefmt.go
 
@@ -812,7 +693,6 @@ func TestValidation(t *testing.T) {
 	t.Run("ApplicationTargetRevision", testApplicationResources)
 	t.Run("CRDStatus", testCRDStatus)
 	t.Run("CertificateUsages", testCertificateUsages)
-	t.Run("GeneratedSecretName", testGeneratedSecretName)
 	t.Run("AlertRules", testAlertRules)
 	t.Run("NamespaceLabels", testNamespaceResources)
 	t.Run("VictoriaMetricsCustomResources", testVMCustomResources)
