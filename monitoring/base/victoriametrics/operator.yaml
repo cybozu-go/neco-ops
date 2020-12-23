@@ -38,6 +38,9 @@ spec:
         image: quay.io/cybozu/victoriametrics-operator:0.6.0.1
         imagePullPolicy: IfNotPresent
         name: manager
+        ports:
+        - name: http
+          containerPort: 8080
         resources:
           requests:
             cpu: 80m

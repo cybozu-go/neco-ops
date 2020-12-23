@@ -13,6 +13,8 @@ resources:
   - rules/kubernetes-alertrule.yaml
   - rules/kube-state-metrics-scrape.yaml
   - rules/kube-state-metrics-alertrule.yaml
+  - rules/monitoring-scrape.yaml
+  - rules/monitoring-alertrule.yaml
   - rules/topolvm-scrape.yaml
   - rules/topolvm-alertrule.yaml
 patchesStrategicMerge:
