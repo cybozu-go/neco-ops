@@ -511,14 +511,20 @@ func testVMCustomResources(t *testing.T) {
 	expectedSmallsetServiceScrapes := []string{
 		"kube-state-metrics",
 		"kubernetes",
+		"vmalertmanager",
+		"vmsingle-smallset",
 	}
 	expectedSmallsetPodScrapes := []string{
 		"topolvm",
+		"victoriametrics-operator",
+		"vmagent-smallset",
+		"vmalert-smallset",
 	}
 	expectedSmallsetProbes := []string{}
 	expectedSmallsetRules := []string{
 		"kube-state-metrics",
 		"kubernetes",
+		"monitoring",
 		"topolvm",
 	}
 

@@ -11,7 +11,7 @@ spec:
       rules:
         - alert: AvailableBytesHighUtilizationInShortTerm
           expr: |
-            sum(predict_linear(topolvm_volumegroup_available_bytes[1h], 3600*24)) without (instance,node) <= 0
+            sum(predict_linear(topolvm_volumegroup_available_bytes[1h], 3600*24)) by (device_class) <= 0
           labels:
             severity: warning
           for: 10m
@@ -20,7 +20,7 @@ spec:
             runbook: Please check the disk utilization of applications and contact the developer team.
         - alert: AvailableBytesHighUtilizationInLongTerm
           expr: |
-            sum(predict_linear(topolvm_volumegroup_available_bytes[1h], 3600*24*30)) without (instance,node) <= 0
+            sum(predict_linear(topolvm_volumegroup_available_bytes[1h], 3600*24*30)) by (device_class) <= 0
           labels:
             severity: warning
           for: 1h
