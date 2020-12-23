@@ -7,9 +7,9 @@ metadata:
 spec:
   acme:
     externalAccountBinding:
-      keyID: wwxKZVO5df00sc1950lnjQ
+      keyID: DPHXf32ALIr3ppIZoEgqNw
       keySecretRef:
-        name: zero-ssl-eabsecret-20201221
+        name: zero-ssl-eabsecret-20201223
         key: eab-hmac-key
       keyAlgorithm: HS256
     email: neco@cybozu.com
