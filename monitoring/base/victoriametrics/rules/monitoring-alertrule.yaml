@@ -1,0 +1,56 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: monitoring
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  groups:
+    - name: monitoring
+      rules:
+      - alert: VMOperatorDown
+        annotations:
+          summary: VictoriaMetrics operator has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="victoriametrics-operator"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMAlertmanagerDown
+        annotations:
+          summary: VMAlertmanager has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmalertmanager"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMAgentSmallsetDown
+        annotations:
+          summary: VMAgent for smallset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmagent-smallset"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMAlertSmallsetDown
+        annotations:
+          summary: VMAlert for smallset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmalert-smallset"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMSingleSmallsetDown
+        annotations:
+          summary: VMSingle for smallset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmsingle-smallset"} == 1)
+        for: 15m
+        labels:
+          severity: minor

@@ -1,0 +1,109 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: victoriametrics-operator
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      control-plane: victoriametrics-operator
+  podMetricsEndpoints:
+  - port: http
+    relabelConfigs:
+      - replacement: victoriametrics-operator
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_pod_container_name]
+        regex: manager
+        action: keep
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vmalertmanager
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: vmalertmanager
+      app.kubernetes.io/name: vmalertmanager
+      managed-by: vm-operator
+  endpoints:
+  - port: web
+    relabelConfigs:
+      - replacement: vmalertmanager
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: vmagent-smallset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: vmagent-smallset
+      app.kubernetes.io/name: vmagent
+      managed-by: vm-operator
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: vmagent-smallset
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_pod_container_name]
+        regex: vmagent
+        action: keep
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: vmalert-smallset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: vmalert-smallset
+      app.kubernetes.io/name: vmalert
+      managed-by: vm-operator
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: vmalert-smallset
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_pod_container_name]
+        regex: vmalert
+        action: keep
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vmsingle-smallset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: vmsingle-smallset
+      app.kubernetes.io/name: vmsingle
+      managed-by: vm-operator
+  endpoints:
+  - port: http
+    relabelConfigs:
+      - replacement: vmsingle-smallset
+        targetLabel: job

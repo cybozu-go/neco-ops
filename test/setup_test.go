@@ -363,6 +363,27 @@ func applyAndWaitForApplications(commitID string) {
 				continue
 			}
 
+			// TODO: remove this block when the following PR is released.
+			// https://github.com/cybozu-go/neco-apps/pull/966
+			if doUpgrade && app.Name == "sandbox" {
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "sandbox", "get", "svc", "grafana", "-o", "json")
+				if err != nil {
+					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", appStdout, stderr, err)
+				}
+
+				var svc corev1.Service
+				err = json.Unmarshal(stdout, &svc)
+				if err != nil {
+					return fmt.Errorf("stdout: %v, err: %v", stdout, err)
+				}
+				if svc.Spec.Type != corev1.ServiceTypeClusterIP {
+					stdout, stderr, err = ExecAt(boot0, "kubectl", "delete", "-n", "sandbox", "svc", "grafana")
+					if err != nil {
+						return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+					}
+				}
+			}
+
 			// In upgrade test, syncing network-policy app may cause temporal network disruption.
 			// It leads to ArgoCD's improper behavior. In spite of the network-policy app becomes Synced/Healthy, the operation does not end.
 			// So terminate the unexpected operation manually in upgrade test.

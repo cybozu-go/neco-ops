@@ -7,8 +7,41 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 )
+
+var sandboxGrafanaFQDN = testID + "-sandbox-grafana.gcp0.dev-ne.co"
+
+func prepareSandboxGrafanaIngress() {
+	It("should create HTTPProxy for Sandbox Grafana", func() {
+		manifest := fmt.Sprintf(`
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: grafana-test
+  namespace: sandbox
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: bastion
+spec:
+  virtualhost:
+    fqdn: %s
+    tls:
+      secretName: grafana-tls
+  routes:
+    - conditions:
+        - prefix: /
+      timeoutPolicy:
+        response: 2m
+        idle: 5m
+      services:
+        - name: grafana
+          port: 3000
+`, sandboxGrafanaFQDN)
+
+		_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
+	})
+}
 
 func testSandboxGrafana() {
 	It("should be deployed successfully", func() {
@@ -29,20 +62,17 @@ func testSandboxGrafana() {
 			}
 			return nil
 		}).Should(Succeed())
+
+		By("confirming created Certificate")
+		Eventually(func() error {
+			return checkCertificate("grafana-test", "sandbox")
+		}).Should(Succeed())
 	})
 
 	It("should have data sources and dashboards", func() {
-		By("getting external IP of grafana service")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=sandbox", "get", "services", "grafana", "-o=json")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-		service := new(corev1.Service)
-		err = json.Unmarshal(stdout, service)
-		Expect(err).NotTo(HaveOccurred())
-		loadBalancerIP := service.Status.LoadBalancer.Ingress[0].IP
-
 		By("getting admin stats from grafana")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", loadBalancerIP+":3000/api/admin/stats")
+			stdout, stderr, err := ExecAt(boot0, "curl", "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", sandboxGrafanaFQDN+"/api/admin/stats")
 			if err != nil {
 				return fmt.Errorf("unable to get admin stats, stderr: %s, err: %v", stderr, err)
 			}

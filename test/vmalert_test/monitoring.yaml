@@ -1,0 +1,69 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/monitoring-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="victoriametrics-operator"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMOperatorDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VictoriaMetrics operator has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmalertmanager"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMAlertmanagerDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMAlertmanager has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmagent-smallset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMAgentSmallsetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMAgent for smallset has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmalert-smallset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMAlertSmallsetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMAlert for smallset has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmsingle-smallset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMSingleSmallsetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMSingle for smallset has disappeared.
