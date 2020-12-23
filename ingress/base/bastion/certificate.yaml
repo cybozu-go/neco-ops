@@ -1,4 +1,4 @@
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: contour-tls
@@ -9,7 +9,7 @@ spec:
     - contour.ingress-bastion
     - contour.ingress-bastion.svc
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: envoy-tls

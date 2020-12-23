@@ -3,7 +3,7 @@
 # adding an extended key usage for TLS server authentication.  Otherwise,
 # envoy Pods would not become ready.
 
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: contour-selfsign
@@ -13,7 +13,7 @@ metadata:
 spec:
   selfSigned: {}
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: contour-ca
@@ -32,7 +32,7 @@ spec:
     - key encipherment
     - cert sign
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: contour-ca
@@ -41,7 +41,7 @@ spec:
   ca:
     secretName: contourcert-ca
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: contour-tls
@@ -63,7 +63,7 @@ spec:
     - server auth
     - client auth
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: envoy-tls

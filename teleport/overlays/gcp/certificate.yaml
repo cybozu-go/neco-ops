@@ -1,4 +1,4 @@
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: teleport-proxy-selfsign
@@ -8,7 +8,7 @@ metadata:
 spec:
   selfSigned: {}
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: teleport-proxy-ca
@@ -27,7 +27,7 @@ spec:
     - key encipherment
     - cert sign
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: teleport-proxy-ca
@@ -38,7 +38,7 @@ spec:
   ca:
     secretName: teleport-proxy-ca
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: teleport-proxy-tls
