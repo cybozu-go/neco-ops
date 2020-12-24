@@ -3,6 +3,7 @@ How to maintain neco-apps
 
 - [argocd](#argocd)
 - [cert-manager](#cert-manager)
+- [dex](#dex)
 - [elastic (ECK)](#elastic-eck)
 - [external-dns](#external-dns)
 - [ingress (Contour & Envoy)](#ingress-contour--envoy)
@@ -47,6 +48,14 @@ $ curl -sLf -o cert-manager/base/upstream/cert-manager.yaml https://github.com/j
 $ vi cert-manager/base/upstream/cert-manager.yaml
   (Remove Namespace resources)
 ```
+
+## dex
+
+As dex is OIDC used for ArgoCD, this should be upgraded with ArgoCD SSO login.
+However, if it needs to be upgraded alone for some reason, confirm ArgoCD SSO login is still possible after it is staged through the web browser and cli by the following procedure.
+
+1. access to the url, https://argocd.stage0.cybozu-ne.co/login, from your web browser
+2. run the command, `argocd login argocd.stage0.cybozu-ne.co --sso`
 
 ## elastic (ECK)
 
