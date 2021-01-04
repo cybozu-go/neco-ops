@@ -533,6 +533,7 @@ func testVMCustomResources(t *testing.T) {
 	expectedSmallsetServiceScrapes := []string{
 		"kube-state-metrics",
 		"kubernetes",
+		"registry",
 		"rook",
 		"vmagent-smallset",
 		"vmalert-smallset",
