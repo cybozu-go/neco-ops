@@ -47,7 +47,7 @@ metadata:
 spec:
   image:
     repository: quay.io/cybozu/victoriametrics-vmagent
-    tag: 1.47.0.1
+    tag: 1.51.0.1
   containers:
     - name: config-reloader
       image: quay.io/cybozu/prometheus-config-reloader:0.43.2.1

@@ -9,9 +9,14 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 )
 
-func testCustomerEgress() {
-	var podName = "customer-egress-test"
-	var podYAML = fmt.Sprintf(`apiVersion: v1
+var (
+	podName               = "ubuntu"
+	podWithAnnotationName = "ubuntu-with-nat-annotation"
+)
+
+func prepareCustomerEgress() {
+	It("should create ubuntu pod on sandbox ns", func() {
+		podYAML := fmt.Sprintf(`apiVersion: v1
 kind: Pod
 metadata:
   name: %s
@@ -21,9 +26,13 @@ spec:
   - args:
     - pause
     image: quay.io/cybozu/ubuntu-debug:18.04
-    name: ubuntu
-`, podName)
-	var podYAMLWIthAnnotation = fmt.Sprintf(`apiVersion: v1
+    name: ubuntu`, podName)
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAML), "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	})
+
+	It("should create ubuntu pod with annotation on sandbox ns", func() {
+		podYAMLWIthAnnotation := fmt.Sprintf(`apiVersion: v1
 kind: Pod
 metadata:
   name: %s
@@ -35,9 +44,13 @@ spec:
   - args:
     - pause
     image: quay.io/cybozu/ubuntu-debug:18.04
-    name: ubuntu
-`, podName)
+    name: ubuntu`, podWithAnnotationName)
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAMLWIthAnnotation), "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	})
+}
 
+func testCustomerEgress() {
 	It("should deploy squid successfully", func() {
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=customer-egress",
@@ -59,10 +72,6 @@ spec:
 	})
 
 	It("should serve proxy to the Internet", func() {
-		By("creating ubuntu pod on sandbox ns")
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAML), "kubectl", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-
 		By("executing curl to web page on the Internet with squid")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "-nsandbox", "exec", podName, "--", "curl", "-sf", "--proxy", "http://squid.customer-egress.svc:3128", "cybozu.com")
@@ -71,10 +80,6 @@ spec:
 			}
 			return nil
 		}).Should(Succeed())
-
-		By("deleting ubuntu pod on sandbox ns")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "-nsandbox", "delete", "pod", podName)
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 	})
 
 	It("should deploy coil egress successfully", func() {
@@ -96,13 +101,9 @@ spec:
 			return nil
 		}).Should(Succeed())
 
-		By("creating ubuntu pod on sandbox ns")
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAMLWIthAnnotation), "kubectl", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-
 		By("executing curl to web page on the Internet without squid")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "-nsandbox", "exec", podName, "--", "curl", "-sf", "cybozu.com")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-nsandbox", "exec", podWithAnnotationName, "--", "curl", "-sf", "cybozu.com")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -110,7 +111,9 @@ spec:
 		}).Should(Succeed())
 
 		By("deleting ubuntu pod on sandbox ns")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "-nsandbox", "delete", "pod", podName)
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		for _, name := range []string{podName, podWithAnnotationName} {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-nsandbox", "delete", "pod", name)
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		}
 	})
 }

@@ -69,6 +69,7 @@ var _ = Describe("Test applications", func() {
 	Context("preparing grafana-operator", prepareGrafanaOperator)
 	Context("preparing sandbox grafana", prepareSandboxGrafanaIngress)
 	Context("preparing topolvm", prepareTopoLVM)
+	Context("preparing cursotmer-egress", prepareCustomerEgress)
 	Context("preparing network-policy", prepareNetworkPolicy) // this must be the last preparation.
 
 	// running tests
