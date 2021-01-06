@@ -87,6 +87,10 @@ stringData:
 
 func prepareNodes() {
 	It("should increase worker nodes", func() {
+		Eventually(func() error {
+			_, _, err := ExecAt(boot0, "ckecli", "cluster", "get")
+			return err
+		}).Should(Succeed())
 		ExecSafeAt(boot0, "ckecli", "constraints", "set", "minimum-workers", "4")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "nodes", "-o", "json")
@@ -259,6 +263,19 @@ func testSetup() {
 		proxyURL := fmt.Sprintf("http://%s:3128", proxyIP)
 		ExecSafeAt(boot0, "neco", "config", "set", "proxy", proxyURL)
 		ExecSafeAt(boot0, "neco", "config", "set", "node-proxy", proxyURL)
+
+		// "neco config set" restarts neco-worker which may do something on the system.
+		// To avoid surprises, sleep a shile.
+		time.Sleep(20 * time.Second)
+
+		Eventually(func() error {
+			_, _, err := ExecAt(boot0, "sabactl", "machines", "get")
+			if err != nil {
+				return err
+			}
+			_, _, err = ExecAt(boot0, "ckecli", "cluster", "get")
+			return err
+		}).Should(Succeed())
 
 		necoVersion := string(ExecSafeAt(boot0, "dpkg-query", "-W", "-f", "'${Version}'", "neco"))
 		rolePaths := strings.Fields(string(ExecSafeAt(boot0, "ls", "/usr/share/neco/ignitions/roles/*/site.yml")))
