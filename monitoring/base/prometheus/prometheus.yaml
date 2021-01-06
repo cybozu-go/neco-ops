@@ -1,6 +1,6 @@
 global:
-  scrape_interval: 5s
-  evaluation_interval: 5s
+  scrape_interval: 30s
+  evaluation_interval: 30s
 rule_files:
   # Record rules
   - /etc/prometheus/record_rules.yaml
