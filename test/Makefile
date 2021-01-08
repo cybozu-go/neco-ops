@@ -41,7 +41,6 @@ install.yaml: $(shell find ../argocd/base)
 	$(KUSTOMIZE) build ../argocd/base/ > install.yaml
 
 validation:
-	./fetch-secret.sh
 	env SSH_PRIVKEY= go test -v ./validation_test.go
 
 .PHONY: test-alert-rules
