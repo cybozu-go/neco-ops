@@ -21,10 +21,6 @@ spec:
     relabelConfigs:
       - replacement: kubernetes-apiservers
         targetLabel: job
-      - sourceLabels: [__address__]
-        regex: ([^:]+)(?::\d+)?
-        action: replace
-        targetLabel: instance
   - port: https
     scheme: http
     relabelConfigs:
@@ -36,8 +32,6 @@ spec:
         replacement: ${1}:10252
         targetLabel: __address__
       - sourceLabels: [__address__]
-        regex: ([^:]+)(?::\d+)?
-        action: replace
         targetLabel: instance
   - port: https
     scheme: http
@@ -50,6 +44,54 @@ spec:
         replacement: ${1}:10251
         targetLabel: __address__
       - sourceLabels: [__address__]
-        regex: ([^:]+)(?::\d+)?
-        action: replace
         targetLabel: instance
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: kubernetes-nodes
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  scheme: https
+  tlsConfig:
+    caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  relabelConfigs:
+    - replacement: kubernetes-nodes
+      targetLabel: job
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_cke_cybozu_com_(.+)
+      replacement: cke_${1}
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_sabakan_cke_cybozu_com_(.+)
+      replacement: sabakan_${1}
+    - targetLabel: __address__
+      replacement: kubernetes.default.svc:443
+    - sourceLabels: [__meta_kubernetes_node_name]
+      targetLabel: __metrics_path__
+      replacement: /api/v1/nodes/${1}/proxy/metrics
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: kubernetes-cadvisor
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  scheme: https
+  tlsConfig:
+    caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  relabelConfigs:
+    - replacement: kubernetes-cadvisor
+      targetLabel: job
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - targetLabel: __address__
+      replacement: kubernetes.default.svc:443
+    - sourceLabels: [__meta_kubernetes_node_name]
+      targetLabel: __metrics_path__
+      replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor

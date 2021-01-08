@@ -489,6 +489,8 @@ type VMAgent struct {
 		ServiceScrapeNamespaceSelector *metav1.LabelSelector `json:"serviceScrapeNamespaceSelector,omitempty"`
 		PodScrapeSelector              *metav1.LabelSelector `json:"podScrapeSelector,omitempty"`
 		PodScrapeNamespaceSelector     *metav1.LabelSelector `json:"podScrapeNamespaceSelector,omitempty"`
+		NodeScrapeSelector             *metav1.LabelSelector `json:"nodeScrapeSelector,omitempty"`
+		NodeScrapeNamespaceSelector    *metav1.LabelSelector `json:"nodeScrapeNamespaceSelector,omitempty"`
 		ProbeSelector                  *metav1.LabelSelector `json:"probeSelector,omitempty"`
 		ProbeNamespaceSelector         *metav1.LabelSelector `json:"probeNamespaceSelector,omitempty"`
 	} `json:"spec"`
@@ -521,6 +523,10 @@ func testVMCustomResources(t *testing.T) {
 		"vmagent-smallset",
 		"vmalert-smallset",
 	}
+	expectedSmallsetNodeScrapes := []string{
+		"kubernetes-cadvisor",
+		"kubernetes-nodes",
+	}
 	expectedSmallsetProbes := []string{}
 	expectedSmallsetRules := []string{
 		"kube-state-metrics",
@@ -540,6 +546,7 @@ func testVMCustomResources(t *testing.T) {
 
 	var serviceScrapes []resourceMeta
 	var podScrapes []resourceMeta
+	var nodeScrapes []resourceMeta
 	var probes []resourceMeta
 	var rules []resourceMeta
 
@@ -557,6 +564,8 @@ func testVMCustomResources(t *testing.T) {
 			serviceScrapes = append(serviceScrapes, r)
 		case "VMPodScrape":
 			podScrapes = append(podScrapes, r)
+		case "VMNodeScrape":
+			nodeScrapes = append(nodeScrapes, r)
 		case "VMProbe":
 			probes = append(probes, r)
 		case "VMRule":
@@ -632,6 +641,7 @@ func testVMCustomResources(t *testing.T) {
 
 	if !reflect.DeepEqual(smallsetVMAgent.Spec.ServiceScrapeNamespaceSelector, &expectedNamespaceSelector) ||
 		!reflect.DeepEqual(smallsetVMAgent.Spec.PodScrapeNamespaceSelector, &expectedNamespaceSelector) ||
+		!reflect.DeepEqual(smallsetVMAgent.Spec.NodeScrapeNamespaceSelector, &expectedNamespaceSelector) ||
 		!reflect.DeepEqual(smallsetVMAgent.Spec.ProbeNamespaceSelector, &expectedNamespaceSelector) ||
 		!reflect.DeepEqual(smallsetVMAlert.Spec.RuleNamespaceSelector, &expectedNamespaceSelector) {
 		t.Errorf("bad namespace selector")
@@ -656,6 +666,12 @@ func testVMCustomResources(t *testing.T) {
 			Selector: smallsetVMAgent.Spec.PodScrapeSelector,
 			Objects:  podScrapes,
 			Expected: expectedSmallsetPodScrapes,
+		},
+		{
+			Name:     "VMNodeScrape",
+			Selector: smallsetVMAgent.Spec.NodeScrapeSelector,
+			Objects:  nodeScrapes,
+			Expected: expectedSmallsetNodeScrapes,
 		},
 		{
 			Name:     "VMProbe",

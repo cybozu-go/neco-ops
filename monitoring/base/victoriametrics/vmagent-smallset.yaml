@@ -63,15 +63,18 @@ spec:
   podScrapeSelector:
     matchLabels:
       smallset: "true"
+  nodeScrapeNamespaceSelector:
+    matchLabels:
+      team: neco
+  nodeScrapeSelector:
+    matchLabels:
+      smallset: "true"
   probeNamespaceSelector:
     matchLabels:
       team: neco
   probeSelector:
     matchLabels:
       smallset: "true"
-  additionalScrapeConfigs:
-    name: vmagent-smallset-additional-scrape-configs
-    key: vmagent-smallset-additional-scrape-configs.yaml
   replicaCount: 2
   serviceAccountName: vmagent-smallset
   remoteWrite:

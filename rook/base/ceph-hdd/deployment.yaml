@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: rook-ceph-operator
-        image: "quay.io/cybozu/rook:1.4.6.2"
+        image: "quay.io/cybozu/rook:1.5.4.1"
         imagePullPolicy: IfNotPresent
         args: ["ceph", "operator"]
         env:
@@ -43,6 +43,8 @@ spec:
           value: ""
         - name: CSI_PROVISIONER_PRIORITY_CLASSNAME
           value: ""
+        - name: CSI_ENABLE_OMAP_GENERATOR
+          value: "false"
         - name: ROOK_CSI_ENABLE_GRPC_METRICS
           value: "true"
         - name: CSI_RBD_GRPC_METRICS_PORT
@@ -76,5 +78,4 @@ spec:
           requests:
             cpu: 100m
             memory: 256Mi
-          
       serviceAccountName: rook-ceph-system

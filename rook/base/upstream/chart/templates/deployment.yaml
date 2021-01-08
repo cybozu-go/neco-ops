@@ -92,6 +92,10 @@ spec:
         - name: DISCOVER_AGENT_NODE_AFFINITY
           value: {{ .Values.discover.nodeAffinity }}
 {{- end }}
+{{- if .Values.discover.podLabels }}
+        - name: DISCOVER_AGENT_POD_LABELS
+          value: {{ .Values.discover.podLabels }}
+{{- end }}
 {{- end }}
         - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
           value: "{{ .Values.hostpathRequiresPrivileged }}"
@@ -110,6 +114,8 @@ spec:
           value: {{ .Values.csi.pluginPriorityClassName | quote }}
         - name: CSI_PROVISIONER_PRIORITY_CLASSNAME
           value: {{ .Values.csi.provisionerPriorityClassName | quote }}
+        - name: CSI_ENABLE_OMAP_GENERATOR
+          value: {{ .Values.csi.enableOMAPGenerator | quote }}
 {{- if .Values.csi.cephFSPluginUpdateStrategy }}
         - name: CSI_CEPHFS_PLUGIN_UPDATE_STRATEGY
           value: {{ .Values.csi.cephFSPluginUpdateStrategy | quote }}
@@ -159,6 +165,14 @@ spec:
         - name: ROOK_CSI_RESIZER_IMAGE
           value: {{ .Values.csi.resizer.image | quote }}
 {{- end }}
+{{- end }}
+{{- if .Values.csi.cephfsPodLabels }}
+        - name: ROOK_CSI_CEPHFS_POD_LABELS
+          value: {{ .Values.csi.cephfsPodLabels | quote }}
+{{- end }}
+{{- if .Values.csi.rbdPodLabels }}
+        - name: ROOK_CSI_RBD_POD_LABELS
+          value: {{ .Values.csi.rbdPodLabels | quote }}
 {{- end }}
 {{- if .Values.csi.provisionerTolerations }}
         - name: CSI_PROVISIONER_TOLERATIONS
@@ -240,6 +254,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+{{- if .Values.admissionController }}
+{{- if .Values.admissionController.tolerations }}
+        - name: ADMISSION_CONTROLLER_TOLERATIONS
+          value: {{ toYaml .Values.admissionController.tolerations | quote }}
+{{- end }}
+{{- if .Values.admissionController.nodeAffinity }}
+        - name: ADMISSION_CONTROLLER_NODE_AFFINITY
+          value: {{ .Values.admissionController.nodeAffinity }}
+{{- end }}
+{{- end }}
 {{- if .Values.unreachableNodeTolerationSeconds }}
         - name: ROOK_UNREACHABLE_NODE_TOLERATION_SECONDS
           value: {{ .Values.unreachableNodeTolerationSeconds | quote }}

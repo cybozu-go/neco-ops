@@ -1,9 +1,8 @@
 ---
 # Source: rook-ceph/templates/clusterrolebinding.yaml
-
 # Grant the rook system daemons cluster-wide access to manage the Rook CRDs, PVCs, and storage classes
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-global
   labels:
@@ -19,9 +18,10 @@ subjects:
   name: rook-ceph-system
   namespace: ceph-hdd
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 # Allow the ceph mgr to access cluster-wide resources necessary for the mgr modules
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-mgr-cluster
 roleRef:
@@ -33,9 +33,10 @@ subjects:
   name: rook-ceph-mgr
   namespace: ceph-hdd
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 # Allow the ceph osd to access cluster-wide resources necessary for determining their topology location
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-osd
 roleRef:
@@ -47,8 +48,9 @@ subjects:
   name: rook-ceph-osd
   namespace: ceph-hdd
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-object-bucket
 roleRef:
@@ -60,6 +62,7 @@ subjects:
     name: rook-ceph-system
     namespace: ceph-hdd
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -73,6 +76,7 @@ roleRef:
   name: cephfs-csi-nodeplugin
   apiGroup: rbac.authorization.k8s.io
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -86,6 +90,7 @@ roleRef:
   name: cephfs-external-provisioner-runner
   apiGroup: rbac.authorization.k8s.io
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -99,6 +104,7 @@ roleRef:
   name: rbd-external-provisioner-runner
   apiGroup: rbac.authorization.k8s.io
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -116,6 +122,110 @@ subjects:
     name: rook-ceph-system
     namespace: ceph-hdd
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-ceph-system-psp-users
+  labels:
+    operator: rook
+    storage-backend: ceph
+    chart: "rook-ceph-0.0.1"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rook-ceph-system-psp-user
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-system
+  namespace: ceph-hdd
+---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-csi-cephfs-provisioner-sa-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: 'psp:rook'
+subjects:
+  - kind: ServiceAccount
+    name: rook-csi-cephfs-provisioner-sa
+    namespace: ceph-hdd
+---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-csi-cephfs-plugin-sa-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: 'psp:rook'
+subjects:
+  - kind: ServiceAccount
+    name: rook-csi-cephfs-plugin-sa
+    namespace: ceph-hdd
+---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-csi-rbd-plugin-sa-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: 'psp:rook'
+subjects:
+  - kind: ServiceAccount
+    name: rook-csi-rbd-plugin-sa
+    namespace: ceph-hdd
+---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-csi-rbd-provisioner-sa-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: 'psp:rook'
+subjects:
+  - kind: ServiceAccount
+    name: rook-csi-rbd-provisioner-sa
+    namespace: ceph-hdd
+---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbd-csi-nodeplugin
+subjects:
+  - kind: ServiceAccount
+    name: rook-csi-rbd-plugin-sa
+    namespace: ceph-hdd
+roleRef:
+  kind: ClusterRole
+  name: rbd-csi-nodeplugin
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rook-ceph-admission-controller-rolebinding
+subjects:
+  - kind: ServiceAccount
+    name: rook-ceph-admission-controller
+    apiGroup: ""
+    namespace: ceph-hdd
+roleRef:
+  kind: ClusterRole
+  name: rook-ceph-admission-controller-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -134,88 +244,7 @@ subjects:
     name: default
     namespace: ceph-hdd
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: rook-ceph-system-psp-users
-  labels:
-    operator: rook
-    storage-backend: ceph
-    chart: "rook-ceph-0.0.1"
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: rook-ceph-system-psp-user
-subjects:
-- kind: ServiceAccount
-  name: rook-ceph-system
-  namespace: ceph-hdd
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: rook-csi-cephfs-provisioner-sa-psp
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: 'psp:rook'
-subjects:
-  - kind: ServiceAccount
-    name: rook-csi-cephfs-provisioner-sa
-    namespace: ceph-hdd
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: rook-csi-cephfs-plugin-sa-psp
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: 'psp:rook'
-subjects:
-  - kind: ServiceAccount
-    name: rook-csi-cephfs-plugin-sa
-    namespace: ceph-hdd
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: rook-csi-rbd-plugin-sa-psp
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: 'psp:rook'
-subjects:
-  - kind: ServiceAccount
-    name: rook-csi-rbd-plugin-sa
-    namespace: ceph-hdd
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: rook-csi-rbd-provisioner-sa-psp
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: 'psp:rook'
-subjects:
-  - kind: ServiceAccount
-    name: rook-csi-rbd-provisioner-sa
-    namespace: ceph-hdd
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: rbd-csi-nodeplugin
-subjects:
-  - kind: ServiceAccount
-    name: rook-csi-rbd-plugin-sa
-    namespace: ceph-hdd
-roleRef:
-  kind: ClusterRole
-  name: rbd-csi-nodeplugin
-  apiGroup: rbac.authorization.k8s.io
----
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -230,6 +259,7 @@ subjects:
     name: rook-ceph-osd
     namespace: ceph-hdd
 ---
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -244,20 +274,7 @@ subjects:
     name: rook-ceph-mgr
     namespace: ceph-hdd
 ---
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: rook-ceph-admission-controller-rolebinding
-subjects:
-  - kind: ServiceAccount
-    name: rook-ceph-admission-controller
-    apiGroup: ""
-    namespace: ceph-hdd
-roleRef:
-  kind: ClusterRole
-  name: rook-ceph-admission-controller-role
-  apiGroup: rbac.authorization.k8s.io
----
+# Source: rook-ceph/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -271,5 +288,3 @@ subjects:
   - kind: ServiceAccount
     name: rook-ceph-cmd-reporter
     namespace: ceph-hdd
-
-

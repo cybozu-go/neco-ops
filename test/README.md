@@ -5,10 +5,9 @@ dctest
 ------
 
 1. Set `NECO_DIR` environment variable to point the directory for `github.com/cybozu-go/neco`
-2. Set `SECRET_DIR` environment variable to point the directory for `github.com/cybozu-private/neco-apps-secret`
-3. Place `account.json` file for GCP Cloud DNS in this directory.
-4. Push the current feature branch to GitHub.
-5. Prepare dctest environment using `github.com/cybozu-go/neco/dctest` and `github.com/cybozu-private/neco-apps-secret`
+2. Place `account.json` file for GCP Cloud DNS in this directory.
+3. Push the current feature branch to GitHub.
+4. Prepare dctest environment using `github.com/cybozu-go/neco/dctest`.
 
     ```console
     # In this case, menu-ss.yml should be used.
@@ -17,7 +16,7 @@ dctest
     make -C ${NECO_DIR}/dctest test SUITE=bootstrap
     ```
 
-6. Run following commands to setup Argo CD and run tests.
+5. Run following commands to setup Argo CD and run tests.
 
     ```console
     cd test

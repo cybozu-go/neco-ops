@@ -16,8 +16,3 @@ spec:
     relabelConfigs:
       - replacement: rook
         targetLabel: job
-      - sourceLabels: [__address__]
-        regex: ([^:]+)(?::\d+)?
-        action: replace
-        replacement: ${1}
-        targetLabel: instance

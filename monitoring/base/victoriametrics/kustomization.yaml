@@ -24,10 +24,5 @@ configMapGenerator:
   - name: vmalertmanager
     files:
       - neco.template
-secretGenerator:
-  - name: vmagent-smallset-additional-scrape-configs
-    namespace: monitoring
-    files:
-      - vmagent-smallset-additional-scrape-configs.yaml
 configurations:
 - kustomizeconfig.yaml

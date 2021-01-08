@@ -1,11 +1,8 @@
-
----
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.0
-  creationTimestamp: null
   name: vmservicescrapes.operator.victoriametrics.com
 spec:
   group: operator.victoriametrics.com
@@ -38,6 +35,16 @@ spec:
         spec:
           description: VMServiceScrapeSpec defines the desired state of VMServiceScrape
           properties:
+            discoveryRole:
+              description: 'DiscoveryRole - defines kubernetes_sd role for objects
+                discovery. by default, its endpoints. can be changed to service or
+                endpointslices. note, that with service setting, you have to use port:
+                "name" and cannot use targetPort for endpoints.'
+              enum:
+              - endpoints
+              - service
+              - endpointslices
+              type: string
             endpoints:
               description: A list of endpoints allowed as part of this ServiceScrape.
               items:
@@ -151,6 +158,14 @@ spec:
                           description: Separator placed between concatenated source
                             label values. default is ';'.
                           type: string
+                        source_labels:
+                          description: UnderScoreSourceLabels - additional form of
+                            source labels source_labels for compatibility with original
+                            relabel config. if set  both sourceLabels and source_labels,
+                            sourceLabels has priority. for details https://github.com/VictoriaMetrics/operator/issues/131
+                          items:
+                            type: string
+                          type: array
                         sourceLabels:
                           description: The source labels select values from existing
                             labels. Their content is concatenated using the configured
@@ -159,6 +174,12 @@ spec:
                           items:
                             type: string
                           type: array
+                        target_label:
+                          description: UnderScoreTargetLabel - additional form of
+                            target label - target_label for compatibility with original
+                            relabel config. if set  both targetLabel and target_label,
+                            targetLabel has priority. for details https://github.com/VictoriaMetrics/operator/issues/131
+                          type: string
                         targetLabel:
                           description: Label to which the resulting value is written
                             in a replace action. It is mandatory for replace actions.
@@ -215,6 +236,14 @@ spec:
                           description: Separator placed between concatenated source
                             label values. default is ';'.
                           type: string
+                        source_labels:
+                          description: UnderScoreSourceLabels - additional form of
+                            source labels source_labels for compatibility with original
+                            relabel config. if set  both sourceLabels and source_labels,
+                            sourceLabels has priority. for details https://github.com/VictoriaMetrics/operator/issues/131
+                          items:
+                            type: string
+                          type: array
                         sourceLabels:
                           description: The source labels select values from existing
                             labels. Their content is concatenated using the configured
@@ -223,6 +252,12 @@ spec:
                           items:
                             type: string
                           type: array
+                        target_label:
+                          description: UnderScoreTargetLabel - additional form of
+                            target label - target_label for compatibility with original
+                            relabel config. if set  both targetLabel and target_label,
+                            targetLabel has priority. for details https://github.com/VictoriaMetrics/operator/issues/131
+                          type: string
                         targetLabel:
                           description: Label to which the resulting value is written
                             in a replace action. It is mandatory for replace actions.
@@ -401,7 +436,8 @@ spec:
               format: int64
               type: integer
             selector:
-              description: Selector to select Endpoints objects.
+              description: Selector to select Endpoints objects by corresponding Service
+                labels.
               properties:
                 matchExpressions:
                   description: matchExpressions is a list of label selector requirements.
@@ -464,9 +500,3 @@ spec:
   - name: v1beta1
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

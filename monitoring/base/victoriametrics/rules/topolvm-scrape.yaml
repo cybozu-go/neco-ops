@@ -24,7 +24,4 @@ spec:
         replacement: ${1}:8080
         targetLabel: __address__
       - sourceLabels: [__address__]
-        action: replace
-        regex: ([^:]+)(?::\d+)?
-        replacement: ${1}
         targetLabel: instance
