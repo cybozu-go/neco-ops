@@ -190,8 +190,9 @@ func testApplicationResources(t *testing.T) {
 		"customer-egress":      "8",
 		"neco-admission":       "8",
 		"network-policy":       "9",
-		"ept-apps":             "11",
-		"maneki-apps":          "11",
+		"tenant-apps":          "11",
+		"ept-apps":             "12",
+		"maneki-apps":          "12",
 	}
 
 	necoAppsTargetRevisions := map[string]string{
@@ -210,6 +211,9 @@ func testApplicationResources(t *testing.T) {
 			"osaka0": "release",
 			"stage0": "stage",
 			"tokyo0": "release",
+		},
+		"tenant-apps": {
+			"stage0": "main",
 		},
 	}
 

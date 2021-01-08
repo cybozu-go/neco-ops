@@ -1,18 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ept-apps
+  name: tenant-apps
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "12"
+    argocd.argoproj.io/sync-wave: "11"
   labels:
     is-tenant: "true"
 spec:
-  project: tenant-app-of-apps
+  project: default
   source:
-    repoURL: https://github.com/cybozu-private/ept-apps.git
+    repoURL: https://github.com/cybozu-private/neco-tenant-apps.git
     targetRevision: main
-    path: wiki
+    path: argocd-config
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

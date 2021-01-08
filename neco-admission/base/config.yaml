@@ -14,3 +14,6 @@ ArgoCDApplicationValidator:
       - repository: https://github.com/cybozu-private/neco-apps-secret.git
         projects:
           - default
+      - repository: https://github.com/cybozu-private/neco-tenant-apps.git
+        projects:
+          - default

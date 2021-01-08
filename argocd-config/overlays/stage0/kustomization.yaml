@@ -4,6 +4,7 @@ resources:
 - ../../base
 - ept-apps.yaml
 - maneki-apps.yaml
+- tenant-apps.yaml
 patchesStrategicMerge:
 - argocd-ingress.yaml
 - argocd.yaml
