@@ -3,11 +3,13 @@ kind: Namespace
 metadata:
   name: ceph-hdd
   labels:
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
+    mpod.kb.io/ignore: "true"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: ceph-ssd
   labels:
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
+    mpod.kb.io/ignore: "true"

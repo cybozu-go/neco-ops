@@ -12,12 +12,6 @@ webhooks:
     service:
       name: neco-admission
       namespace: kube-system
-  namespaceSelector:
-    matchExpressions:
-    - key: control-plane
-      operator: NotIn
-      values:
-      - "true"
 - name: mpod.kb.io
   clientConfig:
     caBundle: null
@@ -26,7 +20,7 @@ webhooks:
       namespace: kube-system
   namespaceSelector:
     matchExpressions:
-    - key: control-plane
+    - key: mpod.kb.io/ignore
       operator: NotIn
       values:
       - "true"
@@ -51,12 +45,6 @@ webhooks:
     service:
       name: neco-admission
       namespace: kube-system
-  namespaceSelector:
-    matchExpressions:
-    - key: control-plane
-      operator: NotIn
-      values:
-      - "true"
 - name: vnetworkpolicy.kb.io
   clientConfig:
     caBundle: null
@@ -65,7 +53,7 @@ webhooks:
       namespace: kube-system
   namespaceSelector:
     matchExpressions:
-    - key: control-plane
+    - key: vnetworkpolicy.kb.io/ignore
       operator: NotIn
       values:
       - "true"

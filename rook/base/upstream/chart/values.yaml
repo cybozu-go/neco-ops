@@ -8,6 +8,12 @@ image:
   tag: VERSION
   pullPolicy: IfNotPresent
 
+crds:
+  # Whether the helm chart should create and update the CRDs. If false, the CRDs must be
+  # managed independently with cluster/examples/kubernetes/ceph/crds.yaml.
+  # **WARNING** Only set during first deployment. If later disabled the cluster will be destroyed.
+  enabled: true
+
 resources:
   limits:
     cpu: 500m
@@ -55,6 +61,13 @@ csi:
 
   # (Optional) set user created priorityclassName for csi provisioner pods.
   # provisionerPriorityClassName: system-cluster-critical
+
+  # OMAP generator generates the omap mapping between the PV name and the RBD image
+  # which helps CSI to identify the rbd images for CSI operations.
+  # CSI_ENABLE_OMAP_GENERATOR need to be enabled when we are using rbd mirroring feature.
+  # By default OMAP generator is disabled and when enabled it will be deployed as a
+  # sidecar with CSI provisioner pod, to enable set it to true.
+  enableOMAPGenerator: false
 
   # Set logging level for csi containers.
   # Supported values from 0 to 5. 0 for general useful logs, 5 for trace level verbosity.
@@ -239,20 +252,24 @@ csi:
   #rbdLivenessMetricsPort: 9080
   #kubeletDirPath: /var/lib/kubelet
   #cephcsi:
-    #image: quay.io/cephcsi/cephcsi:v3.1.1
+    #image: quay.io/cephcsi/cephcsi:v3.2.0
   #registrar:
-    #image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
+    #image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.1
   #provisioner:
-    #image: quay.io/k8scsi/csi-provisioner:v1.6.0
+    #image: k8s.gcr.io/sig-storage/csi-provisioner:v2.0.0
   #snapshotter:
-    #image: quay.io/k8scsi/csi-snapshotter:v2.1.1
+    #image: k8s.gcr.io/sig-storage/csi-snapshotter:v3.0.0
   #attacher:
-    #image: quay.io/k8scsi/csi-attacher:v2.1.0
+    #image: k8s.gcr.io/sig-storage/csi-attacher:v3.0.0
   #resizer:
-    #image: quay.io/k8scsi/csi-resizer:v0.4.0
+    #image: k8s.gcr.io/sig-storage/csi-resizer:v1.0.0
+  # Labels to add to the CSI CephFS Deployments and DaemonSets Pods.
+  #cephfsPodLabels: "key1=value1,key2=value2"
+  # Labels to add to the CSI RBD Deployments and DaemonSets Pods.
+  #rbdPodLabels: "key1=value1,key2=value2"
 
 enableFlexDriver: false
-enableDiscoveryDaemon: true
+enableDiscoveryDaemon: false
 
 ## if true, run rook operator on the host network
 # useOperatorHostNetwork: true
@@ -291,6 +308,7 @@ enableDiscoveryDaemon: true
 #     operator: Exists
 #     effect: NoSchedule
 #   nodeAffinity: key1=value1,value2; key2=value3
+#   podLabels: "key1=value1,key2=value2"
 
 # In some situations SELinux relabelling breaks (times out) on large filesystems, and doesn't work with cephfs ReadWriteMany volumes (last relabel wins).
 # Disable it here if you have similar issues.
@@ -313,3 +331,12 @@ discoverDaemonUdev:
 
 # Whether the OBC provisioner should watch on the operator namespace or not, if not the namespace of the cluster will be used
 enableOBCWatchOperatorNamespace: true
+
+admissionController:
+  # Set tolerations and nodeAffinity for admission controller pod.
+  # The admission controller would be best to start on the same nodes as other ceph daemons.
+  # tolerations:
+  #    - key: key
+  #      operator: Exists
+  #      effect: NoSchedule
+  # nodeAffinity: key1=value1,value2; key2=value3

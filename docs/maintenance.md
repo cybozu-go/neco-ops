@@ -276,13 +276,13 @@ Note: Check the number of yaml files.
 ```console
 $ cd $GOPATH/src/github.com/cybozu-go/neco-apps/rook/base
 $ for i in clusterrole psp resources; do
-    ../bin/helm template upstream/chart -f values.yaml -x templates/${i}.yaml > common/${i}.yaml
+    ../bin/helm template upstream/chart -f values.yaml -s templates/${i}.yaml > common/${i}.yaml
   done
 $ for t in hdd ssd; do
     for i in deployment role rolebinding serviceaccount; do
-      ../bin/helm template upstream/chart -f values.yaml -f values-${t}.yaml -x templates/${i}.yaml --namespace ceph-${t} > ceph-${t}/${i}.yaml
+      ../bin/helm template upstream/chart -f values.yaml -f values-${t}.yaml -s templates/${i}.yaml --namespace ceph-${t} > ceph-${t}/${i}.yaml
     done
-    ../bin/helm template upstream/chart -f values.yaml -f values-${t}.yaml -x templates/clusterrolebinding.yaml --namespace ceph-${t} > ceph-${t}/clusterrolebinding/clusterrolebinding.yaml
+    ../bin/helm template upstream/chart -f values.yaml -f values-${t}.yaml -s templates/clusterrolebinding.yaml --namespace ceph-${t} > ceph-${t}/clusterrolebinding/clusterrolebinding.yaml
   done
 ```
 

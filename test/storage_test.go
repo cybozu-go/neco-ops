@@ -119,7 +119,7 @@ spec:
 			}
 
 			if deployment.Status.AvailableReplicas != 2 {
-				return fmt.Errorf("addload-for-cs deployment's AvailableReplica is not 2: %d", int(deployment.Status.AvailableReplicas))
+				return fmt.Errorf("addload-for-cs deployment's AvailableReplicas is not 2: %d", int(deployment.Status.AvailableReplicas))
 			}
 
 			return nil
@@ -139,7 +139,7 @@ spec:
 			}
 
 			if deployment.Status.AvailableReplicas != 2 {
-				return fmt.Errorf("addload-for-ss deployment's AvailableReplica is not 2: %d", int(deployment.Status.AvailableReplicas))
+				return fmt.Errorf("addload-for-ss deployment's AvailableReplicas is not 2: %d", int(deployment.Status.AvailableReplicas))
 			}
 
 			return nil
@@ -254,7 +254,7 @@ func testRookOperator() {
 				}
 
 				if deploy.Status.AvailableReplicas != 1 {
-					return fmt.Errorf("rook operator deployment's AvialbleReplicas is not 1: %d", int(deploy.Status.ReadyReplicas))
+					return fmt.Errorf("rook operator deployment's AvailableReplicas is not 1: %d", int(deploy.Status.AvailableReplicas))
 				}
 				return nil
 			}).Should(Succeed())
@@ -275,7 +275,7 @@ func testRookOperator() {
 				}
 
 				if deploy.Status.AvailableReplicas != 1 {
-					return fmt.Errorf("rook ceph tools deployment's AvialbleReplicas is not 1: %d", int(deploy.Status.ReadyReplicas))
+					return fmt.Errorf("rook ceph tools deployment's AvailableReplicas is not 1: %d", int(deploy.Status.AvailableReplicas))
 				}
 
 				stdout, _, err = ExecAt(boot0, "kubectl", "get", "pod", "--namespace="+ns, "-l", "app=rook-ceph-tools", "-o=json")
@@ -373,9 +373,12 @@ func testClusterStable() {
 						return fmt.Errorf("missing deployment rook version: version=%s name=%s ns=%s", rookVersion, deployment.Name, deployment.Namespace)
 					}
 
-					if deployment.Spec.Replicas == nil || deployment.Status.AvailableReplicas != *deployment.Spec.Replicas {
-						message := fmt.Sprintf("rook's deployment's AvailableReplicas is not expected: name=%s nm=%s %d/%d",
-							deployment.Name, deployment.Namespace, int(deployment.Status.ReadyReplicas), deployment.Spec.Replicas)
+					if deployment.Spec.Replicas == nil {
+						return fmt.Errorf("deployment's spec.replicas == nil: name=%s ns=%s", deployment.Name, deployment.Namespace)
+					}
+					if deployment.Status.AvailableReplicas != *deployment.Spec.Replicas {
+						message := fmt.Sprintf("rook's deployment's AvailableReplicas is not expected: name=%s ns=%s %d/%d",
+							deployment.Name, deployment.Namespace, int(deployment.Status.AvailableReplicas), *deployment.Spec.Replicas)
 						fmt.Fprintln(GinkgoWriter, message)
 						return fmt.Errorf(message)
 					}

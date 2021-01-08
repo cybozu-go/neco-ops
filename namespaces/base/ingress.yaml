@@ -3,8 +3,9 @@ kind: Namespace
 metadata:
   name: ingress-global
   labels:
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
+    mpod.kb.io/ignore: "true"
 
 ---
 apiVersion: v1
@@ -12,8 +13,9 @@ kind: Namespace
 metadata:
   name: ingress-bastion
   labels:
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
+    mpod.kb.io/ignore: "true"
 
 ---
 apiVersion: v1
@@ -21,5 +23,6 @@ kind: Namespace
 metadata:
   name: ingress-forest
   labels:
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
+    mpod.kb.io/ignore: "true"

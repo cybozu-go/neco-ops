@@ -1,9 +1,8 @@
 ---
 # Source: rook-ceph/templates/rolebinding.yaml
-
 # Grant the operator, agent, and discovery agents access to resources in the rook-ceph-system namespace
 kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-system
   namespace: ceph-ssd
@@ -19,9 +18,10 @@ subjects:
   name: rook-ceph-system
   namespace: ceph-ssd
 ---
-  # Allow the operator to create resources in this cluster's namespace
+# Source: rook-ceph/templates/rolebinding.yaml
+# Allow the operator to create resources in this cluster's namespace
 kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-cluster-mgmt
   namespace: ceph-ssd
@@ -34,9 +34,10 @@ subjects:
   name: rook-ceph-system
   namespace: ceph-ssd
 ---
+# Source: rook-ceph/templates/rolebinding.yaml
 # Allow the osd pods in this namespace to work with configmaps
 kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-osd
   namespace: ceph-ssd
@@ -49,9 +50,10 @@ subjects:
   name: rook-ceph-osd
   namespace: ceph-ssd
 ---
+# Source: rook-ceph/templates/rolebinding.yaml
 # Allow the ceph mgr to access the cluster-specific resources necessary for the mgr modules
 kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-mgr
   namespace: ceph-ssd
@@ -64,9 +66,10 @@ subjects:
   name: rook-ceph-mgr
   namespace: ceph-ssd
 ---
+# Source: rook-ceph/templates/rolebinding.yaml
 # Allow the ceph mgr to access the rook system resources necessary for the mgr modules
 kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-mgr-system
   namespace: ceph-ssd
@@ -79,8 +82,9 @@ subjects:
   name: rook-ceph-mgr
   namespace: ceph-ssd
 ---
+# Source: rook-ceph/templates/rolebinding.yaml
 kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-cmd-reporter
   namespace: ceph-ssd
@@ -93,6 +97,7 @@ subjects:
   name: rook-ceph-cmd-reporter
   namespace: ceph-ssd
 ---
+# Source: rook-ceph/templates/rolebinding.yaml
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -107,6 +112,7 @@ roleRef:
   name: cephfs-external-provisioner-cfg
   apiGroup: rbac.authorization.k8s.io
 ---
+# Source: rook-ceph/templates/rolebinding.yaml
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -120,4 +126,3 @@ roleRef:
   kind: Role
   name: rbd-external-provisioner-cfg
   apiGroup: rbac.authorization.k8s.io
-

@@ -7,8 +7,5 @@ account.json
 /bin
 /build
 /neco-apps
-/neco-apps-secret
-expected-secret*.yaml
-current-secret.yaml
 argocd-password.txt
 download/

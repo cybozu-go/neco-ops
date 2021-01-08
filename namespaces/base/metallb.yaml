@@ -3,5 +3,6 @@ kind: Namespace
 metadata:
   name: metallb-system
   labels:
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
+    mpod.kb.io/ignore: "true"

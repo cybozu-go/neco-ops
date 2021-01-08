@@ -1,86 +1,27 @@
 How to write Kubernetes application manifests
 =============================================
 
-Directory tree
---------------
+## Namespace
 
-```console
-.
-├── argocd-config # Argo CD CRD based app configurations
-│   ├── base
-│   │   └── monitoring.yaml # CRD yaml for app "monitoring" configuration includes repository URL and path.
-│   └── overlays
-│       ├── bk
-│       ├── prod
-│       └── stage
-│           ├── kustumization.yaml # Argo CD CRD deployment for stage.
-│           └── monitoring.yaml    # overlays for base/monitoring.yaml.
-├─── namespaces # App "namespaces". All namespaces for neco-apps application is managed in this App.
-├─── secrets # App "secrets". This is dummy secrets for testing. Real secret is located in the private repository.
-├─── monitoring # App "monitoring" deployment manifests.
-|   ├── base
-|   │   ├── deployment.yaml    # Plain manifest files of each K8s object name
-|   │   ├── kustomization.yaml
-|   │   └── service.yaml
-|   └── overlays
-|       ├── dev
-|       ├── prod
-|       └── stage
-|           ├── cpu_count.yaml     # Some tuning
-|           ├── kustomization.yaml
-|           └── proxy.yaml         # NO_PROXY, HTTP_PROXY, HTTPS_PROXY environment variables
-└────── test                       # Ginkgo based deployment test
-...
-```
+### Name
 
-`argocd-config/overlays/stage/kustomization.yaml`
+- Administrators should not create namespace starting with `app-` as the prefix is reserved for tenants.
 
-```yaml
-resources: # It includes all applications for stage.
-- ../../base
-...
+### Labels
 
-patchesStragegicMerge:
-- monitoring.yaml # Argo CD CRD of app "monitoring" for stage.
-```
+- All namespaces should have `team=xxx` labels to clarify their owner.
+- To skip validation/mutation webhook, administrators can use the following special annotations
+  - `mpod.kb.io/ignore: "true"`: With this label, [PodMutator](https://github.com/cybozu/neco-containers/blob/master/admission/README.md#podmutator) is ignored. This label is necessary when the pods in the namespace are required to start without neco-admission webhooks.
+  - `vnetworkpolicy.kb.io/ignore: "true"`: This label enables to ignore [CalicoNetworkPolicyValidator](https://github.com/cybozu/neco-containers/blob/master/admission/README.md#caliconetworkpolicyvalidator). Using this label makes it possible for administrators to set high prioritized network policies for namespaces.
+  - `topolvm.cybozu.com/webhook: ignore`: This label disables using the Topolvm webhook used for persistent volumes provided by Topolvm. Administrators should use this label for the namespaces which should be independent of Topolvm. See more details about the label [here](https://github.com/topolvm/topolvm/blob/master/deploy/README.md#protect-system-namespaces-from-topolvm-webhook).
 
-`argocd-config/overlays/stage/monitoring.yaml`
+### Annotations
 
-```yaml
-# Custom Resource Definition for Argo CD app "monitoring"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/cybozu-go/neco-apps.git
-    targetRevision: release         # branch name
-    path: monitoring/overlays/stage # Path to Kustomize based app path
-    kustomize:
-      namePrefix: stage-
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: default
-```
+- Namespaces can add the following annotations.
+  - `coil.cybozu.com/pool: <address pool name>`: This annotation allows using the specified address pool. See more details [here](https://github.com/cybozu-go/coil/blob/master/docs/usage.md#using-non-default-pools).
 
-`monitoring/overlays/stage/kustomization.yaml`
 
-```yaml
-resources:   # It includes all K8s objects for monitoring.
-- ../../base
-patchesStragegicMerge: # Patches for stage
-- cpu_count.yaml
-- proxy.yaml
-```
 
-`monitoring/base/kustomization.yaml`
+## Secrets
 
-```yaml
-resources:   # It includes all K8s objects for monitoring.
-- deployment.yaml
-- service.yaml
-```
-
-Caveats
--------
-
-- Please do not add sensitive secrets in this repository.
-- When you add `Namespace` manifest for new applications except `team-management` App, please put in `namespaces` App, not in new application tree.
+- Administrators should not add sensitive secrets to this repository.

@@ -4,5 +4,6 @@ metadata:
   name: topolvm-system
   labels:
     app.kubernetes.io/name: topolvm-system
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
+    mpod.kb.io/ignore: "true"

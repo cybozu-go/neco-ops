@@ -1,6 +1,5 @@
 ---
 # Source: rook-ceph/templates/psp.yaml
-
 # PSP for rook-ceph-operator
 
 # Most of the teams follow the kubernetes docs and have these PSPs.
@@ -8,7 +7,7 @@
 # * restricted (for all logged in users)
 #
 # If we name it as `rook-ceph-operator`, it comes next to `restricted` PSP alphabetically,
-# and applies `restricted` capabilities to `rook-system`. Thats reason this is named with `00-rook-ceph-operator`,
+# and applies `restricted` capabilities to `rook-system`. That's reason this is named with `00-rook-ceph-operator`,
 # so it stays somewhere close to top and `rook-system` gets the intended PSP.
 #
 # More info on PSP ordering : https://kubernetes.io/docs/concepts/policy/pod-security-policy/#policy-order
@@ -81,4 +80,3 @@ spec:
     # Ceph mgr Prometheus Metrics
     - min: 9283
       max: 9283
-

@@ -1,8 +1,7 @@
 ---
 # Source: rook-ceph/templates/clusterrole.yaml
-
 # The cluster role for managing all the cluster-specific resources in a namespace
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: rook-ceph-cluster-mgmt
@@ -31,8 +30,9 @@ rules:
   - update
   - delete
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 # The cluster role for managing the Rook CRDs
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: rook-ceph-global
@@ -141,10 +141,13 @@ rules:
   verbs:
   - create
   - delete
+  - get
+  - update
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 # Aspects of ceph-mgr that require cluster-wide access
 kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-mgr-cluster
   labels:
@@ -172,9 +175,10 @@ rules:
   - get
   - watch
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 # Aspects of ceph-mgr that require access to the system namespace
 kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-mgr-system
 rules:
@@ -187,8 +191,9 @@ rules:
   - list
   - watch
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-object-bucket
   labels:
@@ -217,8 +222,9 @@ rules:
   resources:
   - "*"
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rook-ceph-osd
 rules:
@@ -231,7 +237,8 @@ rules:
   - list
 # Use a default dict to avoid 'can't give argument to non-function' errors from text/template
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+# Source: rook-ceph/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: rook-ceph-agent-mount
@@ -246,6 +253,7 @@ rules:
   verbs:
   - get
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -267,6 +275,7 @@ rules:
     resources: ["configmaps"]
     verbs: ["get", "list"]
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -290,6 +299,9 @@ rules:
   - apiGroups: ["storage.k8s.io"]
     resources: ["volumeattachments"]
     verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["volumeattachments/status"]
+    verbs: ["patch"]
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["get", "list", "watch"]
@@ -315,6 +327,7 @@ rules:
     resources: ["volumesnapshots/status"]
     verbs: ["update"]
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -339,6 +352,7 @@ rules:
     resources: ["configmaps"]
     verbs: ["get", "list"]
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -346,7 +360,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["persistentvolumes"]
     verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
@@ -356,6 +370,9 @@ rules:
   - apiGroups: ["storage.k8s.io"]
     resources: ["volumeattachments"]
     verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["volumeattachments/status"]
+    verbs: ["patch"]
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["get", "list", "watch"]
@@ -387,7 +404,8 @@ rules:
     resources: ["persistentvolumeclaims/status"]
     verbs: ["update", "patch"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+# Source: rook-ceph/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: 'psp:rook'
@@ -405,6 +423,7 @@ rules:
   verbs:
   - use
 ---
+# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -413,4 +432,3 @@ rules:
   - apiGroups: ["ceph.rook.io"]
     resources: ["*"]
     verbs: ["get", "watch", "list"]
-

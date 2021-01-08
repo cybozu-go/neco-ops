@@ -5,6 +5,6 @@ metadata:
   annotations:
     coil.cybozu.com/pool: customer-egress
   labels:
-    control-plane: "true"
+    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
     team: neco

@@ -1,3 +1,5 @@
+# kube-state-metrics returns many metrics with variety of metrics labels such as endpoint, service, namespace, etc.
+# We have to drop target labels as many as possible to avoid label conflict.
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMServiceScrape
 metadata:
@@ -6,29 +8,19 @@ metadata:
   labels:
     smallset: "true"
 spec:
+  discoveryRole: service
   namespaceSelector:
     matchNames: [kube-system]
   selector:
     matchLabels:
       app.kubernetes.io/name: kube-state-metrics
   endpoints:
-  - port: http-metrics
-    honorLabels: true
+  - honorLabels: true
     relabelConfigs:
+      - action: labelkeep
+        regex: __.*
       - replacement: kube-state-metrics
         targetLabel: job
-      - sourceLabels: [__address__]
-        regex: ([^:]+)(?::\d+)?
-        action: replace
-        replacement: ${1}
-        targetLabel: instance
-  - port: telemetry
-    honorLabels: true
-    relabelConfigs:
-      - replacement: kube-state-metrics
-        targetLabel: job
-      - sourceLabels: [__address__]
-        regex: ([^:]+)(?::\d+)?
-        action: replace
-        replacement: ${1}
-        targetLabel: instance
+      - sourceLabels: [__meta_kubernetes_service_port_name]
+        action: keep
+        regex: (http-metrics|telemetry)
