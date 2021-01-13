@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/cybozu-private/neco-tenant-apps.git
-    targetRevision: main
+    targetRevision: stage
     path: argocd-config
   destination:
     server: https://kubernetes.default.svc

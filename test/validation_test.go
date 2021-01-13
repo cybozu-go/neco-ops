@@ -213,7 +213,7 @@ func testApplicationResources(t *testing.T) {
 			"tokyo0": "release",
 		},
 		"tenant-apps": {
-			"stage0": "main",
+			"stage0": "stage",
 		},
 	}
 
