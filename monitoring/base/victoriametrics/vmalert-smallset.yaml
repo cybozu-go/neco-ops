@@ -16,9 +16,6 @@ spec:
   notifier:
     url: "http://vmalertmanager-vmalertmanager.monitoring.svc:9093"
   evaluationInterval: "30s"
-  ruleNamespaceSelector:
-    matchLabels:
-      team: neco
   ruleSelector:
     matchLabels:
       smallset: "true"

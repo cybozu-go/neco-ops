@@ -51,27 +51,15 @@ spec:
   containers:
     - name: config-reloader
       image: quay.io/cybozu/prometheus-config-reloader:0.43.2.1
-  serviceScrapeNamespaceSelector:
-    matchLabels:
-      team: neco
   serviceScrapeSelector:
     matchLabels:
       smallset: "true"
-  podScrapeNamespaceSelector:
-    matchLabels:
-      team: neco
   podScrapeSelector:
     matchLabels:
       smallset: "true"
-  nodeScrapeNamespaceSelector:
-    matchLabels:
-      team: neco
   nodeScrapeSelector:
     matchLabels:
       smallset: "true"
-  probeNamespaceSelector:
-    matchLabels:
-      team: neco
   probeSelector:
     matchLabels:
       smallset: "true"

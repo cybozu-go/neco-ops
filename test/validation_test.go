@@ -632,18 +632,11 @@ func testVMCustomResources(t *testing.T) {
 	}
 
 	// check namespace label selectors
-
-	expectedNamespaceSelector := metav1.LabelSelector{
-		MatchLabels: map[string]string{
-			"team": "neco",
-		},
-	}
-
-	if !reflect.DeepEqual(smallsetVMAgent.Spec.ServiceScrapeNamespaceSelector, &expectedNamespaceSelector) ||
-		!reflect.DeepEqual(smallsetVMAgent.Spec.PodScrapeNamespaceSelector, &expectedNamespaceSelector) ||
-		!reflect.DeepEqual(smallsetVMAgent.Spec.NodeScrapeNamespaceSelector, &expectedNamespaceSelector) ||
-		!reflect.DeepEqual(smallsetVMAgent.Spec.ProbeNamespaceSelector, &expectedNamespaceSelector) ||
-		!reflect.DeepEqual(smallsetVMAlert.Spec.RuleNamespaceSelector, &expectedNamespaceSelector) {
+	if smallsetVMAgent.Spec.ServiceScrapeNamespaceSelector != nil ||
+		smallsetVMAgent.Spec.PodScrapeNamespaceSelector != nil ||
+		smallsetVMAgent.Spec.NodeScrapeNamespaceSelector != nil ||
+		smallsetVMAgent.Spec.ProbeNamespaceSelector != nil ||
+		smallsetVMAlert.Spec.RuleNamespaceSelector != nil {
 		t.Errorf("bad namespace selector")
 	}
 
