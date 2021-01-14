@@ -11,16 +11,6 @@ spec:
   sessionAffinityConfig:
     clientIP:
       timeoutSeconds: 43200  # 12 hours
-  template:
-    spec:
-      containers:
-      - name: egress
-        volumeMounts:
-        - mountPath: /run
-          name: run
-      volumes:
-      - emptyDir: {}
-        name: run
 ---
 apiVersion: coil.cybozu.com/v2
 kind: Egress
@@ -35,13 +25,3 @@ spec:
   sessionAffinityConfig:
     clientIP:
       timeoutSeconds: 43200  # 12 hours
-  template:
-    spec:
-      containers:
-      - name: egress
-        volumeMounts:
-        - mountPath: /run
-          name: run
-      volumes:
-      - emptyDir: {}
-        name: run
