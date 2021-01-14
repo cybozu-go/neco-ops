@@ -155,6 +155,22 @@ func testAppProjectResources(t *testing.T) {
 		namespacesByTeam[team] = namespaces
 	}
 
+	// List the all tenant namespaces.
+	allNamespacesForTenantTeam := []string{}
+	nsSet := map[string]bool{}
+	for _, namespaces := range namespacesByTeam {
+		for _, ns := range namespaces {
+			nsSet[ns] = true
+		}
+	}
+	for ns := range nsSet {
+		allNamespacesForTenantTeam = append(allNamespacesForTenantTeam, ns)
+	}
+	sort.Strings(allNamespacesForTenantTeam)
+
+	// The Maneki team can deploy to all tenant namespaces.
+	namespacesByTeam["maneki"] = allNamespacesForTenantTeam
+
 	if !cmp.Equal(namespacesByTeam, namespacesInAppProject) {
 		t.Errorf("namespaces in AppProjects are not listed correctly: %s", cmp.Diff(namespacesByTeam, namespacesInAppProject))
 	}
