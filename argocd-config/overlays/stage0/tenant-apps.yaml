@@ -8,7 +8,7 @@ metadata:
   labels:
     is-tenant: "true"
 spec:
-  project: default
+  project: tenant-app-of-apps
   source:
     repoURL: https://github.com/cybozu-private/neco-tenant-apps.git
     targetRevision: stage

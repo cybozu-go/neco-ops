@@ -14,3 +14,36 @@ spec:
       kind: Application
   orphanedResources:
     warn: false
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: tenant-apps
+  namespace: argocd
+spec:
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: '*'
+      server: '*'
+  namespaceResourceBlacklist:
+    - group: ''
+      kind: ResourceQuota
+    - group: ''
+      kind: LimitRange
+    - group: 'networking.k8s.io'
+      kind: NetworkPolicy
+  orphanedResources:
+    warn: false
+  roles:
+    - name: admin
+      groups:
+        - cybozu-private:neco
+        - cybozu-private:maneki
+        - cybozu-private:garoon
+        - cybozu-private:ept
+      policies:
+        - p, proj:neco:admin, applications, *, tenant-apps/*, allow
+        - p, proj:maneki:admin, applications, *, tenant-apps/*, allow
+        - p, proj:garoon:admin, applications, *, tenant-apps/*, allow
+        - p, proj:ept:admin, applications, *, tenant-apps/*, allow

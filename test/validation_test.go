@@ -132,7 +132,7 @@ func testAppProjectResources(t *testing.T) {
 			namespacesByTeam[team] = append(namespacesByTeam[team], meta.Name)
 
 		case "AppProject":
-			if meta.Name == "default" || meta.Name == "tenant-app-of-apps" {
+			if meta.Name == "default" || meta.Name == "tenant-app-of-apps" || meta.Name == "tenant-apps" {
 				// Skip. default app and tenant-app-of-apps app are privileged.
 				continue
 			}
