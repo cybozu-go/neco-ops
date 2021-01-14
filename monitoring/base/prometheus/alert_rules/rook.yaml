@@ -1,0 +1,27 @@
+groups:
+  - name: rook
+    rules:
+      - alert: CephHddIsDown
+        expr: absent(up{job="rook",instance="ceph-hdd"} == 1)
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Rook/Ceph ceph-hdd's metrics can not be got."
+          runbook: Please consider to find root causes, and solve the problems
+      - alert: CephSsdIsDown
+        expr: absent(up{job="rook",instance="ceph-ssd"} == 1)
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Rook/Ceph ceph-ssd's metrics can not be got."
+          runbook: Please consider to find root causes, and solve the problems
+      - alert: RookCephStatusIsError
+        expr: ceph_health_status != 0 and ceph_health_status != 1
+        labels:
+          severity: critical
+        for: 15m
+        annotations:
+          summary: "Rook/Ceph {{ $labels.instance }}'s status is HEALTH_ERR."
+          runbook: Please consider to find root causes, and solve the problems

@@ -1,0 +1,124 @@
+rule_files:
+  - ../../monitoring/base/prometheus/alert_rules/rook.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="rook",instance="ceph-hdd"}'
+        values: '1+0x15'
+      - series: 'up{job="rook",instance="ceph-ssd"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CephHddIsDown
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: CephSsdIsDown
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'up{job="rook",instance="ceph-hdd"}'
+        values: '0+0x15'
+      - series: 'up{job="rook",instance="ceph-ssd"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CephHddIsDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Rook/Ceph ceph-hdd's metrics can not be got.
+      - eval_time: 15m
+        alertname: CephSsdIsDown
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'up{job="rook",instance="ceph-ssd"}'
+        values: '1+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CephHddIsDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Rook/Ceph ceph-hdd's metrics can not be got.
+      - eval_time: 15m
+        alertname: CephSsdIsDown
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'up{job="rook",instance="ceph-hdd"}'
+        values: '1+0x15'
+      - series: 'up{job="rook",instance="ceph-ssd"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CephHddIsDown
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: CephSsdIsDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Rook/Ceph ceph-ssd's metrics can not be got.
+
+  - interval: 1m
+    input_series:
+      - series: 'ceph_health_status{job="rook",instance="ceph-hdd"}'
+        values: '0+0x15'
+      - series: 'ceph_health_status{job="rook",instance="ceph-ssd"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: RookCephStatusIsError
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'ceph_health_status{job="rook",instance="ceph-hdd"}'
+        values: '1+0x15'
+      - series: 'ceph_health_status{job="rook",instance="ceph-ssd"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: RookCephStatusIsError
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'ceph_health_status{job="rook",instance="ceph-hdd"}'
+        values: '2+0x15'
+      - series: 'ceph_health_status{job="rook",instance="ceph-ssd"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: RookCephStatusIsError
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: rook
+              instance: ceph-hdd
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Rook/Ceph ceph-hdd's status is HEALTH_ERR.
+  - interval: 1m
+    input_series:
+      - series: 'ceph_health_status{job="rook",instance="ceph-hdd"}'
+        values: '0+0x15'
+      - series: 'ceph_health_status{job="rook",instance="ceph-ssd"}'
+        values: '3+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: RookCephStatusIsError
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: rook
+              instance: ceph-ssd
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Rook/Ceph ceph-ssd's status is HEALTH_ERR.

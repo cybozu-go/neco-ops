@@ -19,6 +19,7 @@ rule_files:
   - /etc/prometheus/monitoring.yaml
   - /etc/prometheus/network-policy.yaml
   - /etc/prometheus/node.yaml
+  - /etc/prometheus/rook.yaml
   - /etc/prometheus/sabakan.yaml
   - /etc/prometheus/neco-admission.yaml
   - /etc/prometheus/teleport.yaml
