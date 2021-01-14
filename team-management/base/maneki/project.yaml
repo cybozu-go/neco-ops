@@ -7,6 +7,15 @@ spec:
   sourceRepos:
   - '*'
   destinations:
+  # namespaces for ept team
+  - namespace: app-ept-wiki
+    server: '*'
+
+  # namespaces for garoon team
+  - namespace: app-garoon-static
+    server: '*'
+
+  # namespaces for maneki team
   - namespace: app-comconv-earthlab
     server: '*'
   - namespace: app-elasticsearch

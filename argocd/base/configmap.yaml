@@ -76,11 +76,8 @@ metadata:
   name: argocd-rbac-cm
 data:
   policy.csv: |
-    g, cybozu-private:Neco, role:admin
+    g, cybozu-private:neco, role:admin
     g, cybozu-private:neco-readonly, role:readonly
-    p, cybozu-private:maneki, repositories, *, https://github.com/cybozu-private/maneki-apps.git, allow
-    p, cybozu-private:maneki, clusters, get, *, allow
-    p, cybozu-private:ept, repositories, *, https://github.com/cybozu-private/ept-apps.git, allow
   # unauthenticated users cannot see the app, projects, etc...
   policy.default: ""
 ---

@@ -24,5 +24,6 @@ spec:
   - name: admin
     groups:
     - cybozu-private:garoon
+    - cybozu-private:maneki
     policies:
     - p, proj:garoon:admin, applications, *, garoon/*, allow
