@@ -45,6 +45,15 @@ var _ = Describe("Test applications", func() {
 		fmt.Printf("END: %s\n", time.Now().Format(time.RFC3339))
 	})
 
+	switch testSuite {
+	case "prepare":
+		prepareTest()
+	case "run":
+		runTest()
+	}
+})
+
+func prepareTest() {
 	Context("prepareNodes", prepareNodes)
 	Context("prepareLoadPods", prepareLoadPods)
 	Context("setup", testSetup)
@@ -71,7 +80,9 @@ var _ = Describe("Test applications", func() {
 	Context("preparing topolvm", prepareTopoLVM)
 	Context("preparing cursotmer-egress", prepareCustomerEgress)
 	Context("preparing network-policy", prepareNetworkPolicy) // this must be the last preparation.
+}
 
+func runTest() {
 	// running tests
 	Context("rook-ceph", testRookCeph)
 	Context("network-policy", testNetworkPolicy)
@@ -99,4 +110,4 @@ var _ = Describe("Test applications", func() {
 	Context("teleport", testTeleport)
 	Context("team-management", testTeamManagement)
 	Context("cursotmer-egress", testCustomerEgress)
-})
+}

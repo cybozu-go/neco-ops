@@ -3,6 +3,10 @@ BOOT0 = 10.72.48.0
 BOOT1 = 10.72.48.1
 BOOT2 = 10.72.48.2
 GINKGO = env GO111MODULE=on GOFLAGS=-mod=vendor $(GOPATH)/bin/ginkgo --failFast -v
+SUITE ?= run
+ifeq ($(SUITE), run)
+	GINKGO += -p
+endif
 SSH_PRIVKEY = $(NECO_DIR)/dctest/dctest_key
 CIRCLE_BUILD_NUM ?= -$(USER)
 TEST_ID := test$(CIRCLE_BUILD_NUM)
@@ -70,18 +74,20 @@ code-check: test-tools
 test: code-check install.yaml test-alert-rules validation
 
 dctest: install.yaml
-	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) ./test.sh
+	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) SUITE=$(SUITE) ./test.sh
 
 dctest-reboot: install.yaml
-	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) REBOOT=1 ./test.sh
+	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) REBOOT=1 SUITE=$(SUITE) ./test.sh
 
 dctest-upgrade:
-	-git worktree remove /tmp/neco-apps
-	git worktree add /tmp/neco-apps $(BASE_BRANCH)
-	cp account.json /tmp/neco-apps/test
-	$(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH)
-	cp /tmp/neco-apps/test/argocd-password.txt ./
-	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) UPGRADE=1 ./test.sh
+	if [  "$(SUITE)" = "prepare" ]; then \
+		git worktree remove /tmp/neco-apps; \
+		git worktree add /tmp/neco-apps $(BASE_BRANCH) && \
+		cp account.json /tmp/neco-apps/test && \
+		$(MAKE) -C /tmp/neco-apps/test setup dctest BOOTSTRAP=1 COMMIT_ID=$(BASE_BRANCH) && \
+		cp /tmp/neco-apps/test/argocd-password.txt ./; \
+	fi
+	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) UPGRADE=1 SUITE=$(SUITE) ./test.sh
 
 $(KUBECTL):
 	mkdir -p $(BINDIR)
