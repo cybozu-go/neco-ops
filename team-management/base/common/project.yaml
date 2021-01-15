@@ -43,7 +43,4 @@ spec:
         - cybozu-private:garoon
         - cybozu-private:ept
       policies:
-        - p, proj:neco:admin, applications, *, tenant-apps/*, allow
-        - p, proj:maneki:admin, applications, *, tenant-apps/*, allow
-        - p, proj:garoon:admin, applications, *, tenant-apps/*, allow
-        - p, proj:ept:admin, applications, *, tenant-apps/*, allow
+        - p, proj:tenant-apps:admin, applications, *, tenant-apps/*, allow
