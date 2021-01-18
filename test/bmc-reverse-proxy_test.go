@@ -14,7 +14,10 @@ import (
 )
 
 func testBMCReverseProxy() {
-	It("should be deployed successfully", func() {
+	var machines []sabakan.Machine
+
+	It("should be accessed via https", func() {
+		By("confirming it has be successfully deployed")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=bmc-reverse-proxy",
 				"get", "deployment", "bmc-reverse-proxy", "-o=json")
@@ -34,11 +37,8 @@ func testBMCReverseProxy() {
 
 			return nil
 		}).Should(Succeed())
-	})
 
-	var machines []sabakan.Machine
-
-	It("should create ConfigMap", func() {
+		By("confirming ConfigMap has been created")
 		// check consistency between "sabactl machines get" and bmc-reverse-proxy ConfigMap.
 		stdout, _, err := ExecAt(boot0, "sabactl", "machines", "get")
 		Expect(err).ShouldNot(HaveOccurred())
@@ -86,9 +86,8 @@ func testBMCReverseProxy() {
 
 			return nil
 		}).Should(Succeed())
-	})
 
-	It("should be accessed via https", func() {
+		By("confirming HTTPS access")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "bmc-reverse-proxy", "get", "service", "bmc-reverse-proxy",
 				"--output=jsonpath={.status.loadBalancer.ingress[0].ip}")
