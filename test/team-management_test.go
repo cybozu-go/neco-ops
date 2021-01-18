@@ -108,171 +108,170 @@ func getActualVerbs(team, ns string) map[string][]string {
 	return ret
 }
 
-func testTeamManagement() {
-	It("should give appropriate authority to unprivileged team", func() {
-		namespaceList := []string{}
-		nsOwner := map[string]string{}
-		teamList := []string{}
+func appropriateAuthorityTest() {
+	namespaceList := []string{}
+	nsOwner := map[string]string{}
+	teamList := []string{}
 
-		By("listing namespaces and their owner team")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "namespaces", "-o=json")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	By("listing namespaces and their owner team")
+	stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "namespaces", "-o=json")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
-		nsList := new(corev1.NamespaceList)
-		err = json.Unmarshal(stdout, nsList)
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	nsList := new(corev1.NamespaceList)
+	err = json.Unmarshal(stdout, nsList)
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
-		// make namespace list
-		for _, ns := range nsList.Items {
-			namespaceList = append(namespaceList, ns.Name)
-			if ns.Labels["team"] != "" {
-				nsOwner[ns.Name] = ns.Labels["team"]
+	// make namespace list
+	for _, ns := range nsList.Items {
+		namespaceList = append(namespaceList, ns.Name)
+		if ns.Labels["team"] != "" {
+			nsOwner[ns.Name] = ns.Labels["team"]
+		}
+	}
+	sort.Strings(namespaceList)
+
+	// make unprivileged team list
+	teamSet := make(map[string]struct{})
+	for _, t := range nsOwner {
+		if t != "neco" {
+			teamSet[t] = struct{}{}
+		}
+	}
+	for t := range teamSet {
+		teamList = append(teamList, t)
+	}
+	sort.Strings(teamList)
+
+	By("constructing expected and actual verbs for namespace resources")
+	// Construct the verbs maps. The key and value are as follows.
+	// - key  : "<team>:<namespace>/<resource>"
+	// - value: []strings{verbs...}
+	expectedVerbs := map[string][]string{}
+	actualVerbs := map[string][]string{}
+
+	keyGen := func(team, ns, resource string) string {
+		return fmt.Sprintf("%s:%s/%s", team, ns, resource)
+	}
+
+	for _, team := range teamList {
+		for _, ns := range namespaceList {
+			actualVerbsByResource := getActualVerbs(team, ns)
+
+			// check secrets
+			key := keyGen(team, ns, "secrets")
+
+			if ns == "sandbox" || team == nsOwner[ns] {
+				expectedVerbs[key] = adminVerbs
+			} else {
+				expectedVerbs[key] = prohibitedVerbs
 			}
-		}
-		sort.Strings(namespaceList)
 
-		// make unprivileged team list
-		teamSet := make(map[string]struct{})
-		for _, t := range nsOwner {
-			if t != "neco" {
-				teamSet[t] = struct{}{}
+			if v, ok := actualVerbsByResource["secrets"]; ok {
+				actualVerbs[key] = v
+			} else {
+				actualVerbs[key] = prohibitedVerbs
 			}
-		}
-		for t := range teamSet {
-			teamList = append(teamList, t)
-		}
-		sort.Strings(teamList)
 
-		By("constructing expected and actual verbs for namespace resources")
-		// Construct the verbs maps. The key and value are as follows.
-		// - key  : "<team>:<namespace>/<resource>"
-		// - value: []strings{verbs...}
-		expectedVerbs := map[string][]string{}
-		actualVerbs := map[string][]string{}
-
-		keyGen := func(team, ns, resource string) string {
-			return fmt.Sprintf("%s:%s/%s", team, ns, resource)
-		}
-
-		for _, team := range teamList {
-			for _, ns := range namespaceList {
-				actualVerbsByResource := getActualVerbs(team, ns)
-
-				// check secrets
-				key := keyGen(team, ns, "secrets")
+			// check required resources
+			for _, resource := range requiredResources {
+				key := keyGen(team, ns, resource)
 
 				if ns == "sandbox" || team == nsOwner[ns] {
 					expectedVerbs[key] = adminVerbs
 				} else {
-					expectedVerbs[key] = prohibitedVerbs
+					expectedVerbs[key] = viewVerbs
 				}
 
-				if v, ok := actualVerbsByResource["secrets"]; ok {
+				if v, ok := actualVerbsByResource[resource]; ok {
 					actualVerbs[key] = v
 				} else {
 					actualVerbs[key] = prohibitedVerbs
 				}
+			}
 
-				// check required resources
-				for _, resource := range requiredResources {
-					key := keyGen(team, ns, resource)
+			// check prohibited resources
+			for _, resource := range prohibitedResources {
+				key := keyGen(team, ns, resource)
+				expectedVerbs[key] = viewVerbs
 
-					if ns == "sandbox" || team == nsOwner[ns] {
-						expectedVerbs[key] = adminVerbs
-					} else {
-						expectedVerbs[key] = viewVerbs
-					}
-
-					if v, ok := actualVerbsByResource[resource]; ok {
-						actualVerbs[key] = v
-					} else {
-						actualVerbs[key] = prohibitedVerbs
-					}
-				}
-
-				// check prohibited resources
-				for _, resource := range prohibitedResources {
-					key := keyGen(team, ns, resource)
-					expectedVerbs[key] = viewVerbs
-
-					if v, ok := actualVerbsByResource[resource]; ok {
-						actualVerbs[key] = v
-					} else {
-						actualVerbs[key] = prohibitedVerbs
-					}
+				if v, ok := actualVerbsByResource[resource]; ok {
+					actualVerbs[key] = v
+				} else {
+					actualVerbs[key] = prohibitedVerbs
 				}
 			}
 		}
+	}
 
-		By("checking results for namespace resources")
-		Expect(actualVerbs).To(Equal(expectedVerbs), cmp.Diff(actualVerbs, expectedVerbs))
+	By("checking results for namespace resources")
+	Expect(actualVerbs).To(Equal(expectedVerbs), cmp.Diff(actualVerbs, expectedVerbs))
 
-		By("listing cluster resources")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "api-resources", "--namespaced=false", "-o=name", "--sort-by=name")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	By("listing cluster resources")
+	stdout, stderr, err = ExecAt(boot0, "kubectl", "api-resources", "--namespaced=false", "-o=name", "--sort-by=name")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
-		var clusterResources []string
-		reader := bufio.NewReader(bytes.NewReader(stdout))
-		for {
-			line, isPrefix, err := reader.ReadLine()
-			if err == io.EOF {
-				break
-			}
-			Expect(err).NotTo(HaveOccurred())
-			Expect(isPrefix).NotTo(BeTrue(), "too long line: %s", line)
-			clusterResources = append(clusterResources, string(line))
+	var clusterResources []string
+	reader := bufio.NewReader(bytes.NewReader(stdout))
+	for {
+		line, isPrefix, err := reader.ReadLine()
+		if err == io.EOF {
+			break
 		}
+		Expect(err).NotTo(HaveOccurred())
+		Expect(isPrefix).NotTo(BeTrue(), "too long line: %s", line)
+		clusterResources = append(clusterResources, string(line))
+	}
 
-		By("checking RBAC of cluster resources")
-		for _, team := range teamList {
-			for _, ns := range namespaceList {
-				actualVerbsByResource := getActualVerbs(team, ns)
+	By("checking RBAC of cluster resources")
+	for _, team := range teamList {
+		for _, ns := range namespaceList {
+			actualVerbsByResource := getActualVerbs(team, ns)
 
-				for _, resource := range clusterResources {
-					actual := actualVerbsByResource[resource]
-					switch resource {
-					case "selfsubjectaccessreviews.authorization.k8s.io", "selfsubjectrulesreviews.authorization.k8s.io":
-						Expect(actual).To(Equal([]string{"create"}))
-					default:
-						Expect(actual).To(BeElementOf([]string(nil), []string{}, []string{"get"}, []string{"get", "list", "watch"}))
-					}
+			for _, resource := range clusterResources {
+				actual := actualVerbsByResource[resource]
+				switch resource {
+				case "selfsubjectaccessreviews.authorization.k8s.io", "selfsubjectrulesreviews.authorization.k8s.io":
+					Expect(actual).To(Equal([]string{"create"}))
+				default:
+					Expect(actual).To(BeElementOf([]string(nil), []string{}, []string{"get"}, []string{"get", "list", "watch"}))
 				}
 			}
 		}
-	})
+	}
+}
 
-	It("should give authority of ephemeral containers to unprivileged team", func() {
-		By("creating test pod")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "run", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:18.04", "pause")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+func ephemeralContainersPrivilegeTest() {
+	By("creating test pod")
+	stdout, stderr, err := ExecAt(boot0, "kubectl", "run", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:18.04", "pause")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
-		By("waiting the pod become ready")
-		Eventually(func() error {
-			stdout, _, err := ExecAt(boot0, "kubectl", "get", "-n", "maneki", "pod/neco-ephemeral-test", "-o=json")
-			if err != nil {
-				return err
-			}
-			po := new(corev1.Pod)
-			err = json.Unmarshal(stdout, po)
-			if err != nil {
-				return fmt.Errorf("failed to get pod info: %w", err)
-			}
+	By("waiting the pod become ready")
+	Eventually(func() error {
+		stdout, _, err := ExecAt(boot0, "kubectl", "get", "-n", "maneki", "pod/neco-ephemeral-test", "-o=json")
+		if err != nil {
+			return err
+		}
+		po := new(corev1.Pod)
+		err = json.Unmarshal(stdout, po)
+		if err != nil {
+			return fmt.Errorf("failed to get pod info: %w", err)
+		}
 
-			if po.Status.ContainerStatuses == nil || len(po.Status.ContainerStatuses) == 0 || !po.Status.ContainerStatuses[0].Ready {
-				return fmt.Errorf("pod is not ready")
-			}
+		if po.Status.ContainerStatuses == nil || len(po.Status.ContainerStatuses) == 0 || !po.Status.ContainerStatuses[0].Ready {
+			return fmt.Errorf("pod is not ready")
+		}
 
-			return nil
-		}).Should(Succeed())
+		return nil
+	}).Should(Succeed())
 
-		By("adding a ephemeral container by unprivileged team")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "alpha", "debug", "-i", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:18.04", "--target=neco-ephemeral-test", "--as=test", "--as-group=maneki", "--as-group=system:authenticated", "--", "echo a")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-	})
+	By("adding a ephemeral container by unprivileged team")
+	stdout, stderr, err = ExecAt(boot0, "kubectl", "alpha", "debug", "-i", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:18.04", "--target=neco-ephemeral-test", "--as=test", "--as-group=maneki", "--as-group=system:authenticated", "--", "echo a")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+}
 
+func cephClusterPrivilegeTest() {
 	// This test confirming the configuration of RBAC so it should be at team-management_test.go but rook/ceph isn't deployed for GCP (without gcp-ceph)
-	It("should deploy OBC resource with maneki role", func() {
-		podPvcYaml := `apiVersion: objectbucket.io/v1alpha1
+	podPvcYaml := `apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
   name: hdd-ob
@@ -280,7 +279,14 @@ metadata:
 spec:
   generateBucketName: obc-poc
   storageClassName: ceph-hdd-bucket`
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podPvcYaml), "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	stdout, stderr, err := ExecAtWithInput(boot0, []byte(podPvcYaml), "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "apply", "-f", "-")
+	Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+}
+
+func testTeamManagement() {
+	It("should give appropriate authority to unprivileged team", func() {
+		By("appropriateAuthorityTest", appropriateAuthorityTest)
+		By("ephemeralContainersPrivilegeTest", ephemeralContainersPrivilegeTest)
+		By("cephClusterPrivilegeTest", cephClusterPrivilegeTest)
 	})
 }
