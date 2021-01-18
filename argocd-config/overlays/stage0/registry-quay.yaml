@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: registry-quay
+  namespace: argocd
+spec:
+  source:
+    targetRevision: stage
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-quay.yaml
+        - values-quay-credential.yaml

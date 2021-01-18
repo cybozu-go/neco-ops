@@ -1,0 +1,8 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: registry-{{ .Values.instance }}-bucket
+  namespace: registry
+spec:
+  generateBucketName: registry-{{ .Values.instance }}-bucket
+  storageClassName: ceph-hdd-bucket

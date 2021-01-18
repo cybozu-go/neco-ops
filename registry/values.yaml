@@ -1,0 +1,6 @@
+image:
+  repository: quay.io/cybozu/registry
+  tag: 2.7.1.1
+  pullPolicy: IfNotPresent
+
+replicas: 2

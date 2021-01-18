@@ -239,6 +239,12 @@ Download the upstream tar ball from [releases](https://github.com/topolvm/pvc-au
 $ kustomize build ./config/default > /path/to/pvc-autoresizer/base/upstream.yaml
 ```
 
+## registry
+
+Check [the release notes](https://github.com/docker/distribution/releases).
+
+These manifest files were created from scratch. The based manifest does not exist.
+
 ## rook
 
 *Do not upgrade Rook and Ceph at the same time!*
