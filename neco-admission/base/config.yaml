@@ -17,3 +17,4 @@ ArgoCDApplicationValidator:
       - repository: https://github.com/cybozu-private/neco-tenant-apps.git
         projects:
           - tenant-apps
+          - tenant-app-of-apps
