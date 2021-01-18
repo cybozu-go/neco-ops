@@ -95,7 +95,11 @@ func testLocalPVProvisioner() {
 	var targetDeviceNum int
 	var targetPVList []corev1.PersistentVolume
 
-	It("should get SS Nodes", func() {
+	ns := "test-local-pv-provisioner"
+
+	It("should have created PV successfully", func() {
+		By("confirming it has be successfully deployed")
+		By("getting SS Nodes")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "nodes", "--selector=cke.cybozu.com/role=ss", "-o", "json")
 		Expect(err).NotTo(HaveOccurred(), "failed to get SS Nodes. stdout: %s, stderr: %s", stdout, stderr)
 
@@ -103,9 +107,7 @@ func testLocalPVProvisioner() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ssNodes.Items).NotTo(HaveLen(0))
 		ssNumber = len(ssNodes.Items)
-	})
 
-	It("should be deployed successfully", func() {
 		By("checking the number of available Pods by the state of DaemonSet")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "ds", "local-pv-provisioner", "-n", "kube-system", "-o", "json")
@@ -136,11 +138,9 @@ func testLocalPVProvisioner() {
 			Expect(err).NotTo(HaveOccurred(), "failed to unmarshal JSON")
 			Expect(lppPods.Items).To(HaveLen(1))
 		}
-	})
 
-	It("should have created PV successfully", func() {
 		By("getting local PVs")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pv", "-o", "json")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pv", "-o", "json")
 		Expect(err).NotTo(HaveOccurred(), "failed to get PVs. stdout: %s, stderr: %s", stdout, stderr)
 
 		var pvs corev1.PersistentVolumeList
@@ -172,11 +172,7 @@ func testLocalPVProvisioner() {
 
 		By("checking the number of local PVs")
 		Expect(targetPVList).To(HaveLen(targetDeviceNum))
-	})
 
-	ns := "test-local-pv-provisioner"
-
-	It("should wait pods", func() {
 		By("waiting to be able to execute a command")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "ubuntu", "--", "date")
@@ -188,16 +184,15 @@ func testLocalPVProvisioner() {
 		}).Should(Succeed())
 
 		By("confirming that can make filesystem for the block device")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "ubuntu", "--", "mkfs.ext4", "-F", "/dev/local-dev")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", ns, "ubuntu", "--", "mkfs.ext4", "-F", "/dev/local-dev")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-	})
 
-	It("cleans up", func() {
+		By("cleaning up")
 		By("getting used local PV")
-		stdout := ExecSafeAt(boot0, "kubectl", "get", "pvc", "local-pvc", "-n", ns, "-o", "json")
+		stdout = ExecSafeAt(boot0, "kubectl", "get", "pvc", "local-pvc", "-n", ns, "-o", "json")
 
 		pvc := new(corev1.PersistentVolumeClaim)
-		err := json.Unmarshal(stdout, pvc)
+		err = json.Unmarshal(stdout, pvc)
 		Expect(err).ShouldNot(HaveOccurred())
 		usedPVName := pvc.Spec.VolumeName
 
@@ -228,7 +223,7 @@ func testLocalPVProvisioner() {
 		ssNodeIP, err := getNodeIPFromPV(&pv)
 		Expect(err).ShouldNot(HaveOccurred())
 		// read ext4 super block. ref: https://ext4.wiki.kernel.org/index.php/Ext4_Disk_Layout#Layout
-		stdout, stderr, err := ExecAt(boot0, "ckecli", "ssh", "cybozu@"+ssNodeIP, "sudo", "dd", "if="+pv.Spec.Local.Path, "bs=1024", "skip=1", "count=4")
+		stdout, stderr, err = ExecAt(boot0, "ckecli", "ssh", "cybozu@"+ssNodeIP, "sudo", "dd", "if="+pv.Spec.Local.Path, "bs=1024", "skip=1", "count=4")
 		Expect(err).NotTo(HaveOccurred(), "stderr=%s", stderr)
 		Expect(stdout).Should(Equal(make([]byte, 4096)))
 	})
