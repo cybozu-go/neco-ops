@@ -3,6 +3,7 @@ ArgoCDApplicationValidator:
       - repository: https://github.com/cybozu-private/ept-apps.git
         projects:
           - ept
+          - maneki
           - tenant-app-of-apps
       - repository: https://github.com/cybozu-private/maneki-apps.git
         projects:
@@ -16,4 +17,5 @@ ArgoCDApplicationValidator:
           - default
       - repository: https://github.com/cybozu-private/neco-tenant-apps.git
         projects:
-          - default
+          - tenant-apps
+          - tenant-app-of-apps

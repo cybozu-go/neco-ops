@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry-{{ .Values.instance }}
+  namespace: registry
+  labels:
+    app.kubernetes.io/name: registry
+    cybozu.com/registry: {{ .Values.instance }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: registry
+      cybozu.com/registry: {{ .Values.instance }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: registry
+        cybozu.com/registry: {{ .Values.instance }}
+      annotations:
+        egress.coil.cybozu.com/internet-egress: nat
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - registry
+                  - key: cybozu.com/registry
+                    operator: In
+                    values:
+                      - {{ .Values.instance }}
+              topologyKey: cke.cybozu.com/rack
+      containers:
+        - name: registry
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+          - /bin/registry
+          - serve
+          - /etc/docker/registry/config.yml
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          ports:
+            - name: http
+              containerPort: 5000
+            - name: metrics
+              containerPort: 5001
+          volumeMounts:
+            - name: registry-config
+              mountPath: "/etc/docker/registry"
+          env:
+            - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
+              value: $(BUCKET_HOST)
+            - name: REGISTRY_STORAGE_S3_BUCKET
+              value: $(BUCKET_NAME)
+            - name: REGISTRY_STORAGE_S3_ACCESSKEY
+              value: $(AWS_ACCESS_KEY_ID)
+            - name: REGISTRY_STORAGE_S3_SECRETKEY
+              value: $(AWS_SECRET_ACCESS_KEY)
+            - name: REGISTRY_PROXY_REMOTEURL
+              value: {{ .Values.proxy.remoteURL }}
+            {{- if .Values.proxy.usernameEnv }}
+            - name: REGISTRY_PROXY_USERNAME
+              value: $({{ .Values.proxy.usernameEnv }})
+            {{- end }}
+            {{- if .Values.proxy.passwordEnv }}
+            - name: REGISTRY_PROXY_PASSWORD
+              value: $({{ .Values.proxy.passwordEnv }})
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: registry-{{ .Values.instance }}-bucket
+            - configMapRef:
+                name: registry-{{ .Values.instance }}-bucket
+            {{- if .Values.proxy.secretName }}
+            - secretRef:
+                name: {{ .Values.proxy.secretName }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /
+          startupProbe:
+            httpGet:
+              port: http
+              path: /
+            failureThreshold: 30
+            periodSeconds: 10
+      volumes:
+        - name: registry-config
+          configMap:
+            name: registry-{{ .Values.instance }}-config
+

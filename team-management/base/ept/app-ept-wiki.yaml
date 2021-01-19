@@ -16,3 +16,6 @@ subjects:
   - kind: Group
     name: ept
     apiGroup: rbac.authorization.k8s.io
+  - kind: Group
+    name: maneki
+    apiGroup: rbac.authorization.k8s.io

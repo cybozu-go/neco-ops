@@ -14,12 +14,11 @@ import (
 	"text/template"
 	"time"
 
-	argocd "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sYaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 )
@@ -329,7 +328,7 @@ func applyAndWaitForApplications(commitID string) {
 		}
 		Expect(err).ShouldNot(HaveOccurred())
 
-		var app argocd.Application
+		var app Application
 		err = yaml.Unmarshal(data, &app)
 		if err != nil {
 			continue
@@ -366,7 +365,7 @@ func applyAndWaitForApplications(commitID string) {
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", appStdout, stderr, err)
 			}
-			var app argocd.Application
+			var app Application
 			err = json.Unmarshal(appStdout, &app)
 			if err != nil {
 				return fmt.Errorf("stdout: %s, err: %v", appStdout, err)
@@ -374,8 +373,8 @@ func applyAndWaitForApplications(commitID string) {
 			if app.Status.Sync.ComparedTo.Source.TargetRevision != commitID {
 				return errors.New(target.name + " does not have correct target yet")
 			}
-			if app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
-				app.Status.Health.Status == argocd.HealthStatusHealthy &&
+			if app.Status.Sync.Status == SyncStatusCodeSynced &&
+				app.Status.Health.Status == HealthStatusHealthy &&
 				app.Operation == nil {
 				continue
 			}
@@ -384,8 +383,8 @@ func applyAndWaitForApplications(commitID string) {
 			// It leads to ArgoCD's improper behavior. In spite of the network-policy app becomes Synced/Healthy, the operation does not end.
 			// So terminate the unexpected operation manually in upgrade test.
 			// TODO: This is workaround for ArgoCD's improper behavior. When this issue (T.B.D.) is closed, delete this block.
-			if app.Status.Sync.Status == argocd.SyncStatusCodeSynced &&
-				app.Status.Health.Status == argocd.HealthStatusHealthy &&
+			if app.Status.Sync.Status == SyncStatusCodeSynced &&
+				app.Status.Health.Status == HealthStatusHealthy &&
 				app.Operation != nil &&
 				app.Status.OperationState.Phase == "Running" {
 				fmt.Printf("%s terminate unexpected operation: app=%s\n", time.Now().Format(time.RFC3339), target.name)
@@ -445,35 +444,17 @@ func applyNetworkPolicy() {
 		}
 		Expect(err).ShouldNot(HaveOccurred())
 
-		var crd extv1beta1.CustomResourceDefinition
+		crd := &unstructured.Unstructured{}
 		err = yaml.Unmarshal(data, &crd)
 		if err != nil {
 			continue
 		}
-		if crd.Kind != "CustomResourceDefinition" {
+		if crd.GetKind() != "CustomResourceDefinition" {
 			continue
 		}
 
 		stdout, stderr, err = ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
 		Expect(err).ShouldNot(HaveOccurred(), "failed to apply crd: stdout=%s, stderr=%s", stdout, stderr)
-
-		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "crd/"+crd.Name, "-o=json")
-			if err != nil {
-				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			}
-			gotcrd := new(extv1beta1.CustomResourceDefinition)
-			err = json.Unmarshal(stdout, gotcrd)
-			if err != nil {
-				return err
-			}
-			for _, cond := range gotcrd.Status.Conditions {
-				if cond.Type == extv1beta1.Established && cond.Status == extv1beta1.ConditionTrue {
-					return nil
-				}
-			}
-			return fmt.Errorf("CRD is not established: %s", crd.Name)
-		}, 1*time.Minute).Should(Succeed())
 	}
 
 	stdout, stderr, err = ExecAtWithInput(boot0, netpolManifest, "kubectl", "apply", "-f", "-")

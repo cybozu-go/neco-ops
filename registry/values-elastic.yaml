@@ -1,0 +1,3 @@
+instance: elastic
+proxy:
+  remoteURL: https://docker.elastic.co

@@ -15,9 +15,7 @@ import (
 	"testing"
 	"text/template"
 
-	argocd "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/google/go-cmp/cmp"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	k8sYaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -33,7 +31,6 @@ var (
 		filepath.Join(manifestDir, "bin"),
 		filepath.Join(manifestDir, "docs"),
 		filepath.Join(manifestDir, "test"),
-		filepath.Join(manifestDir, "vendor"),
 	}
 )
 
@@ -137,7 +134,7 @@ func testAppProjectResources(t *testing.T) {
 				continue
 			}
 
-			var proj argocd.AppProject
+			var proj AppProject
 			err = yaml.Unmarshal(data, &proj)
 			if err != nil {
 				t.Fatal(err)
@@ -157,6 +154,22 @@ func testAppProjectResources(t *testing.T) {
 		sort.Strings(namespaces)
 		namespacesByTeam[team] = namespaces
 	}
+
+	// List the all tenant namespaces.
+	allNamespacesForTenantTeam := []string{}
+	nsSet := map[string]bool{}
+	for _, namespaces := range namespacesByTeam {
+		for _, ns := range namespaces {
+			nsSet[ns] = true
+		}
+	}
+	for ns := range nsSet {
+		allNamespacesForTenantTeam = append(allNamespacesForTenantTeam, ns)
+	}
+	sort.Strings(allNamespacesForTenantTeam)
+
+	// The Maneki team can deploy to all tenant namespaces.
+	namespacesByTeam["maneki"] = allNamespacesForTenantTeam
 
 	if !cmp.Equal(namespacesByTeam, namespacesInAppProject) {
 		t.Errorf("namespaces in AppProjects are not listed correctly: %s", cmp.Diff(namespacesByTeam, namespacesInAppProject))
@@ -180,6 +193,9 @@ func testApplicationResources(t *testing.T) {
 		"moco":                 "6",
 		"rook":                 "6",
 		"monitoring":           "7",
+		"registry-elastic":     "7",
+		"registry-ghcr":        "7",
+		"registry-quay":        "7",
 		"sandbox":              "7",
 		"teleport":             "7",
 		"pvc-autoresizer":      "8",
@@ -249,7 +265,7 @@ func testApplicationResources(t *testing.T) {
 					t.Error(err)
 				}
 
-				var app argocd.Application
+				var app Application
 				err = yaml.Unmarshal(data, &app)
 				if err != nil {
 					t.Error(err)
@@ -290,7 +306,7 @@ type crdValidation struct {
 	Metadata struct {
 		Name string `json:"name"`
 	} `json:"metadata"`
-	Status *apiextensionsv1beta1.CustomResourceDefinitionStatus `json:"status"`
+	Status *struct{} `json:"status"`
 }
 
 func testCRDStatus(t *testing.T) {
