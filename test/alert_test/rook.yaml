@@ -122,3 +122,33 @@ tests:
             exp_annotations:
               runbook: Please consider to find root causes, and solve the problems
               summary: Rook/Ceph ceph-ssd's status is HEALTH_ERR.
+  # This test confirms that CephOSDIsNearLyNearFul is out because the metrics is above threshold.
+  - interval: 1m
+    input_series:
+      - series: 'ceph_osd_stat_bytes{job="rook",instance="ceph-hdd",ceph_daemon="osd.1"}'
+        values: '100+0x15'
+      - series: 'ceph_osd_stat_bytes_used{job="rook",instance="ceph-hdd",ceph_daemon="osd.1"}'
+        values: '81+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CephOSDIsNearlyNearFull
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: rook
+              instance: ceph-hdd
+              ceph_daemon: osd.1
+            exp_annotations:
+              summary: "Rook/Ceph osd.1 in ceph-hdd is used more than 80%."
+              runbook: Please consider to find root causes, and solve the problems
+  # This test confirms that CephOSDIsNearLyNearFul is not out because the metrics is below threshold.
+  - interval: 1m
+    input_series:
+      - series: 'ceph_osd_stat_bytes{job="rook",instance="ceph-hdd",ceph_daemon="osd.1"}'
+        values: '100+0x15'
+      - series: 'ceph_osd_stat_bytes_used{job="rook",instance="ceph-hdd",ceph_daemon="osd.1"}'
+        values: '80+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CephOSDIsNearlyNearFull
+        exp_alerts: []

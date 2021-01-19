@@ -3,27 +3,29 @@ How to maintain neco-apps
 
 - [argocd](#argocd)
 - [cert-manager](#cert-manager)
+- [customer-egress](#customer-egress)
 - [dex](#dex)
 - [elastic (ECK)](#elastic-eck)
 - [external-dns](#external-dns)
 - [ingress (Contour & Envoy)](#ingress-contour--envoy)
+- [machines-endpoints](#machines-endpoints)
 - [metallb](#metallb)
 - [metrics-server](#metrics-server)
+- [moco](#moco)
 - [monitoring](#monitoring)
   - [prometheus, alertmanager, pushgateway](#prometheus-alertmanager-pushgateway)
-  - [machines-endpoints](#machines-endpoints)
   - [kube-state-metrics](#kube-state-metrics)
   - [grafana-operator](#grafana-operator)
   - [victoriametrics (operator)](#victoriametrics-operator)
 - [neco-admission](#neco-admission)
 - [network-policy (Calico)](#network-policy-calico)
 - [pvc-autoresizer](#pvc-autoresizer)
+- [registry](#registry)
 - [rook](#rook)
   - [ceph](#ceph)
 - [teleport](#teleport)
 - [topolvm](#topolvm)
-- [moco](#moco)
-- [customer-egress](#customer-egress)
+- [unbound](#unbound)
 
 ## argocd
 
@@ -48,6 +50,17 @@ $ curl -sLf -o cert-manager/base/upstream/cert-manager.yaml https://github.com/j
 $ vi cert-manager/base/upstream/cert-manager.yaml
   (Remove Namespace resources)
 ```
+
+## customer-egress
+
+Download [neco/etc/squid.yaml](https://github.com/cybozu-go/neco/blob/release/etc/squid.yml) and replace some fileds:
+```console
+$ cd $GOPATH/src/github.com/cybozu-go/neco-apps/customer-egress/base
+$ curl https://raw.githubusercontent.com/cybozu-go/neco/release/etc/squid.yml -o neco/squid.yaml
+$ sed -e 's/internet-egress/customer-egress/g' -e 's/{{ .squid }}/quay.io\/cybozu\/squid/g' -e 's/{{ index . "cke-unbound" }}/quay.io\/cybozu\/unbound/g' -e '/nodePort: 30128/d' neco/squid.yaml > squid.yaml
+```
+
+Update `images.newTag` in `kustomization.yaml`.
 
 ## dex
 
@@ -119,18 +132,24 @@ Note that:
     - If the manifest is for a cluster-wide resource, put a modified version in the `common` directory.
     - If the manifest is for a namespaced resource, put a template in the `template` directory and apply patches.
 
+## machines-endpoints
+
+`machines-endpoints` are used in `monitoring` and `bmc-reverse-proxy`.
+Update their CronJobs that run `machines-endpoints`.
+
 ## metallb
 
 Check [releases](https://github.com/metallb/metallb/releases)
 
-Download manifests and remove `Namespace` resource from it as follows:
+Download manifests and update them as follows:
 
 ```console
-$ git clone https://github.com/metallb/metallb
+$ git clone --depth 1 -b vX.Y.Z https://github.com/metallb/metallb
 $ cd metallb
-$ git checkout vX.Y.Z
 $ cp manifests/*.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/metallb/base/upstream
 ```
+
+Then edit `metallb/base/kustomization.yaml` to update the image tags.
 
 ## metrics-server
 
@@ -139,13 +158,27 @@ Check [releases](https://github.com/kubernetes-sigs/metrics-server/releases)
 Download the upstream manifest as follows:
 
 ```console
-$ git clone https://github.com/kubernetes-sigs/metrics-server
-$ cd metrics-server
-$ git checkout vX.Y.Z
-$ cp deploy/1.8+/*.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/metrics-server/base/upstream
+$ curl -OLsf https://github.com/kubernetes-sigs/metrics-server/releases/download/vX.Y.Z/components.yaml
+$ cp components.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/metrics-server/base/upstream
 ```
 
-Note: The name of `deploy` directory will be changed.
+Edit `metrics-server/base/kustomization.yaml` to update the image tag.
+
+## moco
+
+Check [releases](https://github.com/cybozu-go/moco/releases) for changes.
+
+Download the upstream manifest as follows:
+
+```console
+$ cd $GOPATH/src/github.com/moco
+$ git clone https://github.com/moco/moco
+$ cd moco
+$ git checkout vX.Y.Z
+$ cp -r config/* $GOPATH/src/github.com/cybozu-go/neco-apps/moco/base/upstream
+```
+
+Update `images.newTag` in `kustomization.yaml`.
 
 ## monitoring
 
@@ -161,10 +194,6 @@ helm template prom prometheus-community/prometheus --version=11.5.0 > prom-2.18.
 helm template prom prometheus-community/prometheus --version=11.16.7 > prom-2.21.0.yaml
 diff prom-2.18.1.yaml prom-2.21.0.yaml
 ```
-
-### machines-endpoints
-
-Update version following [this link](https://github.com/cybozu/neco-containers/blob/master/machines-endpoints/TAG)
 
 ### kube-state-metrics
 
@@ -340,31 +369,7 @@ $ cp -r deploy/manifests/* $GOPATH/src/github.com/cybozu-go/neco-apps/topolvm/ba
 
 Update `images.newTag` in `kustomization.yaml`.
 
+## unbound
 
-## moco
-
-Check [releases](https://github.com/cybozu-go/moco/releases) for changes.
-
-Download the upstream manifest as follows:
-
-```console
-$ cd $GOPATH/src/github.com/moco
-$ git clone https://github.com/moco/moco
-$ cd moco
-$ git checkout vX.Y.Z
-$ cp -r config/* $GOPATH/src/github.com/cybozu-go/neco-apps/moco/base/upstream
-```
-
-Update `images.newTag` in `kustomization.yaml`.
-
-
-## customer-egress
-
-Download [neco/etc/squid.yaml](https://github.com/cybozu-go/neco/blob/release/etc/squid.yml) and replace some fileds:
-```console
-$ cd $GOPATH/src/github.com/cybozu-go/neco-apps/customer-egress/base
-$ curl https://raw.githubusercontent.com/cybozu-go/neco/release/etc/squid.yml -o neco/squid.yaml
-$ sed -e 's/internet-egress/customer-egress/g' -e 's/{{ .squid }}/quay.io\/cybozu\/squid/g' -e 's/{{ index . "cke-unbound" }}/quay.io\/cybozu\/unbound/g' -e '/nodePort: 30128/d' neco/squid.yaml > squid.yaml
-```
-
-Update `images.newTag` in `kustomization.yaml`.
+`quay.io/cybozu/unbound` container image is referenced in `customer-egress/base/kustomization.yaml`.
+When unbound image is updated, edit the YAML as well.

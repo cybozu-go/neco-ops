@@ -7,8 +7,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	contourv1 "github.com/projectcontour/contour/apis/projectcontour/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func testAdmission() {
@@ -21,7 +21,7 @@ metadata:
 spec:
   containers:
   - name: ubuntu
-    image: quay.io/cybozu/ubuntu:18.04
+    image: quay.io/cybozu/ubuntu:20.04
     command: ["pause"]
 `
 		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAML), "kubectl", "apply", "-f", "-")
@@ -67,7 +67,7 @@ spec:
 `
 		_, stderr, err := ExecAtWithInput(boot0, []byte(networkPolicyYAML), "kubectl", "apply", "-f", "-")
 		Expect(err).To(HaveOccurred())
-		Expect(string(stderr)).Should(MatchRegexp("order of .* is smaller than required"))
+		Expect(string(stderr)).Should(ContainSubstring(`admission webhook "vnetworkpolicy.kb.io" denied the request`))
 	})
 
 	It("should default/validate Contour HTTPProxy", func() {
@@ -94,10 +94,10 @@ spec:
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "-n", "default", "httpproxy/bad", "-o", "json")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
-		hp := new(contourv1.HTTPProxy)
+		hp := &unstructured.Unstructured{}
 		err = json.Unmarshal(stdout, hp)
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, err: %v", stdout, err)
-		Expect(hp.Annotations).To(HaveKeyWithValue("kubernetes.io/ingress.class", "forest"))
+		Expect(hp.GetAnnotations()).To(HaveKeyWithValue("kubernetes.io/ingress.class", "forest"))
 
 		By("updating HTTPProxy to remove annotations")
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "annotate", "-n", "default", "httpproxy/bad", "kubernetes.io/ingress.class-")

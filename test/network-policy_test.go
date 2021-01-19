@@ -76,7 +76,7 @@ spec:
     runAsGroup: 10000
   containers:
   - name: ubuntu
-    image: quay.io/cybozu/ubuntu-debug:18.04
+    image: quay.io/cybozu/ubuntu-debug:20.04
     command: ["/usr/local/bin/pause"]
 `
 		_, stderr, err = ExecAtWithInput(boot0, []byte(debugYAML), "kubectl", "apply", "-n", "default", "-f", "-")
@@ -315,7 +315,7 @@ func testNetworkPolicy() {
 			"kubectl", "alpha", "debug", "prometheus-0",
 			"-n=monitoring",
 			"--container=ubuntu",
-			"--image=quay.io/cybozu/ubuntu-debug:18.04",
+			"--image=quay.io/cybozu/ubuntu-debug:20.04",
 			"--target=prometheus",
 			"--", "pause",
 		)
@@ -383,7 +383,7 @@ func testFiltersForInternetEgress(namespace string, localPodIP, nodeIP string, i
 			"kubectl", "alpha", "debug", pod.Name,
 			"-n="+namespace,
 			"--container=ubuntu",
-			"--image=quay.io/cybozu/ubuntu-debug:18.04",
+			"--image=quay.io/cybozu/ubuntu-debug:20.04",
 			"--target=squid",
 			"--", "pause",
 		)
@@ -464,7 +464,7 @@ func testFiltersForInternetEgress(namespace string, localPodIP, nodeIP string, i
 			"kubectl", "alpha", "debug", pod.Name,
 			"-n="+namespace,
 			"--container=ubuntu",
-			"--image=quay.io/cybozu/ubuntu-debug:18.04",
+			"--image=quay.io/cybozu/ubuntu-debug:20.04",
 			"--target=unbound",
 			"--", "pause",
 		)

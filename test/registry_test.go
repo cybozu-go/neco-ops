@@ -49,7 +49,7 @@ spec:
   containers:
   - command:
     - /usr/local/bin/pause
-    image: quay.io/cybozu/ubuntu-debug:18.04
+    image: quay.io/cybozu/ubuntu-debug:20.04
     imagePullPolicy: Always
     name: ubuntu
   securityContext:

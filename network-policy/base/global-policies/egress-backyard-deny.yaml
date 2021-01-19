@@ -5,7 +5,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  order: 1000.0
+  order: 900.0
   types:
     - Egress
   egress:
@@ -20,7 +20,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  order: 1000.0
+  order: 900.0
   types:
     - Egress
   egress:
@@ -35,7 +35,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  order: 1000.0
+  order: 900.0
   types:
     - Egress
   egress:
@@ -50,7 +50,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  order: 1000.0
+  order: 900.0
   types:
     - Egress
   egress:

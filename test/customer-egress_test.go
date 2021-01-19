@@ -25,7 +25,7 @@ spec:
   containers:
   - args:
     - pause
-    image: quay.io/cybozu/ubuntu-debug:18.04
+    image: quay.io/cybozu/ubuntu-debug:20.04
     name: ubuntu`, podName)
 		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAML), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
@@ -43,7 +43,7 @@ spec:
   containers:
   - args:
     - pause
-    image: quay.io/cybozu/ubuntu-debug:18.04
+    image: quay.io/cybozu/ubuntu-debug:20.04
     name: ubuntu`, podWithAnnotationName)
 		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAMLWIthAnnotation), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)

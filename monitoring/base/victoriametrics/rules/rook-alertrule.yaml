@@ -33,3 +33,11 @@ spec:
         annotations:
           summary: "Rook/Ceph {{ $labels.namespace }}'s status is HEALTH_ERR."
           runbook: Please consider to find root causes, and solve the problems
+      - alert: CephOSDIsNearlyNearFull
+        expr: ceph_osd_stat_bytes_used / ceph_osd_stat_bytes > 0.8
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rook/Ceph {{ $labels.ceph_daemon }} in {{ $labels.namespace }} is used more than 80%."
+          runbook: Please consider to find root causes, and solve the problems

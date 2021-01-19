@@ -251,7 +251,7 @@ jobs:
 
   create-pull-request-stage:
     docker:
-      - image: quay.io/cybozu/ubuntu-dev:18.04
+      - image: quay.io/cybozu/ubuntu-dev:20.04
     steps:
       - prepare-git
       - checkout
@@ -278,7 +278,7 @@ jobs:
             ./bin/run-neco-apps-secret-ci.sh
   push-release-tag:
     docker:
-      - image: quay.io/cybozu/ubuntu-dev:18.04
+      - image: quay.io/cybozu/ubuntu-dev:20.04
     steps:
       - prepare-git
       - checkout
@@ -293,7 +293,7 @@ jobs:
             git push ${CI_REMOTE_REPOSITORY} stage ${TAG_NAME}
   create-pull-request-release:
     docker:
-      - image: quay.io/cybozu/ubuntu-dev:18.04
+      - image: quay.io/cybozu/ubuntu-dev:20.04
     steps:
       - prepare-git
       - checkout
