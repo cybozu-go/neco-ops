@@ -247,7 +247,7 @@ func testTeamManagement() {
 
 	It("should give authority of ephemeral containers to unprivileged team", func() {
 		By("creating test pod")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "run", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:18.04", "pause")
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "run", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:20.04", "pause")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
 		By("waiting the pod become ready")
@@ -270,13 +270,13 @@ func testTeamManagement() {
 		}).Should(Succeed())
 
 		By("adding a ephemeral container by unprivileged team")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "alpha", "debug", "-i", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:18.04", "--target=neco-ephemeral-test", "--as=test", "--as-group=maneki", "--as-group=system:authenticated", "--", "echo a")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "alpha", "debug", "-i", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:20.04", "--target=neco-ephemeral-test", "--as=test", "--as-group=maneki", "--as-group=system:authenticated", "--", "echo a")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 	})
 
 	// This test confirming the configuration of RBAC so it should be at team-management_test.go but rook/ceph isn't deployed for GCP (without gcp-ceph)
 	It("should deploy OBC resource with maneki role", func() {
-		podPvcYaml := `apiVersion: objectbucket.io/v1alpha1
+		obcYaml := `apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
   name: hdd-ob
@@ -284,7 +284,26 @@ metadata:
 spec:
   generateBucketName: obc-poc
   storageClassName: ceph-hdd-bucket`
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podPvcYaml), "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "apply", "-f", "-")
+		stdout, stderr, err := ExecAtWithInput(boot0, []byte(obcYaml), "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+	})
+
+	It("should read OB resource with maneki role", func() {
+		var obName string
+		Eventually(func() error {
+			stdout, _, err := ExecAtWithInput(boot0, nil, "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "get", "obc", "-n", "maneki", "hdd-ob", "-o=jsonpath={.spec.objectBucketName}")
+			if err != nil {
+				return err
+			}
+			if len(stdout) == 0 {
+				return fmt.Errorf("failed to get ob name")
+			}
+			obName = string(stdout)
+
+			return nil
+		}).Should(Succeed())
+
+		stdout, stderr, err := ExecAtWithInput(boot0, nil, "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "get", "ob", string(obName))
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 	})
 }

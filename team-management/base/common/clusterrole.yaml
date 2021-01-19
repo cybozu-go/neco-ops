@@ -146,6 +146,7 @@ rules:
 - apiGroups:
   - objectbucket.io
   resources:
+  - objectbuckets
   - objectbucketclaims
   verbs:
   - get

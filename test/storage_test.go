@@ -45,7 +45,7 @@ spec:
             topologyKey: "kubernetes.io/hostname"
       containers:
       - name: spread-test-ubuntu
-        image: quay.io/cybozu/ubuntu:18.04
+        image: quay.io/cybozu/ubuntu:20.04
         command:
         - "/usr/local/bin/pause"
         securityContext:
@@ -86,7 +86,7 @@ spec:
             topologyKey: "kubernetes.io/hostname"
       containers:
       - name: spread-test-ubuntu
-        image: quay.io/cybozu/ubuntu:18.04
+        image: quay.io/cybozu/ubuntu:20.04
         command:
         - "/usr/local/bin/pause"
         securityContext:
@@ -173,7 +173,7 @@ metadata:
 spec:
   containers:
   - name: mycontainer
-    image: quay.io/cybozu/ubuntu-debug:18.04
+    image: quay.io/cybozu/ubuntu-debug:20.04
     imagePullPolicy: Always
     args:
     - infinity
@@ -219,7 +219,7 @@ metadata:
 spec:
   containers:
   - name: ubuntu
-    image: quay.io/cybozu/ubuntu-debug:18.04
+    image: quay.io/cybozu/ubuntu-debug:20.04
     imagePullPolicy: Always
     command: ["/usr/local/bin/pause"]
     volumeMounts:

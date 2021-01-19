@@ -59,7 +59,7 @@ images:
     newTag: 2.21.0.2
   - name: quay.io/coreos/kube-state-metrics
     newName: quay.io/cybozu/kube-state-metrics
-    newTag: 1.9.7.1
+    newTag: 1.9.7.2
   - name: quay.io/integreatly/grafana-operator
     newName: quay.io/cybozu/grafana-operator
     newTag: 3.7.0.1

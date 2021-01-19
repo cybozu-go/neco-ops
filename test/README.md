@@ -11,6 +11,7 @@ dctest
 
     ```console
     # In this case, menu-ss.yml should be used.
+    make -C ${NECO_DIR} clean
     make -C ${NECO_DIR}/dctest setup
     make -C ${NECO_DIR}/dctest placemat MENU_ARG=menu-ss.yml
     make -C ${NECO_DIR}/dctest test SUITE=bootstrap

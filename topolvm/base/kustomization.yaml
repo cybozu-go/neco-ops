@@ -23,50 +23,8 @@ configMapGenerator:
   - name: scheduler-options
     namespace: topolvm-system
     files:
-      - ./upstream/base/scheduler-options.yaml
+      - ./upstream/overlays/daemonset-scheduler/scheduler-options.yaml
 
 images:
   - name: quay.io/topolvm/topolvm
-    newTag: 0.6.0
-
-patchesJson6902:
-- target:
-    group: cert-manager.io
-    version: v1alpha3
-    kind: Issuer
-    name: webhook-selfsign
-    namespace: topolvm-system
-  patch: |-
-    - op: replace
-      path: /apiVersion
-      value: cert-manager.io/v1alpha2
-- target:
-    group: cert-manager.io
-    version: v1alpha3
-    kind: Certificate
-    name: webhook-ca
-    namespace: topolvm-system
-  patch: |-
-    - op: replace
-      path: /apiVersion
-      value: cert-manager.io/v1alpha2
-- target:
-    group: cert-manager.io
-    version: v1alpha3
-    kind: Issuer
-    name: webhook-ca
-    namespace: topolvm-system
-  patch: |-
-    - op: replace
-      path: /apiVersion
-      value: cert-manager.io/v1alpha2
-- target:
-    group: cert-manager.io
-    version: v1alpha3
-    kind: Certificate
-    name: mutatingwebhook
-    namespace: topolvm-system
-  patch: |-
-    - op: replace
-      path: /apiVersion
-      value: cert-manager.io/v1alpha2
+    newTag: 0.7.0

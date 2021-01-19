@@ -299,6 +299,9 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        # needed when another software is also using memberlist / port 7946
+        #- name: METALLB_ML_BIND_PORT
+        #  value: "7946"
         - name: METALLB_ML_LABELS
           value: "app=metallb,component=speaker"
         - name: METALLB_ML_NAMESPACE
@@ -310,7 +313,7 @@ spec:
             secretKeyRef:
               name: memberlist
               key: secretkey
-        image: metallb/speaker:v0.9.3
+        image: metallb/speaker:v0.9.5
         imagePullPolicy: Always
         name: speaker
         ports:
@@ -332,7 +335,7 @@ spec:
           readOnlyRootFilesystem: true
       hostNetwork: true
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
       serviceAccountName: speaker
       terminationGracePeriodSeconds: 2
       tolerations:
@@ -366,7 +369,7 @@ spec:
       - args:
         - --port=7472
         - --config=config
-        image: metallb/controller:v0.9.3
+        image: metallb/controller:v0.9.5
         imagePullPolicy: Always
         name: controller
         ports:
@@ -383,7 +386,7 @@ spec:
             - all
           readOnlyRootFilesystem: true
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534

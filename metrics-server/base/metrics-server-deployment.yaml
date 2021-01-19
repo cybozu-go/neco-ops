@@ -9,7 +9,6 @@ spec:
     spec:
       containers:
       - name: metrics-server
-        imagePullPolicy: IfNotPresent
         args:
           - --cert-dir=/tmp
           - --secure-port=4443

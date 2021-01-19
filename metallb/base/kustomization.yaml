@@ -5,3 +5,10 @@ resources:
 patchesStrategicMerge:
 - ./pod-security-policy.yaml
 - ./deployment.yaml
+images:
+- name: metallb/speaker
+  newName: quay.io/cybozu/metallb
+  newTag: 0.9.5.1
+- name: metallb/controller
+  newName: quay.io/cybozu/metallb
+  newTag: 0.9.5.1
