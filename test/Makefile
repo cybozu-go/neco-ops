@@ -2,7 +2,7 @@ OVERLAY ?= gcp
 BOOT0 = 10.72.48.0
 BOOT1 = 10.72.48.1
 BOOT2 = 10.72.48.2
-GINKGO = env GO111MODULE=on GOFLAGS=-mod=vendor $(GOPATH)/bin/ginkgo --failFast -v
+GINKGO = env GO111MODULE=on $(GOPATH)/bin/ginkgo --failFast -v
 SSH_PRIVKEY = $(NECO_DIR)/dctest/dctest_key
 CIRCLE_BUILD_NUM ?= -$(USER)
 TEST_ID := test$(CIRCLE_BUILD_NUM)
@@ -13,10 +13,6 @@ WGET=wget --retry-connrefused --no-verbose
 NUM_DASHBOARD = $(shell KUSTOMIZE_ENABLE_ALPHA_COMMANDS=true ./bin/kustomize cfg count ../monitoring/base/grafana-operator/dashboards | \
 	grep GrafanaDashboard | cut -d' ' -f2)
 export BOOT0 BOOT1 BOOT2 GINKGO SSH_PRIVKEY TEST_ID COMMIT_ID BOOTSTRAP NUM_DASHBOARD
-
-### for Go
-GOFLAGS = -mod=vendor
-export GOFLAGS
 
 # Follow Argo CD installed kustomize version
 # https://github.com/cybozu/neco-containers/blob/master/argocd/Dockerfile#L32
@@ -41,7 +37,7 @@ install.yaml: $(shell find ../argocd/base)
 	$(KUSTOMIZE) build ../argocd/base/ > install.yaml
 
 validation:
-	env SSH_PRIVKEY= go test -v ./validation_test.go
+	env SSH_PRIVKEY= go test -v -count 1 -run 'TestValidation' .
 
 .PHONY: test-alert-rules
 test-alert-rules: test-promalert-rules test-vmalert-rules
@@ -61,7 +57,7 @@ test-vmalert-rules:
 	$(PROMTOOL) test rules vmalert_test/*.yaml
 
 code-check: test-tools
-	test -z "$$(gofmt -s -l . | grep -v -E '^(vendor|neco-apps)' | tee /dev/stderr)"
+	test -z "$$(gofmt -s -l . | grep -v -E '^neco-apps' | tee /dev/stderr)"
 	staticcheck ./...
 	nilerr ./...
 	test -z "$$(custom-checker -restrictpkg.packages=html/template,log ./... 2>&1 | tee /dev/stderr)"

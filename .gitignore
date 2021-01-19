@@ -11,12 +11,8 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Ignore go.sum
-/go.sum
-
 # Ignore downloaded files
 /rook/bin
-/test/download
 
 # Editors
 *~

@@ -147,7 +147,7 @@ commands:
 jobs:
   test:
     docker:
-      - image: quay.io/cybozu/golang:1.13-bionic
+      - image: quay.io/cybozu/golang:1.15-focal
     steps:
       - checkout
       # CircleCI has not yet supported to use environment variables in cache keys, so we need to use a workaround.

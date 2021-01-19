@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 2.7.1
+description: A Helm chart for docker registry
+name: registry
+version: 0.1.0
+home: https://github.com/cybozu-go/neco-apps
+sources:
+  - https://github.com/cybozu-go/neco-apps/registry
+  - https://github.com/docker/distribution

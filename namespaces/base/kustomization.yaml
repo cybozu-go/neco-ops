@@ -13,6 +13,7 @@ resources:
 - metallb.yaml
 - monitoring.yaml
 - pvc-autoresizer.yaml
+- registry.yaml
 - rook-ceph.yaml
 - teleport.yaml
 - topolvm.yaml

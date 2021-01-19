@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
-	certmanagerv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -421,9 +420,9 @@ func testContour() {
 	})
 }
 
-func getCertificateRequest(cert certmanagerv1alpha2.Certificate, namespace string) (*certmanagerv1alpha2.CertificateRequest, error) {
-	var certReqList certmanagerv1alpha2.CertificateRequestList
-	var targetCertReq *certmanagerv1alpha2.CertificateRequest
+func getCertificateRequest(cert Certificate, namespace string) (*CertificateRequest, error) {
+	var certReqList CertificateRequestList
+	var targetCertReq *CertificateRequest
 
 	stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "-n", namespace, "certificaterequest", "-o", "json")
 	if err != nil {
@@ -456,14 +455,14 @@ func checkCertificate(name, namespace string) error {
 		return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 	}
 
-	var cert certmanagerv1alpha2.Certificate
+	var cert Certificate
 	err = json.Unmarshal(stdout, &cert)
 	if err != nil {
 		return err
 	}
 
 	for _, st := range cert.Status.Conditions {
-		if st.Type != certmanagerv1alpha2.CertificateConditionReady {
+		if st.Type != CertificateConditionReady {
 			continue
 		}
 		// debug output
@@ -482,11 +481,11 @@ func checkCertificate(name, namespace string) error {
 		return err
 	}
 	for _, st := range certReq.Status.Conditions {
-		if st.Type != certmanagerv1alpha2.CertificateRequestConditionReady {
+		if st.Type != CertificateRequestConditionReady {
 			continue
 		}
 
-		if st.Reason == certmanagerv1alpha2.CertificateRequestReasonFailed {
+		if st.Reason == CertificateRequestReasonFailed {
 			log.Error("CertificateRequest failed", map[string]interface{}{
 				"certificate":        cert.Name,
 				"certificaterequest": certReq.Name,
