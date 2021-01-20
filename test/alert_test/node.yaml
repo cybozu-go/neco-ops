@@ -183,3 +183,77 @@ tests:
       - eval_time: 10m
         alertname: AvailableMemoryTooLow
         exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '25+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '20+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '15+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '10+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '100+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AvailableFileSystemLow
+        exp_alerts:
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/var/lib/kubelet"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/var/lib/kubelet`."
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/var/lib/docker"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/var/lib/docker`."
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/var/lib/k8s-containerd"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/var/lib/k8s-containerd`."
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/`."
+
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '95+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '90+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '80+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '75+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '100+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AvailableFileSystemLow
+        exp_alerts: []

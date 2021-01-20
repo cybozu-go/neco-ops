@@ -35,6 +35,16 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: victoriametrics-operator
+        - name: VM_DISABLESELFSERVICESCRAPECREATION
+          value: "true"
+        - name: VM_ENABLEDPROMETHEUSCONVERTER_PODMONITOR
+          value: "false"
+        - name: VM_ENABLEDPROMETHEUSCONVERTER_SERVICESCRAPE
+          value: "false"
+        - name: VM_ENABLEDPROMETHEUSCONVERTER_PROMETHEUSRULE
+          value: "false"
+        - name: VM_ENABLEDPROMETHEUSCONVERTER_PROBE
+          value: "false"
         image: quay.io/cybozu/victoriametrics-operator:0.7.1.1
         imagePullPolicy: IfNotPresent
         name: manager

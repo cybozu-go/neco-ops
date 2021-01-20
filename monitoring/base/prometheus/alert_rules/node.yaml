@@ -39,3 +39,20 @@ groups:
         annotations:
           summary: Available memory is too low at `{{ $labels.instance }}`.
           runbook: Please check memory leak of processes.
+      - alert: AvailableFileSystemLow
+        expr: |
+          (
+            (node_filesystem_avail_bytes{mountpoint="/var/lib/kubelet"} / node_filesystem_size_bytes{mountpoint="/var/lib/kubelet"} ) * 100 < 30
+            or
+            (node_filesystem_avail_bytes{mountpoint="/var/lib/docker"} / node_filesystem_size_bytes{mountpoint="/var/lib/docker"} ) * 100 < 30
+            or
+            (node_filesystem_avail_bytes{mountpoint="/var/lib/k8s-containerd"} / node_filesystem_size_bytes{mountpoint="/var/lib/k8s-containerd"} ) * 100 < 30
+            or
+            (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} ) * 100 < 30
+          )
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Available filesystem is low at `{{ $labels.instance }}` on `{{ $labels.mountpoint }}`.
+          runbook: Please check filesystem consumption.

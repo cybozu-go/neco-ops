@@ -15,6 +15,7 @@ resources:
   - rules/kube-state-metrics-alertrule.yaml
   - rules/monitoring-scrape.yaml
   - rules/monitoring-alertrule.yaml
+  - rules/registry-scrape.yaml
   - rules/rook-scrape.yaml
   - rules/topolvm-scrape.yaml
   - rules/topolvm-alertrule.yaml

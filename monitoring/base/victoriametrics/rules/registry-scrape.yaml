@@ -1,0 +1,21 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: registry
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [ registry ]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: registry
+  endpoints:
+    - port: metrics
+      relabelConfigs:
+        - replacement: registry
+          targetLabel: job
+        - sourceLabels: [ __meta_kubernetes_pod_label_app_kubernetes_io_instance ]
+          action: replace
+          targetLabel: registry
