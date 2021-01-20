@@ -23,7 +23,6 @@ rule_files:
   - /etc/prometheus/sabakan.yaml
   - /etc/prometheus/neco-admission.yaml
   - /etc/prometheus/teleport.yaml
-  - /etc/prometheus/topolvm.yaml
   - /etc/prometheus/vault.yaml
 alerting:
   alertmanagers:
