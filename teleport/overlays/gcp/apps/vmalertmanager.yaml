@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teleport-app-vmalertmanager
+  namespace: teleport
+spec:
+  template:
+    spec:
+      containers:
+      - name: teleport-app-vmalertmanager
+        args:
+        - --insecure
+        - --roles=app
+        - --app-name=vmalertmanager
+        - --app-uri=http://vmalertmanager-vmalertmanager.monitoring.svc:9093/
+        - --labels=team=neco
+        - --diag-addr=0.0.0.0:3020
