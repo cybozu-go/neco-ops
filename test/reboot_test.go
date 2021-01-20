@@ -235,6 +235,10 @@ func testRebootAllNodes() {
 		}).Should(Succeed())
 	})
 
+	It("re-enable CKE sabakan integration", func() {
+		ExecSafeAt(boot0, "ckecli", "sabakan", "enable")
+	})
+
 	It("wait for Kubernetes cluster to become ready", func() {
 		By("waiting nodes")
 		Eventually(func() error {
@@ -278,6 +282,7 @@ spec:
   containers:
   - name: testhttpd
     image: quay.io/cybozu/testhttpd:0
+    imagePullPolicy: Always
 `
 		Eventually(func() error {
 			stdout, stderr, err := ExecAtWithInput(boot0, []byte(testhttpdYAML), "kubectl", "apply", "-f", "-")
@@ -373,9 +378,5 @@ spec:
 			}
 			return nil
 		}).Should(Succeed())
-	})
-
-	It("re-enable CKE sabakan integration", func() {
-		ExecSafeAt(boot0, "ckecli", "sabakan", "enable")
 	})
 }
