@@ -2,7 +2,3 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: elastic-system
-  labels:
-    vnetworkpolicy.kb.io/ignore: "true"
-    topolvm.cybozu.com/webhook: ignore
-    mpod.kb.io/ignore: "true"
