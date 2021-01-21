@@ -10,7 +10,8 @@ import (
 )
 
 func testMetricsServer() {
-	It("should be deployed successfully", func() {
+	It("should get metrics", func() {
+		By("confirming metrics-server is deployed successfully")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=kube-system",
 				"get", "deployment", "metrics-server", "-o=json")
@@ -30,9 +31,8 @@ func testMetricsServer() {
 
 			return nil
 		}).Should(Succeed())
-	})
 
-	It("should return metrics", func() {
+		By("confirming top command is available")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "top", "node")
 			if err != nil {

@@ -27,6 +27,7 @@ spec:
         for: 15m
         labels:
           severity: minor
+
       - alert: VMAgentSmallsetDown
         annotations:
           summary: VMAgent for smallset has disappeared.
@@ -51,6 +52,52 @@ spec:
           runbook: TBD
         expr: |
           absent(up{job="vmsingle-smallset"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+
+      - alert: VMAgentLargesetDown
+        annotations:
+          summary: VMAgent for largeset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmagent-largeset"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMAlertLargesetDown
+        annotations:
+          summary: VMAlert for largeset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmalert-largeset"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMStorageLargesetDown
+        annotations:
+          summary: VMStorage for largeset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmstorage-largeset"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMSelectLargesetDown
+        annotations:
+          summary: VMSelect for largeset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmselect-largeset"} == 1)
+        for: 15m
+        labels:
+          severity: minor
+      - alert: VMInsertLargesetDown
+        annotations:
+          summary: VMInsert for largeset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vminsert-largeset"} == 1)
         for: 15m
         labels:
           severity: minor

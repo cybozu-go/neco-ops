@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const podsYaml = `
+const registryPodsYaml = `
 apiVersion: v1
 kind: Pod
 metadata:
@@ -73,7 +73,7 @@ func prepareRegistry() {
 	It("should prepare resources", func() {
 		By("creating pods")
 		createNamespaceIfNotExists("test-registry")
-		_, stderr, err := ExecAtWithInput(boot0, []byte(podsYaml), "kubectl", "apply", "-f", "-")
+		_, stderr, err := ExecAtWithInput(boot0, []byte(registryPodsYaml), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 	})
 }
@@ -107,7 +107,7 @@ func testRegistry() {
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
-				stdout, stderr, err := ExecAtWithInput(boot0, []byte(podsYaml), "kubectl", "apply", "-f", "-")
+				stdout, stderr, err := ExecAtWithInput(boot0, []byte(registryPodsYaml), "kubectl", "apply", "-f", "-")
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
@@ -139,7 +139,7 @@ func testRegistry() {
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
-				stdout, stderr, err := ExecAtWithInput(boot0, []byte(podsYaml), "kubectl", "apply", "-f", "-")
+				stdout, stderr, err := ExecAtWithInput(boot0, []byte(registryPodsYaml), "kubectl", "apply", "-f", "-")
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
@@ -173,7 +173,7 @@ func testRegistry() {
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
-				stdout, stderr, err := ExecAtWithInput(boot0, []byte(podsYaml), "kubectl", "apply", "-f", "-")
+				stdout, stderr, err := ExecAtWithInput(boot0, []byte(registryPodsYaml), "kubectl", "apply", "-f", "-")
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
@@ -192,7 +192,7 @@ func testRegistry() {
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}
-				stdout, stderr, err := ExecAtWithInput(boot0, []byte(podsYaml), "kubectl", "apply", "-f", "-")
+				stdout, stderr, err := ExecAtWithInput(boot0, []byte(registryPodsYaml), "kubectl", "apply", "-f", "-")
 				if err != nil {
 					return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 				}

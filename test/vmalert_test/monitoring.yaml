@@ -28,6 +28,7 @@ tests:
             exp_annotations:
               runbook: TBD
               summary: VMAlertmanager has disappeared.
+
   - interval: 1m
     input_series:
       - series: 'up{job="vmagent-smallset"}'
@@ -67,3 +68,69 @@ tests:
             exp_annotations:
               runbook: TBD
               summary: VMSingle for smallset has disappeared.
+
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmagent-largeset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMAgentLargesetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMAgent for largeset has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmalert-largeset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMAlertLargesetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMAlert for largeset has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmstorage-largeset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMStorageLargesetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMStorage for largeset has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmselect-largeset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMSelectLargesetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMSelect for largeset has disappeared.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vminsert-largeset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMInsertLargesetDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: VMInsert for largeset has disappeared.

@@ -1,0 +1,52 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: vmalert-largeset
+  namespace: monitoring
+spec:
+  replicaCount: 3
+  image:
+    repository: quay.io/cybozu/victoriametrics-vmalert
+    tag: 1.51.0.1
+  containers:
+    - name: config-reloader
+      image: quay.io/cybozu/configmap-reload:0.4.0.1
+  datasource:
+    url: "http://vmselect-vmcluster-largeset.monitoring.svc:8481/select/0/prometheus"
+  notifier:
+    url: "http://vmalertmanager-vmalertmanager.monitoring.svc:9093"
+  evaluationInterval: "30s"
+  ruleSelector:
+    matchExpressions:
+      - key: managed-by
+        operator: NotIn
+        values:
+          - vm-operator
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: monitoring
+          app.kubernetes.io/instance: vmalert-largeset
+          app.kubernetes.io/name: vmalert
+          managed-by: vm-operator
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vmalert-largeset
+  namespace: monitoring
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmalert-largeset
+      app.kubernetes.io/name: vmalert
+      managed-by: vm-operator

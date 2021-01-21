@@ -44,7 +44,8 @@ spec:
 }
 
 func testSandboxGrafana() {
-	It("should be deployed successfully", func() {
+	It("should have data sources and dashboards", func() {
+		By("confirming grafana is deployed successfully")
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=sandbox",
 				"get", "statefulset/grafana", "-o=json")
@@ -67,9 +68,7 @@ func testSandboxGrafana() {
 		Eventually(func() error {
 			return checkCertificate("grafana-test", "sandbox")
 		}).Should(Succeed())
-	})
 
-	It("should have data sources and dashboards", func() {
 		By("getting admin stats from grafana")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "curl", "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", sandboxGrafanaFQDN+"/api/admin/stats")

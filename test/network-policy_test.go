@@ -197,8 +197,8 @@ spec:
 }
 
 func testNetworkPolicy() {
-	It("should wait for test pods", func() {
-		By("waiting testhttpd pods")
+	It("should pass/block packets appropriately", func() {
+		By("waiting for testhttpd pods")
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "-n", "test-netpol", "get", "deployments/testhttpd", "-o", "json")
 			if err != nil {
@@ -225,14 +225,11 @@ func testNetworkPolicy() {
 			}
 			return nil
 		}).Should(Succeed())
-	})
 
-	testhttpdPodList := new(corev1.PodList)
-	nodeList := new(corev1.NodeList)
-	var nodeIP string
-	var apiServerIP string
-
-	It("should get pod/node list", func() {
+		testhttpdPodList := new(corev1.PodList)
+		nodeList := new(corev1.NodeList)
+		var nodeIP string
+		var apiServerIP string
 
 		By("getting httpd pod list")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pods", "-n", "test-netpol", "-o=json")
@@ -264,10 +261,8 @@ func testNetworkPolicy() {
 		Expect(err).NotTo(HaveOccurred(), "server: %s", stdout)
 		apiServerIP = strings.Split(u.Host, ":")[0]
 		Expect(apiServerIP).NotTo(BeEmpty(), "server: %s", stdout)
-	})
 
-	It("should resolve hostname with DNS", func() {
-		By("resolving hostname inside of cluster (by cluster-dns)")
+		By("resolving hostname inside cluster by cluster-dns")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "ubuntu", "--", "nslookup", "-timeout=10", "testhttpd.test-netpol")
 			if err != nil {
@@ -276,7 +271,7 @@ func testNetworkPolicy() {
 			return nil
 		}).Should(Succeed())
 
-		By("resolving hostname outside of cluster (by unbound)")
+		By("resolving hostname outside cluster by unbound")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "ubuntu", "--", "nslookup", "-timeout=10", "cybozu.com")
 			if err != nil {
@@ -284,21 +279,18 @@ func testNetworkPolicy() {
 			}
 			return nil
 		}).Should(Succeed())
-	})
 
-	It("should filter packets from squid/unbound to private network (ns=internet-egress)", func() {
+		By("checking if it filters packets from squid/unbound of internet-egress to private network")
 		includeUnbound := true
 		testFiltersForInternetEgress("internet-egress", testhttpdPodList.Items[0].Status.PodIP, nodeIP, includeUnbound)
-	})
 
-	It("should filter packets from squid/unbound to private network (ns=customer-egress)", func() {
-		includeUnbound := false
+		By("checking if it filters packets from squid/unbound of customer-egress to private network")
+		includeUnbound = false
 		testFiltersForInternetEgress("customer-egress", testhttpdPodList.Items[0].Status.PodIP, nodeIP, includeUnbound)
-	})
 
-	It("should pass packets to node network for system services", func() {
+		By("checking if it passes packets to node network for system services")
 		By("accessing DNS port of some node")
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "exec", "-i", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
+		stdout, stderr, err = ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "exec", "-i", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "53", "-e", "X")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
 		By("accessing API server port of control plane node")
@@ -329,10 +321,9 @@ func testNetworkPolicy() {
 			}
 			return nil
 		}).Should(Succeed())
-	})
 
-	It("should filter icmp packets to BMC/Node/Bastion/switch networks", func() {
-		stdout, stderr, err := ExecAt(boot0, "sabactl", "machines", "get")
+		By("checking if it filters icmp packets to BMC/Node/Bastion/switch networks")
+		stdout, stderr, err = ExecAt(boot0, "sabactl", "machines", "get")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
 		var machines []sabakan.Machine

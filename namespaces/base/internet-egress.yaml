@@ -4,7 +4,7 @@ metadata:
   name: internet-egress
   annotations:
     coil.cybozu.com/pool: internet-egress
+    admission.cybozu.com/min-policy-order: "100"
   labels:
-    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
     mpod.kb.io/ignore: "true"

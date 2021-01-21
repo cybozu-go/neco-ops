@@ -535,10 +535,15 @@ func testVMCustomResources(t *testing.T) {
 		"kubernetes",
 		"registry",
 		"rook",
+		"vmagent-largeset",
 		"vmagent-smallset",
+		"vmalert-largeset",
 		"vmalert-smallset",
 		"vmalertmanager",
+		"vminsert-largeset",
+		"vmselect-largeset",
 		"vmsingle-smallset",
+		"vmstorage-largeset",
 	}
 	expectedSmallsetPodScrapes := []string{
 		"topolvm",
