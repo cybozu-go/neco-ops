@@ -4,6 +4,3 @@ metadata:
   name: external-dns
   labels:
     cert-manager.io/disable-validation: "true"
-    vnetworkpolicy.kb.io/ignore: "true"
-    topolvm.cybozu.com/webhook: ignore
-    mpod.kb.io/ignore: "true"

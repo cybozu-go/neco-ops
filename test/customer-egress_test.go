@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	podName               = "ubuntu"
+	ubuntuPodName         = "ubuntu"
 	podWithAnnotationName = "ubuntu-with-nat-annotation"
 )
 
@@ -26,7 +26,7 @@ spec:
   - args:
     - pause
     image: quay.io/cybozu/ubuntu-debug:20.04
-    name: ubuntu`, podName)
+    name: ubuntu`, ubuntuPodName)
 		stdout, stderr, err := ExecAtWithInput(boot0, []byte(podYAML), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 	})
@@ -74,7 +74,7 @@ func testCustomerEgress() {
 	It("should serve proxy to the Internet", func() {
 		By("executing curl to web page on the Internet with squid")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "-nsandbox", "exec", podName, "--", "curl", "-sf", "--proxy", "http://squid.customer-egress.svc:3128", "cybozu.com")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-nsandbox", "exec", ubuntuPodName, "--", "curl", "-sf", "--proxy", "http://squid.customer-egress.svc:3128", "cybozu.com")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -111,7 +111,7 @@ func testCustomerEgress() {
 		}).Should(Succeed())
 
 		By("deleting ubuntu pod on sandbox ns")
-		for _, name := range []string{podName, podWithAnnotationName} {
+		for _, name := range []string{ubuntuPodName, podWithAnnotationName} {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "-nsandbox", "delete", "pod", name)
 			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 		}

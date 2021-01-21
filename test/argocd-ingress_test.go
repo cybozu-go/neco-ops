@@ -58,13 +58,12 @@ spec:
 
 func testArgoCDIngress() {
 	argocdFQDN := testID + "-argocd.gcp0.dev-ne.co"
-	It("should confirm created Certificate", func() {
+	It("should confirm Argo CD functionalities", func() {
+		By("confirming created Certificate")
 		Eventually(func() error {
 			return checkCertificate("argocd-server-test", "argocd")
 		}).Should(Succeed())
-	})
 
-	It("should login via HTTPProxy as admin", func() {
 		By("logging in to Argo CD")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0, "argocd", "login", argocdFQDN,
@@ -74,9 +73,7 @@ func testArgoCDIngress() {
 			}
 			return nil
 		}).Should(Succeed())
-	})
 
-	It("should make SSO enabled", func() {
 		By("requesting to web UI with https")
 		stdout, stderr, err := ExecAt(boot0,
 			"curl", "-skL", "https://"+argocdFQDN,

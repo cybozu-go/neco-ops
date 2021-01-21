@@ -29,3 +29,6 @@ patches:
     - op: replace
       path: /metadata/name
       value: neco-admission
+images:
+  - name: quay.io/cybozu/neco-admission
+    newTag: 0.7.2

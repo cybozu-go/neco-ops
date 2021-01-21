@@ -1,0 +1,83 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: vmagent-largeset
+  namespace: monitoring
+spec:
+  image:
+    repository: quay.io/cybozu/victoriametrics-vmagent
+    tag: 1.51.0.1
+  containers:
+    - name: config-reloader
+      image: quay.io/cybozu/prometheus-config-reloader:0.43.2.1
+  serviceScrapeSelector:
+    matchExpressions:
+      - key: smallset
+        operator: NotIn
+        values:
+          - "true"
+      - key: managed-by
+        operator: NotIn
+        values:
+          - vm-operator
+  podScrapeSelector:
+    matchExpressions:
+      - key: smallset
+        operator: NotIn
+        values:
+          - "true"
+      - key: managed-by
+        operator: NotIn
+        values:
+          - vm-operator
+  nodeScrapeSelector:
+    matchExpressions:
+      - key: smallset
+        operator: NotIn
+        values:
+          - "true"
+      - key: managed-by
+        operator: NotIn
+        values:
+          - vm-operator
+  probeSelector:
+    matchExpressions:
+      - key: smallset
+        operator: NotIn
+        values:
+          - "true"
+      - key: managed-by
+        operator: NotIn
+        values:
+          - vm-operator
+  replicaCount: 3
+  remoteWrite:
+    - url: "http://vminsert-vmcluster-largeset.monitoring.svc:8480/insert/0/prometheus/api/v1/write"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: monitoring
+          app.kubernetes.io/instance: vmagent-largeset
+          app.kubernetes.io/name: vmagent
+          managed-by: vm-operator
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vmagent-largeset
+  namespace: monitoring
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmagent-largeset
+      app.kubernetes.io/name: vmagent
+      managed-by: vm-operator

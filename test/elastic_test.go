@@ -76,7 +76,8 @@ spec:
 }
 
 func testElastic() {
-	It("should be deployed successfully", func() {
+	It("should deploy Elasticsearch cluster", func() {
+		By("confirming elastic-operator is deployed")
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=elastic-system",
 				"get", "statefulset/elastic-operator", "-o=json")
@@ -95,9 +96,7 @@ func testElastic() {
 			}
 			return nil
 		}).Should(Succeed())
-	})
 
-	It("should deploy Elasticsearch cluster", func() {
 		By("waiting Elasticsearch resource health becomes green")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(

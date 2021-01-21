@@ -24,7 +24,8 @@ git checkout -qf ${CIRCLE_SHA1}
 cd test
 cp /home/cybozu/account.json ./
 make setup
-make $TARGET COMMIT_ID=${CIRCLE_SHA1} BASE_BRANCH=${BASE_BRANCH}
+make $TARGET COMMIT_ID=${CIRCLE_SHA1} BASE_BRANCH=${BASE_BRANCH} SUITE=prepare
+make $TARGET COMMIT_ID=${CIRCLE_SHA1} BASE_BRANCH=${BASE_BRANCH} SUITE=run
 EOF
 chmod +x run.sh
 

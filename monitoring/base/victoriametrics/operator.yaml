@@ -12,7 +12,7 @@ metadata:
   name: victoriametrics-operator
   namespace: monitoring
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       control-plane: victoriametrics-operator
@@ -57,3 +57,21 @@ spec:
             memory: 120Mi
       serviceAccountName: victoriametrics-operator
       terminationGracePeriodSeconds: 10
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              control-plane: victoriametrics-operator
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vmalertmanager
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      control-plane: victoriametrics-operator

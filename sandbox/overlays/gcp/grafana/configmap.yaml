@@ -44,3 +44,10 @@ data:
       url: http://vmsingle-vmsingle-smallset.monitoring.svc:8429
       isDefault: false
       editable: false
+    - name: 'vmcluster-largeset'
+      type: prometheus
+      access: proxy
+      orgId: 1
+      url: http://vmselect-vmcluster-largeset.monitoring.svc:8481/select/0/prometheus
+      isDefault: false
+      editable: false

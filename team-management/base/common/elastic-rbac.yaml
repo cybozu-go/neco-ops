@@ -71,6 +71,9 @@ subjects:
     namespace: app-elasticsearch
   - kind: ServiceAccount
     name: elastic
+    namespace: app-ept-wiki
+  - kind: ServiceAccount
+    name: elastic
     namespace: app-monitoring-elasticstack
   - kind: ServiceAccount
     name: elastic

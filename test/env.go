@@ -18,6 +18,7 @@ var (
 	commitID            = os.Getenv("COMMIT_ID")
 	externalPID         = os.Getenv("EXTERNAL_PID")
 	numGrafanaDashboard = 0
+	testSuite           = os.Getenv("SUITE")
 )
 
 func init() {
