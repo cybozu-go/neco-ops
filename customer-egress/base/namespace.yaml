@@ -4,7 +4,6 @@ metadata:
   name: customer-egress
   annotations:
     coil.cybozu.com/pool: customer-egress
+    admission.cybozu.com/min-policy-order: "100"
   labels:
-    vnetworkpolicy.kb.io/ignore: "true"
-    topolvm.cybozu.com/webhook: ignore
     team: neco

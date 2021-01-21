@@ -9,6 +9,7 @@ patchesStrategicMerge:
   - grafana-operator/grafana.yaml
   - pushgateway/httpproxy.yaml
   - ingress-health/httpproxy.yaml
+  - victoriametrics/vmcluster-largeset.yaml
 configMapGenerator:
   - name: alertmanager
     behavior: merge

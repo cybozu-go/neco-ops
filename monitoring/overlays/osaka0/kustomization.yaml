@@ -10,6 +10,7 @@ patchesStrategicMerge:
   - pushgateway/httpproxy.yaml
   - ingress-health/httpproxy.yaml
   - victoriametrics/vmsingle-smallset.yaml
+  - victoriametrics/vmcluster-largeset.yaml
 configMapGenerator:
   - name: alertmanager
     behavior: merge

@@ -93,6 +93,22 @@ func testRebootAllNodes() {
 		ExecSafeAt(boot0, "ckecli", "sabakan", "disable")
 	})
 
+	It("should stop all CKE service", func() {
+		ExecSafeAt(boot0, "sudo", "systemctl", "stop", "cke.service")
+		ExecSafeAt(boot1, "sudo", "systemctl", "stop", "cke.service")
+		ExecSafeAt(boot2, "sudo", "systemctl", "stop", "cke.service")
+	})
+
+	It("should stop all kube-controller-manager and delete all Pod", func() {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "nodes", "-l", "node-role.kubernetes.io/master=true", "-ojsonpath='{.items..metadata.name}'")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		cpAddrs := strings.Split(string(stdout), " ")
+		for _, a := range cpAddrs {
+			ExecSafeAt(boot0, "ckecli", "ssh", a, "docker", "stop", "kube-controller-manager")
+		}
+		ExecSafeAt(boot0, "kubectl", "delete", "pod", "-A", "--all", "--force")
+	})
+
 	It("reboots all nodes", func() {
 		By("getting machines list")
 		stdout, _, err := ExecAt(boot0, "sabactl", "machines", "get")
@@ -233,6 +249,12 @@ func testRebootAllNodes() {
 
 			return nil
 		}).Should(Succeed())
+	})
+
+	It("should start all CKE service", func() {
+		ExecSafeAt(boot0, "sudo", "systemctl", "start", "cke.service")
+		ExecSafeAt(boot1, "sudo", "systemctl", "start", "cke.service")
+		ExecSafeAt(boot2, "sudo", "systemctl", "start", "cke.service")
 	})
 
 	It("re-enable CKE sabakan integration", func() {

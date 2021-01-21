@@ -3,6 +3,7 @@ kind: Namespace
 metadata:
   name: kube-system
   labels:
-    vnetworkpolicy.kb.io/ignore: "true"
     topolvm.cybozu.com/webhook: ignore
     mpod.kb.io/ignore: "true"
+  annotations:
+    admission.cybozu.com/min-policy-order: "500"

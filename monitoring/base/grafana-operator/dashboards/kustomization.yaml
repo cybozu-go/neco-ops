@@ -30,4 +30,5 @@ resources:
   - sabakan.yaml
   - topolvm-volumegroup.yaml
   - victoriametrics-vmagent.yaml
+  - victoriametrics-vmcluster.yaml
   - victoriametrics-vmsingle.yaml

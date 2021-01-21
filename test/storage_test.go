@@ -595,6 +595,29 @@ func prepareRebootRookCeph() {
 func testRebootRookCeph() {
 	It("should get stored data via RGW after reboot", func() {
 		ns := "test-rook-rgw"
+		By("recreating Pod using OBC")
+		podPvcYaml := fmt.Sprintf(`apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-ob
+  namespace: %s
+spec:
+  containers:
+  - name: mycontainer
+    image: quay.io/cybozu/ubuntu-debug:20.04
+    imagePullPolicy: Always
+    args:
+    - infinity
+    command:
+    - sleep
+    envFrom:
+    - configMapRef:
+        name: pod-ob
+    - secretRef:
+        name: pod-ob`, ns)
+		_, stderr, err := ExecAtWithInput(boot0, []byte(podPvcYaml), "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
+
 		waitRGW(ns, "pod-ob")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c",
 			`"s3cmd get s3://\${BUCKET_NAME}/foobar_reboot /tmp/downloaded --no-ssl --host=\${BUCKET_HOST} --host-bucket="`)

@@ -1,0 +1,130 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMCluster
+metadata:
+  name: vmcluster-largeset
+  namespace: monitoring
+spec:
+  retentionPeriod: "400d"
+  vmstorage:
+    image:
+      repository: quay.io/cybozu/victoriametrics-vmstorage
+      tag: 1.51.0.1
+    replicaCount: 3
+    extraArgs:
+      dedup.minScrapeInterval: 30s # should be equal to VMAgent's scrapeInterval (default 30s)
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-hdd-block
+          resources:
+            requests:
+              storage: 1Gi # this value is for GCP env. we don't use pvc-autoresizer. see overlays/*/victoriametrics/vmcluster-largeset.yaml too.
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: monitoring
+            app.kubernetes.io/instance: vmcluster-largeset
+            app.kubernetes.io/name: vmstorage
+            managed-by: vm-operator
+
+  vmselect:
+    image:
+      repository: quay.io/cybozu/victoriametrics-vmselect
+      tag: 1.51.0.1
+    replicaCount: 3
+    extraArgs:
+      replicationFactor: "2"
+      dedup.minScrapeInterval: 30s # should be equal to VMAgent's scrapeInterval (default 30s)
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: monitoring
+            app.kubernetes.io/instance: vmcluster-largeset
+            app.kubernetes.io/name: vmselect
+            managed-by: vm-operator
+
+    # the following volumes and volumeMounts should be removed eventually
+    volumes:
+    - name: tmp
+      emptyDir: {}
+    volumeMounts:
+    - name: tmp
+      mountPath: /tmp
+
+  vminsert:
+    image:
+      repository: quay.io/cybozu/victoriametrics-vminsert
+      tag: 1.51.0.1
+    replicaCount: 3
+    extraArgs:
+      replicationFactor: "2"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: monitoring
+            app.kubernetes.io/instance: vmcluster-largeset
+            app.kubernetes.io/name: vminsert
+            managed-by: vm-operator
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vmstorage-vmcluster-largeset
+  namespace: monitoring
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmcluster-largeset
+      app.kubernetes.io/name: vmstorage
+      managed-by: vm-operator
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vmselect-vmcluster-largeset
+  namespace: monitoring
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmcluster-largeset
+      app.kubernetes.io/name: vmselect
+      managed-by: vm-operator
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vminsert-vmcluster-largeset
+  namespace: monitoring
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmcluster-largeset
+      app.kubernetes.io/name: vminsert
+      managed-by: vm-operator

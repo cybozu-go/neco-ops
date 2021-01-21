@@ -107,3 +107,113 @@ spec:
     relabelConfigs:
       - replacement: vmsingle-smallset
         targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vmagent-largeset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmagent-largeset
+      app.kubernetes.io/name: vmagent
+      managed-by: vm-operator
+  endpoints:
+  - port: http
+    relabelConfigs:
+      - replacement: vmagent-largeset
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vmalert-largeset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmalert-largeset
+      app.kubernetes.io/name: vmalert
+      managed-by: vm-operator
+  endpoints:
+  - port: http
+    relabelConfigs:
+      - replacement: vmalert-largeset
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vminsert-largeset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmcluster-largeset
+      app.kubernetes.io/name: vminsert
+      managed-by: vm-operator
+  endpoints:
+  - port: http
+    relabelConfigs:
+      - replacement: vminsert-largeset
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vmselect-largeset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmcluster-largeset
+      app.kubernetes.io/name: vmselect
+      managed-by: vm-operator
+  endpoints:
+  - port: http
+    relabelConfigs:
+      - replacement: vmselect-largeset
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vmstorage-largeset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmcluster-largeset
+      app.kubernetes.io/name: vmstorage
+      managed-by: vm-operator
+  endpoints:
+  - port: http
+    relabelConfigs:
+      - replacement: vmstorage-largeset
+        targetLabel: job

@@ -15,3 +15,13 @@ spec:
       jsonData:
         tlsSkipVerify: true
         timeInterval: "30s"
+    - name: vmcluster-largeset
+      type: prometheus
+      access: proxy
+      url: http://vmselect-vmcluster-largeset.monitoring.svc:8481/select/0/prometheus
+      version: 1
+      isDefault: false
+      editable: false
+      jsonData:
+        tlsSkipVerify: true
+        timeInterval: "30s"
