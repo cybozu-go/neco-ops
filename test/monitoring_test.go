@@ -833,6 +833,8 @@ func testVictoriaMetricsOperator() {
 }
 
 func testVMAlertmanager() {
+	const vmamCount = 3
+
 	It("should be deployed successfully", func() {
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=monitoring",
@@ -846,8 +848,8 @@ func testVMAlertmanager() {
 				return err
 			}
 
-			if int(sts.Status.ReadyReplicas) != 1 {
-				return fmt.Errorf("ReadyReplicas is not 1: %d", int(sts.Status.ReadyReplicas))
+			if int(sts.Status.ReadyReplicas) != vmamCount {
+				return fmt.Errorf("ReadyReplicas is not %d: %d", vmamCount, int(sts.Status.ReadyReplicas))
 			}
 			return nil
 		}).Should(Succeed())
@@ -865,15 +867,17 @@ func testVMAlertmanager() {
 			if err != nil {
 				return err
 			}
-			if len(podList.Items) != 1 {
-				return errors.New("vmalertmanager pod doesn't exist")
+			if len(podList.Items) != vmamCount {
+				return errors.New("vmalertmanager pod count mismatch")
 			}
-			podName := podList.Items[0].Name
+			for _, pod := range podList.Items {
+				podName := pod.Name
 
-			_, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
-				podName, "curl", "http://localhost:9093/-/healthy")
-			if err != nil {
-				return fmt.Errorf("unable to curl :9093/-/halthy, stderr: %s, err: %v", stderr, err)
+				_, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
+					podName, "curl", "http://localhost:9093/-/healthy")
+				if err != nil {
+					return fmt.Errorf("unable to curl http://%s:9093/-/halthy, stderr: %s, err: %v", podName, stderr, err)
+				}
 			}
 			return nil
 		}).Should(Succeed())

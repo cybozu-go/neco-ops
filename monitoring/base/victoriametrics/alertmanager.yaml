@@ -13,7 +13,7 @@ spec:
       image: quay.io/cybozu/alertmanager:0.21.0.1
     - name: config-reloader
       image: quay.io/cybozu/configmap-reload:0.4.0.1
-  replicaCount: 1
+  replicaCount: 3
   # VMAlertmanager is able to detect configSecret content change and to reload alertmanager.
   # We don't need to use secretGenerator for alertmanager.yaml unlike monitoring/base/alertmanager/deployment.yaml
   configSecret: vmalertmanager-config
@@ -39,3 +39,27 @@ spec:
           requests:
             storage: 1Gi
         storageClassName: topolvm-provisioner
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: monitoring
+          app.kubernetes.io/instance: vmalertmanager
+          app.kubernetes.io/name: vmalertmanager
+          managed-by: vm-operator
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vmalertmanager
+  namespace: monitoring
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmalertmanager
+      app.kubernetes.io/name: vmalertmanager
+      managed-by: vm-operator
