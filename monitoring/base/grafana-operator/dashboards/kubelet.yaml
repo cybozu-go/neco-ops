@@ -170,7 +170,7 @@ spec:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(kubelet_running_pod_count{job=\"kubernetes-nodes\", instance=~\"$instance\"})",
+              "expr": "sum(kubelet_running_pods{job=\"kubernetes-nodes\", instance=~\"$instance\"})",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "",
@@ -252,7 +252,7 @@ spec:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(kubelet_running_container_count{job=\"kubernetes-nodes\", instance=~\"$instance\"})",
+              "expr": "sum(kubelet_running_containers{job=\"kubernetes-nodes\", instance=~\"$instance\"})",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "",

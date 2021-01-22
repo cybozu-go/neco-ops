@@ -702,7 +702,7 @@ spec:
                         "step": 10
                     },
                     {
-                        "expr": "kubelet_running_pod_count{kubernetes_io_role =~ \".*node.*\"}",
+                        "expr": "kubelet_running_pods{kubernetes_io_role =~ \".*node.*\"}",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ instance }}",

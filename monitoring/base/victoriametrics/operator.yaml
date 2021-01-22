@@ -68,7 +68,7 @@ spec:
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  name: vmalertmanager
+  name: victoriametrics-operator
   namespace: monitoring
 spec:
   minAvailable: 1

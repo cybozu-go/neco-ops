@@ -475,7 +475,7 @@ tests:
               summary: Kubernetes API server client 'kubernetes-apiservers/10.0.0.1' is experiencing 33% errors.
   - interval: 1m
     input_series:
-      - series: 'kubelet_running_pod_count{job="kubernetes-nodes", instance="10.0.0.1"}'
+      - series: 'kubelet_running_pods{job="kubernetes-nodes", instance="10.0.0.1"}'
         values: '96+0x15'
       - series: 'kubelet_node_name{job="kubernetes-nodes", instance="10.0.0.1", node="node-a"}'
         values: '1+0x15'
