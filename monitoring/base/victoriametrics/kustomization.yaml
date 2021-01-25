@@ -20,6 +20,7 @@ resources:
   - rules/monitoring-alertrule.yaml
   - rules/registry-scrape.yaml
   - rules/rook-scrape.yaml
+  - rules/rook-alertrule.yaml
   - rules/topolvm-scrape.yaml
   - rules/topolvm-alertrule.yaml
 patchesStrategicMerge:

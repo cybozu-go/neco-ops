@@ -558,6 +558,7 @@ func testVMCustomResources(t *testing.T) {
 		"kube-state-metrics",
 		"kubernetes",
 		"monitoring",
+		"rook",
 		"topolvm",
 	}
 
