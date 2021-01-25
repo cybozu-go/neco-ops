@@ -1,0 +1,15 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: external-dns
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [external-dns]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: external-dns
+  podMetricsEndpoints:
+  - relabelConfigs:
+    - replacement: external-dns
+      targetLabel: job

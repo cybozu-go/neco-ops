@@ -1,0 +1,18 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: teleport
+  namespace: monitoring
+spec:
+  groups:
+    - name: teleport
+      rules:
+        - alert: TeleportDown
+          expr: |
+            absent(up{job="teleport"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: Teleport has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems

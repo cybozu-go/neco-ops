@@ -1,0 +1,37 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: sabakan
+  namespace: monitoring
+spec:
+  groups:
+    - name: sabakan
+      rules:
+        - alert: SabakanDown
+          expr: |
+            absent(up{job="sabakan"} == 1)
+          labels:
+            severity: warning
+          for: 30m
+          annotations:
+            summary: Sabakan has disappeared from Prometheus target discovery.
+            runbook: TBD
+        - alert: SabakanMachineUnavailable10
+          annotations:
+            summary: "The rate of unavailable machines is over 10%."
+            runbook: TBD
+          expr: |
+            100 * sum(max by (instance, address, serial) (sabakan_machine_status{status=~"(unhealthy|unreachable|retiring|retired)"})) / sum(sabakan_machine_status)
+            > 10
+          for: 15m
+          labels:
+            severity: warning
+        - alert: BootServerNotHealthy
+          annotations:
+            summary: "Not-healthy boot server(s) exist."
+            runbook: TBD
+          expr: |
+            sum(sabakan_machine_status{status!="healthy", role="boot"}) > 0
+          for: 30m
+          labels:
+            severity: minor

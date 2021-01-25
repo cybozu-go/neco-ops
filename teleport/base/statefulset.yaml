@@ -53,6 +53,8 @@ spec:
         ports:
         - name: authssh
           containerPort: 3025
+        - name: metrics
+          containerPort: 3020
         volumeMounts:
         - mountPath: /etc/teleport
           name: teleport-auth-secret

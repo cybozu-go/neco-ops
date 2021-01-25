@@ -1,0 +1,64 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: node
+  namespace: monitoring
+spec:
+  groups:
+    - name: node
+      rules:
+        - alert: NodeExporterDown
+          annotations:
+            summary: NodeExporter has disappeared at `{{ $labels.address }}`.
+            runbook: Please consider to find root causes, and solve the problems.
+          expr: |
+            (up{job="node-exporter"} == 0) * on (address)
+            sum(sabakan_machine_status{status!="retired"} == 1) by (address)
+          for: 30m
+          labels:
+            severity: minor
+        - alert: MonitorHWDown
+          expr: |
+            (up{job="monitor-hw"} == 0) * on (address)
+            sum(sabakan_machine_status{status!="retired"} == 1) by (address)
+          labels:
+            severity: minor
+          for: 30m
+          annotations:
+            summary: MonitorHW has disappeared at `{{ $labels.address }}`.
+            runbook: Please consider to find root causes, and solve the problems.
+        - alert: ConntrackEntriesReachLimit
+          expr: |
+            (node_nf_conntrack_entries / node_nf_conntrack_entries_limit) * 100 > 75
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Conntrack entries will be reach limit at `{{ $labels.instance }}`.
+            runbook: Please re-configure the limit or plan some solutions.
+        - alert: AvailableMemoryTooLow
+          expr: |
+            (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Available memory is too low at `{{ $labels.instance }}`.
+            runbook: Please check memory leak of processes.
+        - alert: AvailableFileSystemLow
+          expr: |
+            (
+              (node_filesystem_avail_bytes{mountpoint="/var/lib/kubelet"} / node_filesystem_size_bytes{mountpoint="/var/lib/kubelet"} ) * 100 < 30
+              or
+              (node_filesystem_avail_bytes{mountpoint="/var/lib/docker"} / node_filesystem_size_bytes{mountpoint="/var/lib/docker"} ) * 100 < 30
+              or
+              (node_filesystem_avail_bytes{mountpoint="/var/lib/k8s-containerd"} / node_filesystem_size_bytes{mountpoint="/var/lib/k8s-containerd"} ) * 100 < 30
+              or
+              (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} ) * 100 < 30
+            )
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Available filesystem is low at `{{ $labels.instance }}` on `{{ $labels.mountpoint }}`.
+            runbook: Please check filesystem consumption.

@@ -1,0 +1,17 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/external-dns-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="external-dns"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ExternalDNSDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: ExternalDNS has disappeared from Prometheus target discovery.

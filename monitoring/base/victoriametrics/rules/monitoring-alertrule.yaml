@@ -101,3 +101,40 @@ spec:
         for: 15m
         labels:
           severity: minor
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: monitoring-largeset
+  namespace: monitoring
+spec:
+  groups:
+    - name: monitoring-largeset
+      rules:
+        - alert: AlertmanagerDown
+          annotations:
+            summary: Alertmanager has disappeared from Prometheus target discovery.
+            runbook: TBD
+          expr: |
+            absent(up{job="alertmanager"} == 1)
+          for: 15m
+          labels:
+            severity: minor
+        - alert: PrometheusDown
+          annotations:
+            summary: Prometheus has disappeared from Prometheus target discovery.
+            runbook: TBD
+          expr: |
+            absent(up{job="prometheus"} == 1)
+          for: 15m
+          labels:
+            severity: minor
+        - alert: PushGatewayDown
+          expr: |
+            absent(up{job="pushgateway"} == 1)
+          labels:
+            severity: critical
+          for: 15m
+          annotations:
+            summary: pushgateway is down.
+            runbook: TBD

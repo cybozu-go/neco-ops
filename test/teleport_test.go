@@ -239,12 +239,20 @@ func teleportApplicationTest() {
 	}
 	fmt.Printf("Found applications in manifests: %+v\n", appNames)
 
-	for _, n := range appNames {
-		query := fmt.Sprintf("'.[].spec.apps[].name | select(. == \"%s\")'", n)
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "-it", "teleport-auth-0", "--", "tctl", "apps", "ls", "--format=json", "--", "|", "jq", "-r", query)
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
-		Expect(string(stdout)).Should(Equal(n + "\n"))
-	}
+	By("checking applications are correctly deployed")
+	Eventually(func() error {
+		for _, n := range appNames {
+			query := fmt.Sprintf("'.[].spec.apps[].name | select(. == \"%s\")'", n)
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "-it", "teleport-auth-0", "--", "tctl", "apps", "ls", "--format=json", "--", "|", "jq", "-r", query)
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+			if string(stdout) != n+"\n" {
+				return fmt.Errorf("app %s mismatch: actual = %s", n, stdout)
+			}
+		}
+		return nil
+	}).Should(Succeed())
 }
 
 func decodeNodes(input []byte) []Node {

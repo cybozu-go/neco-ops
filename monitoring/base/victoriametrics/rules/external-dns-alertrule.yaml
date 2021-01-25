@@ -1,0 +1,36 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: external-dns
+  namespace: monitoring
+spec:
+  groups:
+    - name: external-dns
+      rules:
+        - alert: ExternalDNSDown
+          expr: |
+            absent(up{job="external-dns"} == 1)
+          labels:
+            severity: minor
+          for: 10m
+          annotations:
+            summary: ExternalDNS has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: ExternalDNSRegistryError
+          expr: |
+            rate(external_dns_registry_errors_total[5m]) > 0
+          labels:
+            severity: minor
+          for: 30m
+          annotations:
+            summary: Registrations of DNS Endpoints return error.
+            runbook: Please check the status of External DNS.
+        - alert: ExternalDNSEndpointsError
+          expr: |
+            rate(external_dns_source_errors_total[5m]) > 0
+          labels:
+            severity: minor
+          for: 10m
+          annotations:
+            summary: Endpoints corresponding to a DNS name return error.
+            runbook: Please check the status of backend Endpoints of DNS names.

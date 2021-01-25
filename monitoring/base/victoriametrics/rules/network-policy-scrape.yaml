@@ -1,0 +1,45 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: calico-node
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector:
+    matchLabels:
+      k8s-app: calico-node
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: calico-node
+        targetLabel: job
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:9091
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        targetLabel: instance
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: calico-typha
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector:
+    matchLabels:
+      k8s-app: calico-typha
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: calico-typha
+        targetLabel: job
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:9093
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        targetLabel: instance

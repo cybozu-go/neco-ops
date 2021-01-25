@@ -1,0 +1,14 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: metallb
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [metallb-system]
+  selector: {}
+  podMetricsEndpoints:
+  - port: monitoring
+    relabelConfigs:
+      - replacement: metallb
+        targetLabel: job

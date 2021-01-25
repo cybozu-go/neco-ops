@@ -1,0 +1,70 @@
+rule_files:
+   - ../../monitoring/base/victoriametrics/rules/converted/argocd-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'argocd_app_info{name="monitoring",sync_status="Synced",project="default"}'
+        values: 0+0x20
+      - series: 'argocd_app_info{name="metallb",sync_status="Synced",project="default"}'
+        values: 0+0x20
+      - series: 'argocd_app_info{name="argocd",sync_status="Synced",project="default"}'
+        values: '0+0x10 1+0x10'
+      - series: 'argocd_app_info{name="monitoring",sync_status="Unknown",project="default"}'
+        values: 1+0x20
+      - series: 'argocd_app_info{name="metallb",sync_status="Unknown",project="default"}'
+        values: 1+0x20
+      - series: 'argocd_app_info{name="argocd",sync_status="Unknown",project="default"}'
+        values: '1+0x10 0+0x10'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: AppOutOfSync
+        exp_alerts:
+          - exp_labels:
+              name: monitoring
+              severity: minor
+              sync_status: Unknown
+              project: default
+            exp_annotations:
+              summary: monitoring is out-of-sync.
+              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
+          - exp_labels:
+              name: metallb
+              severity: minor
+              sync_status: Unknown
+              project: default
+            exp_annotations:
+              summary: metallb is out-of-sync.
+              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
+  - interval: 1m
+    input_series:
+      - series: 'argocd_app_info{name="monitoring",sync_status="Unknown",project="default"}'
+        values: 1+0x20
+      - series: 'argocd_app_info{name="metallb",sync_status="Unknown",project="default"}'
+        values: 1+0x20
+      - series: 'argocd_app_info{name="argocd",sync_status="Unknown",project="default"}'
+        values: 1+0x20
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: AllAppMissing
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              sync_status: Synced
+              project: default
+            exp_annotations:
+              summary: no application is synced.
+              runbook: See https://github.com/cybozu-go/neco-apps/blob/master/DEVELOPMENT.md#out-of-sync
+  - interval: 1m
+    input_series:
+      - series: 'up{job="argocd"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ArgoCDDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: ArgoCD has disappeared from Prometheus target discovery.

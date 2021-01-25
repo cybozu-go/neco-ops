@@ -1,0 +1,214 @@
+rule_files:
+   - ../../monitoring/base/victoriametrics/rules/converted/cke-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="cke"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CKEDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: CKE has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="cke", instance="boot-0"}'
+        values: 1+0x5 0+0x10
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CKENearlyDown
+        exp_alerts:
+          - exp_labels:
+              job: cke
+              instance: boot-0
+              severity: warning
+            exp_annotations:
+              summary: CKE on boot-0 has nearly disappeared from Prometheus target discovery.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'up{job="cke", instance="boot-0"}'
+        values: '1 0 1 0 1 0 1'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CKERestartsFrequently
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              job: cke
+              instance: boot-0
+            exp_annotations:
+              runbook: TBD
+              summary: CKE on boot-0 restarts more than 5 times in 15 min.
+  - interval: 1m
+    input_series:
+      - series: 'cke_leader{label="for"}'
+        values: '1+0x15'
+      - series: 'cke_leader{label="bar"}'
+        values: '0+0x15'
+      - series: 'cke_leader{label="baz"}'
+        values: '0+0x15'
+    alert_rule_test: 
+      - eval_time: 15m
+        alertname: CKENoLeader
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'cke_leader{label="for"}'
+        values: '0+0x15'
+      - series: 'cke_leader{label="bar"}'
+        values: '0+0x15'
+      - series: 'cke_leader{label="baz"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CKENoLeader
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: CKE leader does not exist for more than 15 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'cke_operation_phase{phase="completed"}'
+        values: '1+0x30'
+      - series: 'cke_operation_phase{phase="etcd-boot"}'
+        values: '0+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: CKEOperationTakesLongTime
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'cke_operation_phase{phase="completed"}'
+        values: '0+0x30'
+      - series: 'cke_operation_phase{phase="etcd-boot"}'
+        values: '1+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: CKEOperationTakesLongTime
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              runbook: TBD
+              summary: CKE takes more than 30 minutes to complete operations.
+  - interval: 1m
+    input_series:
+      - series: 'cke_operation_phase{phase="completed"}'
+        values: '0+0x4'
+      - series: 'cke_operation_phase{phase="etcd-boot"}'
+        values: '1+0x4'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: CKEPerformOps
+        exp_alerts:
+          - exp_labels:
+              severity: info
+            exp_annotations:
+              runbook: TBD
+              summary: CKE performs some operations.
+  - interval: 1m
+    input_series:
+      - series: cke_operation_phase_timestamp_seconds
+        values: '0 1+0x119'
+    alert_rule_test:
+    - eval_time: 65m
+      alertname: CKEDoesNotPerformAnyOps
+      exp_alerts: []
+    - eval_time: 66m
+      alertname: CKEDoesNotPerformAnyOps
+      exp_alerts:
+        - exp_labels:
+            severity: warning
+          exp_annotations:
+            runbook: TBD
+            summary: CKE does not perform any operations for more than 1 hour.
+  - interval: 1m
+    input_series:
+      - series: cke_reboot_queue_entries
+        values: '0+0x120 1+0x120'
+    alert_rule_test:
+    - eval_time: 90m
+      alertname: CKERebootQueueStuck
+      exp_alerts: []
+    - eval_time: 185m
+      alertname: CKERebootQueueStuck
+      exp_alerts: []
+    - eval_time: 186m
+      alertname: CKERebootQueueStuck
+      exp_alerts:
+        - exp_labels:
+            severity: warning
+          exp_annotations:
+            runbook: TBD
+            summary: CKE reboot queue is stuck for more than 1 hour.
+  - interval: 1m
+    input_series:
+      - series: 'cke_sabakan_integration_successful'
+        values: '0+0x59 1'
+    alert_rule_test:
+      - eval_time: 1h
+        alertname: CKESabakanIntegrationSeemsToBeFailed
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'cke_sabakan_integration_successful'
+        values: '0+0x60'
+    alert_rule_test:
+      - eval_time: 1h
+        alertname: CKESabakanIntegrationSeemsToBeFailed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              runbook: TBD
+              summary: CKE-sabakan integration does not work for 1 hour.
+  - interval: 1m
+    input_series:
+      - series: 'cke_sabakan_integration_timestamp_seconds'
+        values: '0 1+0x119'
+      - series: 'cke_operation_phase{phase="reboot-nodes"}'
+        values: '0+0x120'
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: CKESabakanIntegrationDoesNotPerformAnyOps
+        exp_alerts: []
+      - eval_time: 66m
+        alertname: CKESabakanIntegrationDoesNotPerformAnyOps
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              runbook: TBD
+              summary: The timestamp of CKE-sabakan integration does not change for 1 hour.
+  - interval: 1m
+    input_series:
+      - series: 'cke_sabakan_integration_timestamp_seconds'
+        values: '0 1+0x119'
+      - series: 'cke_operation_phase{phase="reboot-nodes"}'
+        values: '1+0x120'
+    alert_rule_test:
+      - eval_time: 66m
+        alertname: CKESabakanIntegrationDoesNotPerformAnyOps
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'cke_leader{instance="boot-0"}'
+        values: '1 0 1 0 1 0 1'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: CKELeaderChangesFrequently
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              instance: boot-0
+            exp_annotations:
+              runbook: TBD
+              summary: CKE leader changes frequently on boot-0.

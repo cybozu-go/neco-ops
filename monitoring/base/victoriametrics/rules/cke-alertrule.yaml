@@ -1,0 +1,105 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: cke
+  namespace: monitoring
+spec:
+  groups:
+    - name: cke
+      rules:
+        - alert: CKEDown
+          expr: |
+            absent(up{job="cke"} == 1)
+          labels:
+            severity: minor
+          for: 15m
+          annotations:
+            summary: CKE has disappeared from Prometheus target discovery.
+            runbook: TBD
+        - alert: CKENearlyDown
+          expr: |
+            avg_over_time(up{job="cke"}[15m]) < 0.5
+          labels:
+            severity: warning
+          annotations:
+            summary: CKE on {{ $labels.instance }} has nearly disappeared from Prometheus target discovery.
+            runbook: TBD
+        - alert: CKERestartsFrequently
+          expr: |
+            changes(up{job="cke"}[15m]) > 5
+          labels:
+            severity: minor
+          annotations:
+            summary: CKE on {{ $labels.instance }} restarts more than 5 times in 15 min.
+            runbook: TBD
+        - alert: CKENoLeader
+          annotations:
+            summary: CKE leader does not exist for more than 15 minutes.
+            runbook: TBD
+          expr: |
+            max(cke_leader) < 1
+          for: 15m
+          labels:
+            severity: minor
+        - alert: CKEOperationTakesLongTime
+          expr: |
+            sum(cke_operation_phase{phase!~"completed|reboot-nodes"}) > 0
+          labels:
+            severity: warning
+          for: 30m
+          annotations:
+            summary: CKE takes more than 30 minutes to complete operations.
+            runbook: TBD
+        - alert: CKEPerformOps
+          expr: |
+            sum(cke_operation_phase{phase!="completed"}) > 0
+          labels:
+            severity: info
+          for: 1m
+          annotations:
+            summary: CKE performs some operations.
+            runbook: TBD
+        - alert: CKEDoesNotPerformAnyOps
+          expr: |
+            (cke_operation_phase_timestamp_seconds - cke_operation_phase_timestamp_seconds offset 5m) == 0
+          labels:
+            severity: warning
+          for: 1h
+          annotations:
+            summary: CKE does not perform any operations for more than 1 hour.
+            runbook: TBD
+        - alert: CKERebootQueueStuck
+          expr: |
+            (cke_reboot_queue_entries - cke_reboot_queue_entries offset 5m) == 0 and cke_reboot_queue_entries > 0
+          labels:
+            severity: warning
+          for: 1h
+          annotations:
+            summary: CKE reboot queue is stuck for more than 1 hour.
+            runbook: TBD
+        - alert: CKESabakanIntegrationSeemsToBeFailed
+          expr: |
+            sum(cke_sabakan_integration_successful) == 0
+          labels:
+            severity: warning
+          for: 1h
+          annotations:
+            summary: CKE-sabakan integration does not work for 1 hour.
+            runbook: TBD
+        - alert: CKESabakanIntegrationDoesNotPerformAnyOps
+          expr: |
+            ((cke_sabakan_integration_timestamp_seconds - cke_sabakan_integration_timestamp_seconds offset 5m) == 0) and ignoring(phase) (cke_operation_phase{phase="reboot-nodes"} == 0)
+          labels:
+            severity: warning
+          for: 60m
+          annotations:
+            summary: The timestamp of CKE-sabakan integration does not change for 1 hour.
+            runbook: TBD
+        - alert: CKELeaderChangesFrequently
+          expr: |
+            changes(cke_leader[30m]) > 5
+          labels:
+            severity: minor
+          annotations:
+            summary: CKE leader changes frequently on {{ $labels.instance }}.
+            runbook: TBD

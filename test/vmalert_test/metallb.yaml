@@ -1,0 +1,37 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/metallb-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="metallb"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: MetalLBDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: MetalLB has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'metallb_allocator_addresses_in_use_total{pool="a"}'
+        values: '76+0x10'
+      - series: 'metallb_allocator_addresses_in_use_total{pool="b"}'
+        values: '75+0x10'
+      - series: 'metallb_allocator_addresses_total{pool="a"}'
+        values: '100+0x10'
+      - series: 'metallb_allocator_addresses_total{pool="b"}'
+        values: '100+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: MetalLBAddressPoolHighUtilization
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              pool: a
+            exp_annotations:
+              description: Address Pool of MetalLB will be exhausted.
+              runbook: Please re-consider the address allocation planning.

@@ -41,6 +41,9 @@ spec:
             path: /healthz
           initialDelaySeconds: 5
           periodSeconds: 5
+        ports:
+        - name: metrics
+          containerPort: 3020
         volumeMounts:
         - mountPath: /etc/teleport
           name: teleport-app-secret

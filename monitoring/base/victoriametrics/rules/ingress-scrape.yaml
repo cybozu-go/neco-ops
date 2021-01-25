@@ -1,0 +1,38 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: contour
+  namespace: monitoring
+spec:
+  discoveryRole: endpoints
+  namespaceSelector:
+    matchNames: [ingress-global, ingress-forest, ingress-bastion]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: contour
+  endpoints:
+  - port: contour-metrics
+    relabelConfigs:
+    - replacement: contour
+      targetLabel: job
+    - sourceLabels: [__meta_kubernetes_service_name]
+      action: keep
+      regex: contour-metrics
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: contour-envoy
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [ingress-global, ingress-forest, ingress-bastion]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+  podMetricsEndpoints:
+  - port: metrics
+    path: /stats/prometheus
+    relabelConfigs:
+    - replacement: contour-envoy
+      targetLabel: job

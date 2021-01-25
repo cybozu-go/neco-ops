@@ -1,0 +1,14 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: teleport
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [teleport]
+  selector: {}
+  podMetricsEndpoints:
+  - port: metrics
+    relabelConfigs:
+      - replacement: teleport
+        targetLabel: job

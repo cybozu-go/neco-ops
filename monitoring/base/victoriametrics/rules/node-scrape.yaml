@@ -1,0 +1,39 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: node
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector: {}
+  endpoints:
+  - relabelConfigs:
+      - replacement: node-exporter
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: prometheus-node-targets
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: address
+  - relabelConfigs:
+      - replacement: monitor-hw
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: prometheus-node-targets
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:9105
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        targetLabel: instance
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}
+        target_label: address

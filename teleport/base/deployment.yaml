@@ -47,6 +47,8 @@ spec:
           containerPort: 3026
         - name: proxyweb
           containerPort: 3080
+        - name: metrics
+          containerPort: 3020
         volumeMounts:
         - mountPath: /var/lib/certs
           name: teleport-proxy-tls

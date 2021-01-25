@@ -84,6 +84,9 @@ spec:
         - containerPort: 8443
           name: https
           protocol: TCP
+        - containerPort: 8002
+          name: metrics
+          protocol: TCP
         readinessProbe:
           httpGet:
             path: /

@@ -1,0 +1,29 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vault
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector: {}
+  endpoints:
+  - scheme: https
+    path: "/v1/sys/metrics"
+    params:
+      format: ['prometheus']
+    tlsConfig:
+      insecureSkipVerify: true
+    relabelConfigs:
+      - replacement: vault
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: bootserver-etcd-metrics
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:8200
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        targetLabel: instance

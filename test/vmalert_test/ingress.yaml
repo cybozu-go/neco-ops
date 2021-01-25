@@ -1,0 +1,30 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/ingress-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="contour", namespace="ingress-global"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ContourGlobalDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Contour has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="contour-envoy", namespace="ingress-global"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: IngressGlobalDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems
+              summary: Ingress has disappeared from Prometheus target discovery.

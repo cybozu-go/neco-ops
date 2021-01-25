@@ -1,0 +1,27 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: cert-manager
+  namespace: monitoring
+spec:
+  groups:
+    - name: cert-manager
+      rules:
+        - alert: CertManagerDown
+          annotations:
+            summary: Cert Manager has disappeared from Prometheus target discovery.
+            runbook: TBD
+          expr: |
+            absent(up{job="cert-manager"} == 1)
+          for: 10m
+          labels:
+            severity: minor
+        - alert: CertificateDoesNotReady
+          expr: |
+            certmanager_certificate_ready_status{condition="False", namespace!~"app-.+|maneki|sandbox"} > 0
+          for: 10m
+          labels:
+            severity: minor
+          annotations:
+            summary: Certificate resource does not ready.
+            runbook: Please check the status of Cert Manager and Certificate resources.

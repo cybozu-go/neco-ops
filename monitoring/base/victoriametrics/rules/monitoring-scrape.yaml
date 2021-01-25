@@ -217,3 +217,52 @@ spec:
     relabelConfigs:
       - replacement: vmstorage-largeset
         targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: prometheus
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: alertmanager
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: pushgateway
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pushgateway
+  podMetricsEndpoints:
+  - honorLabels: true
+    relabelConfigs:
+      - replacement: pushgateway
+        targetLabel: job

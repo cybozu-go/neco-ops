@@ -1,0 +1,72 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: ingress
+  namespace: monitoring
+spec:
+  groups:
+    - name: ingress
+      rules:
+        - alert: ContourGlobalDown
+          expr: |
+            absent(up{job="contour", namespace="ingress-global"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: Contour has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: IngressGlobalDown
+          expr: |
+            absent(up{job="contour-envoy", namespace="ingress-global"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: Ingress has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: ContourForestDown
+          expr: |
+            absent(up{job="contour", namespace="ingress-forest"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: Contour has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: IngressForestDown
+          expr: |
+            absent(up{job="contour-envoy", namespace="ingress-forest"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: Ingress has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: ContourBastionDown
+          expr: |
+            absent(up{job="contour", namespace="ingress-bastion"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: Contour has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: IngressBastionDown
+          expr: |
+            absent(up{job="contour-envoy", namespace="ingress-bastion"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: Ingress has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: InvalidHTTPProxyExist
+          expr: |
+            rate(contour_httpproxy_invalid_total[5m]) > 0
+          labels:
+            severity: minor
+          for: 10m
+          annotations:
+            summary: Invalid HTTPProxy resource exists.
+            runbook: Please check the status of HTTPProxy.

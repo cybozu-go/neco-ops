@@ -12,16 +12,46 @@ resources:
   - vmagent-largeset.yaml
   - vmalert-largeset.yaml
   - vmcluster-largeset.yaml
-  - rules/kubernetes-scrape.yaml
-  - rules/kubernetes-alertrule.yaml
+  - rules/argocd-alertrule.yaml
+  - rules/argocd-scrape.yaml
+  - rules/cert-manager-alertrule.yaml
+  - rules/cert-manager-scrape.yaml
+  - rules/cke-alertrule.yaml
+  - rules/cke-scrape.yaml
+  - rules/elastic-operator-alertrule.yaml
+  - rules/elastic-operator-scrape.yaml
+  - rules/etcd-alertrule.yaml
+  - rules/etcd-scrape.yaml
+  - rules/external-dns-alertrule.yaml
+  - rules/external-dns-scrape.yaml
+  - rules/ingress-alertrule.yaml
+  - rules/ingress-scrape.yaml
+  - rules/ingress-watcher-alertrule.yaml
   - rules/kube-state-metrics-scrape.yaml
   - rules/kube-state-metrics-alertrule.yaml
+  - rules/kubernetes-scrape.yaml
+  - rules/kubernetes-alertrule.yaml
+  - rules/metallb-alertrule.yaml
+  - rules/metallb-scrape.yaml
   - rules/monitoring-scrape.yaml
   - rules/monitoring-alertrule.yaml
+  - rules/neco-admission-alertrule.yaml
+  - rules/neco-admission-scrape.yaml
+  - rules/network-policy-alertrule.yaml
+  - rules/network-policy-scrape.yaml
+  - rules/node-alertrule.yaml
+  - rules/node-scrape.yaml
   - rules/registry-scrape.yaml
   - rules/rook-scrape.yaml
+  - rules/rook-alertrule.yaml
+  - rules/sabakan-alertrule.yaml
+  - rules/sabakan-scrape.yaml
+  - rules/teleport-alertrule.yaml
+  - rules/teleport-scrape.yaml
   - rules/topolvm-scrape.yaml
   - rules/topolvm-alertrule.yaml
+  - rules/vault-alertrule.yaml
+  - rules/vault-scrape.yaml
 patchesStrategicMerge:
   - remove_crd_status.yaml
 configMapGenerator:

@@ -1,0 +1,20 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: cert-manager
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [cert-manager]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/name: cert-manager
+  podMetricsEndpoints:
+  - relabelConfigs:
+    - replacement: cert-manager
+      targetLabel: job
+    - sourceLabels: [__meta_kubernetes_pod_container_name]
+      regex: cert-manager
+      action: keep

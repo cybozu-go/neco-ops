@@ -23,7 +23,8 @@ dctest
     cd test
     make setup
     make test
-    make dctest
+    make dctest SUITE=prepare
+    make dctest SUITE=run
     ```
 
 `./account.json`

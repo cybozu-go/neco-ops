@@ -1,0 +1,51 @@
+rule_files:
+   - ../../monitoring/base/victoriametrics/rules/converted/sabakan-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="sabakan"}'
+        values: 0+0x30
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: SabakanDown
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: Sabakan has disappeared from Prometheus target discovery.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'sabakan_machine_status{instance="boot-0", address="1.2.3.4", serial="abcd", status="healthy"}'
+        values: 1+0x15
+      - series: 'sabakan_machine_status{instance="boot-0", address="1.2.3.4", serial="abcd", status="unhealthy"}'
+        values: 0+0x15
+      - series: 'sabakan_machine_status{instance="boot-0", address="5.6.7.8", serial="efgh", status="healthy"}'
+        values: 0+0x15
+      - series: 'sabakan_machine_status{instance="boot-0", address="5.6.7.8", serial="efgh", status="unhealthy"}'
+        values: 1+0x15
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: SabakanMachineUnavailable10
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: The rate of unavailable machines is over 10%.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'sabakan_machine_status{instance="boot-0", address="1.2.3.4", serial="abcd", status="healthy", role="boot"}'
+        values: 0+0x30
+      - series: 'sabakan_machine_status{instance="boot-0", address="1.2.3.4", serial="abcd", status="unhealthy", role="boot"}'
+        values: 1+0x30
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: BootServerNotHealthy
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              summary: Not-healthy boot server(s) exist.
+              runbook: TBD

@@ -1,0 +1,40 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: bootserver-etcd
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector: {}
+  endpoints:
+  - relabelConfigs:
+      - replacement: bootserver-etcd
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: bootserver-etcd-metrics
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: cke-etcd
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector: {}
+  endpoints:
+  - relabelConfigs:
+      - replacement: cke-etcd
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: cke-etcd
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:2381
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        targetLabel: instance

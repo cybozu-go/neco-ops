@@ -1,0 +1,259 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/node-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="node-exporter", address="192.168.0.1"}'
+        values: '0+0x30'
+      - series: 'up{job="node-exporter", address="192.168.0.2"}'
+        values: '0+0x30'
+      - series: 'up{job="node-exporter", address="192.168.0.3"}'
+        values: '1+0x30'
+      - series: 'up{job="node-exporter", address="192.168.0.4"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.1"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.1"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.2"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.2"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.3"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.3"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.4"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.4"}'
+        values: '1+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: NodeExporterDown
+        exp_alerts:
+          - exp_labels:
+              address: "192.168.0.1"
+              severity: minor
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems.
+              summary: NodeExporter has disappeared at `192.168.0.1`.
+
+  - interval: 1m
+    input_series:
+      - series: 'up{job="node-exporter", address="192.168.0.1"}'
+        values: '1+0x30'
+      - series: 'up{job="node-exporter", address="192.168.0.2"}'
+        values: '0+0x29 1'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.1"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.1"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.2"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.2"}'
+        values: '0+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: NodeExporterDown
+        exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'up{job="monitor-hw", address="192.168.0.1"}'
+        values: '0+0x30'
+      - series: 'up{job="monitor-hw", address="192.168.0.2"}'
+        values: '0+0x30'
+      - series: 'up{job="monitor-hw", address="192.168.0.3"}'
+        values: '1+0x30'
+      - series: 'up{job="monitor-hw", address="192.168.0.4"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.1"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.1"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.2"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.2"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.3"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.3"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.4"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.4"}'
+        values: '1+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: MonitorHWDown
+        exp_alerts:
+          - exp_labels:
+              address: "192.168.0.1"
+              severity: minor
+            exp_annotations:
+              runbook: Please consider to find root causes, and solve the problems.
+              summary: MonitorHW has disappeared at `192.168.0.1`.
+
+  - interval: 1m
+    input_series:
+      - series: 'up{job="monitor-hw" , address="192.168.0.1"}'
+        values: '1+0x30'
+      - series: 'up{job="monitor-hw" , address="192.168.0.2"}'
+        values: '0+0x29 1'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.1"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.1"}'
+        values: '0+0x30'
+      - series: 'sabakan_machine_status{status="healthy", address="192.168.0.2"}'
+        values: '1+0x30'
+      - series: 'sabakan_machine_status{status="retired", address="192.168.0.2"}'
+        values: '0+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: MonitorHWDown
+        exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'node_nf_conntrack_entries{instance="192.168.0.1"}'
+        values: '76+0x60'
+      - series: 'node_nf_conntrack_entries_limit{instance="192.168.0.1"}'
+        values: '100+0x60'
+      - series: 'node_nf_conntrack_entries{instance="192.168.0.2"}'
+        values: '151+0x60'
+      - series: 'node_nf_conntrack_entries_limit{instance="192.168.0.2"}'
+        values: '200+0x60'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: ConntrackEntriesReachLimit
+        exp_alerts:
+          - exp_labels:
+              instance: "192.168.0.1"
+              severity: warning
+            exp_annotations:
+              runbook: Please re-configure the limit or plan some solutions.
+              summary: Conntrack entries will be reach limit at `192.168.0.1`.
+          - exp_labels:
+              instance: "192.168.0.2"
+              severity: warning
+            exp_annotations:
+              runbook: Please re-configure the limit or plan some solutions.
+              summary: Conntrack entries will be reach limit at `192.168.0.2`.
+
+  - interval: 1m
+    input_series:
+      - series: 'node_nf_conntrack_entries{instance="192.168.0.1"}'
+        values: '75+0x60'
+      - series: 'node_nf_conntrack_entries_limit{instance="192.168.0.1"}'
+        values: '100+0x60'
+      - series: 'node_nf_conntrack_entries{instance="192.168.0.2"}'
+        values: '200+0x59 150'
+      - series: 'node_nf_conntrack_entries_limit{instance="192.168.0.2"}'
+        values: '200+0x60'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: ConntrackEntriesReachLimit
+        exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'node_memory_MemTotal_bytes{instance="192.168.0.1"}'
+        values: '100000000000+0x10'
+      - series: 'node_memory_MemAvailable_bytes{instance="192.168.0.1"}'
+        values: '3000000000+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AvailableMemoryTooLow
+        exp_alerts:
+          - exp_labels:
+              instance: "192.168.0.1"
+              severity: warning
+            exp_annotations:
+              runbook: Please check memory leak of processes.
+              summary: Available memory is too low at `192.168.0.1`.
+
+  - interval: 1m
+    input_series:
+      - series: 'node_memory_MemTotal_bytes{instance="192.168.0.1"}'
+        values: '100000000000+0x10'
+      - series: 'node_memory_MemAvailable_bytes{instance="192.168.0.1"}'
+        values: '3000000000+0x5 15000000000+0x5'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AvailableMemoryTooLow
+        exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '25+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '20+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '15+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '10+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '100+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AvailableFileSystemLow
+        exp_alerts:
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/var/lib/kubelet"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/var/lib/kubelet`."
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/var/lib/docker"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/var/lib/docker`."
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/var/lib/k8s-containerd"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/var/lib/k8s-containerd`."
+          - exp_labels:
+              instance: "192.168.0.1"
+              mountpoint: "/"
+              severity: "warning"
+            exp_annotations:
+              runbook: "Please check filesystem consumption."
+              summary: "Available filesystem is low at `192.168.0.1` on `/`."
+
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '95+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '90+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '80+0x10'
+      - series: 'node_filesystem_avail_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '75+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/kubelet"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/docker"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/var/lib/k8s-containerd"}'
+        values: '100+0x10'
+      - series: 'node_filesystem_size_bytes{instance="192.168.0.1", mountpoint="/"}'
+        values: '100+0x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AvailableFileSystemLow
+        exp_alerts: []

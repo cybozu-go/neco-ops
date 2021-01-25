@@ -1,0 +1,15 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: neco-admission
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: neco-admission
+  podMetricsEndpoints:
+  - relabelConfigs:
+      - replacement: neco-admission
+        targetLabel: job

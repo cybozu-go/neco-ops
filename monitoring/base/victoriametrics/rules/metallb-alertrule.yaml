@@ -1,0 +1,46 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: metallb
+  namespace: monitoring
+spec:
+  groups:
+    - name: metallb
+      rules:
+        - alert: MetalLBDown
+          expr: |
+            absent(up{job="metallb"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: MetalLB has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems
+        - alert: MetalLBBGPSessionDown
+          expr: |
+            metallb_bgp_session_up == 0
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: BGP session of MetalLB down.
+            runbook: Please check the status of MetalLB.
+        - alert: MetalLBConfigStale
+          expr: |
+            metallb_k8s_client_config_stale_bool != 0               
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            description: '{{ $labels.instance }}: MetalLB instance has stale configuration.'
+            summary: '{{ $labels.instance }}: MetalLB stale configuration.'
+        - alert: MetalLBAddressPoolHighUtilization
+          expr: |
+            (sum((metallb_allocator_addresses_in_use_total / metallb_allocator_addresses_total)) by (pool)
+            / count(metallb_allocator_addresses_in_use_total) by (pool) * 100) > 75
+          labels:
+            severity: warning
+          for: 10m
+          annotations:
+            description: Address Pool of MetalLB will be exhausted.
+            runbook: Please re-consider the address allocation planning.

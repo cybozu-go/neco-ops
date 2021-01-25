@@ -1,0 +1,45 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: argocd
+  namespace: monitoring
+spec:
+  discoveryRole: service
+  namespaceSelector:
+    matchNames: [argocd]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: metrics
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-metrics
+  endpoints:
+  - port: metrics
+    relabelConfigs:
+      - replacement: argocd
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: argocd-metrics
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: argocd-dex
+  namespace: monitoring
+spec:
+  discoveryRole: service
+  namespaceSelector:
+    matchNames: [argocd]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: dex-server
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-dex-server
+  endpoints:
+  - port: metrics
+    relabelConfigs:
+      - replacement: argocd-dex
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: argocd-dex-server

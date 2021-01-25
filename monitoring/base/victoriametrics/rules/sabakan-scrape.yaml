@@ -1,0 +1,23 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: sabakan
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector: {}
+  endpoints:
+  - relabelConfigs:
+      - replacement: sabakan
+        targetLabel: job
+      - sourceLabels: [__meta_kubernetes_endpoints_name]
+        action: keep
+        regex: bootserver-etcd-metrics
+      - sourceLabels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:10081
+        targetLabel: __address__
+      - sourceLabels: [__address__]
+        targetLabel: instance

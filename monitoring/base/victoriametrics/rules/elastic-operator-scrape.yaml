@@ -1,0 +1,16 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: elastic-operator
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [elastic-system]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elastic-operator
+  podMetricsEndpoints:
+  - port: metrics
+    relabelConfigs:
+    - replacement: elastic-operator
+      targetLabel: job

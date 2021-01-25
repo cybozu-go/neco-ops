@@ -134,3 +134,43 @@ tests:
             exp_annotations:
               runbook: TBD
               summary: VMInsert for largeset has disappeared.
+
+  - interval: 1m
+    input_series:
+      - series: 'up{job="alertmanager"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: AlertmanagerDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: Alertmanager has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="prometheus"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: PrometheusDown
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+            exp_annotations:
+              runbook: TBD
+              summary: Prometheus has disappeared from Prometheus target discovery.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="pushgateway"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: PushGatewayDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: TBD
+              summary: pushgateway is down.

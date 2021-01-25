@@ -128,7 +128,7 @@ func testElastic() {
 		workerAddr := cluster.Nodes[0].Address
 		stdout, stderr, err = ExecAt(boot0,
 			"ckecli", "ssh", "cybozu@"+workerAddr, "--",
-			"curl", "-u", "elastic:"+password, "-k", "https://sample-es-http.sandbox.svc.cluster.local:9200")
+			"curl", "-u", "elastic:"+password, "-k", "https://sample-es-http.sandbox.svc:9200")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 	})
 }

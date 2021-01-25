@@ -1,0 +1,36 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: network-policy
+  namespace: monitoring
+spec:
+  groups:
+    - name: network-policy
+      rules:
+        - alert: CalicoNodeDown
+          expr: |
+            absent(up{job="calico-node"} == 1)
+          labels:
+            severity: critical
+          for: 10m
+          annotations:
+            summary: CalicoNode has disappeared from Prometheus target discovery.
+            runbook: Please consider to find root causes, and solve the problems.
+        - alert: CalicoDataplaneApplyTime
+          expr: |
+            felix_int_dataplane_apply_time_seconds{quantile="0.9"} * 1000 > 100
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Applying Calico dataplane takes long time (over 100ms).
+            runbook: Please check the status of Calico components.
+        - alert: CalicoDataplaneFailures
+          expr: |
+            rate(felix_int_dataplane_failures[5m]) > 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Applying Calico dataplane has some errors.
+            runbook: Please check the status of Calico components.
