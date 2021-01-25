@@ -436,6 +436,7 @@ func applyNetworkPolicy() {
 	netpolManifest, stderr, err := kustomizeBuild("../network-policy/base/")
 	Expect(err).ShouldNot(HaveOccurred(), "failed to kustomize build: stderr=%s", stderr)
 
+	var nonCRDResources []*unstructured.Unstructured
 	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(netpolManifest)))
 	for {
 		data, err := y.Read()
@@ -444,12 +445,13 @@ func applyNetworkPolicy() {
 		}
 		Expect(err).ShouldNot(HaveOccurred())
 
-		crd := &unstructured.Unstructured{}
-		err = yaml.Unmarshal(data, &crd)
+		resources := &unstructured.Unstructured{}
+		err = yaml.Unmarshal(data, &resources)
 		if err != nil {
 			continue
 		}
-		if crd.GetKind() != "CustomResourceDefinition" {
+		if resources.GetKind() != "CustomResourceDefinition" {
+			nonCRDResources = append(nonCRDResources, resources)
 			continue
 		}
 
@@ -457,8 +459,19 @@ func applyNetworkPolicy() {
 		Expect(err).ShouldNot(HaveOccurred(), "failed to apply crd: stdout=%s, stderr=%s", stdout, stderr)
 	}
 
-	stdout, stderr, err = ExecAtWithInput(boot0, netpolManifest, "kubectl", "apply", "-f", "-")
-	Expect(err).ShouldNot(HaveOccurred(), "failed to apply network-policy: stdout=%s, stderr=%s", stdout, stderr)
+	for _, r := range nonCRDResources {
+		labels := r.GetLabels()
+		if labels == nil {
+			labels = make(map[string]string)
+		}
+		// ArgoCD will add this label, so adding this label here beforehand to speed up CI
+		labels["app.kubernetes.io/instance"] = "network-policy"
+		r.SetLabels(labels)
+		data, err := r.MarshalJSON()
+		Expect(err).ShouldNot(HaveOccurred(), "failed to marshal json. err=%s", err)
+		stdout, stderr, err = ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
+		Expect(err).ShouldNot(HaveOccurred(), "failed to apply non-crd resource: stdout=%s, stderr=%s", stdout, stderr)
+	}
 
 	Eventually(func() error {
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=kube-system", "get", "deployment/calico-typha", "-o=json")
