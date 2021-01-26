@@ -137,7 +137,32 @@ tests:
               pod: calico-node
             exp_annotations:
               runbook: TBD
-              summary: Pod kube-system/calico-node has been in a non-ready state for longer than 15 minutes.
+              summary: Pod kube-system/calico-node has been in a non-ready state for longer than 30 minutes.
+  - interval: 1m
+    input_series:
+      - series: 'kube_pod_owner{owner_kind="DaemonSet", job="kube-state-metrics", namespace="kube-system", pod="calico-node"}'
+        values: '1+1x15'
+      - series: 'kube_pod_owner{owner_kind="DaemonSet", job="kube-state-metrics", namespace="monitoring", pod="machines-endpoints"}'
+        values: '1+1x15'
+      - series: 'kube_pod_status_phase{job="kube-state-metrics", phase="Failed", namespace="kube-system", pod="calico-node", container="unbound"}'
+        values: '1+1x15'
+      - series: 'kube_pod_status_phase{job="kube-state-metrics", phase="Failed", namespace="monitoring", pod="machines-endpoints", container="machines-endpoints"}'
+        values: '1+1x15'
+      - series: 'kube_pod_info{job="kube-state-metrics", namespace="kube-system", pod="calico-node", node="1.2.3.4"}'
+        values: '1+1x15'
+      - series: 'kube_pod_info{job="kube-state-metrics", namespace="monitoring", pod="machines-endpoints"}'
+        values: '1+1x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: KubePodScheduledNotReady
+        exp_alerts:
+          - exp_labels:
+              severity: minor
+              namespace: kube-system
+              pod: calico-node
+            exp_annotations:
+              runbook: TBD
+              summary: Pod kube-system/calico-node has been in a non-ready state though scheduled for longer than 15 minutes.
   - interval: 1m
     input_series:
       - series: 'kube_pod_owner{owner_kind="DaemonSet", job="kube-state-metrics", namespace="kube-system", pod="topolvm-scheduler"}'
