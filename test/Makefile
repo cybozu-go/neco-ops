@@ -21,8 +21,8 @@ export BOOT0 BOOT1 BOOT2 GINKGO SSH_PRIVKEY TEST_ID COMMIT_ID NUM_DASHBOARD
 # Follow Argo CD installed kustomize version
 # https://github.com/cybozu/neco-containers/blob/main/argocd/Dockerfile#L22
 KUSTOMIZE_VERSION = 3.7.0
-PROMTOOL_VERSION := 2.21.0
-TELEPORT_VERSION := 5.0.2
+PROMTOOL_VERSION := 2.24.1
+TELEPORT_VERSION := 5.1.2
 KUBERNETES_VERSION = 1.19.7
 MOCO_VERSION := 0.4.0
 
@@ -77,7 +77,7 @@ dctest: install.yaml
 dctest-reboot: install.yaml
 	PATH=$(BINDIR):$$PATH OVERLAY=$(OVERLAY) REBOOT=1 SUITE=$(SUITE) ./test.sh
 
-dctest-upgrade:
+dctest-upgrade: install.yaml
 	if [  "$(SUITE)" = "prepare" ]; then \
 		git worktree remove /tmp/neco-apps; \
 		git worktree add /tmp/neco-apps $(BASE_BRANCH) && \

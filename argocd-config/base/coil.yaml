@@ -4,7 +4,7 @@ metadata:
   name: coil
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/manifest-generate-paths: ..
 spec:
   project: default
   source:

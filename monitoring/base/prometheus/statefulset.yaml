@@ -20,11 +20,6 @@ spec:
       containers:
         - name: prometheus
           image: quay.io/cybozu/prometheus
-          command: ["prometheus"]
-          args:
-            - --config.file=/etc/prometheus/prometheus.yaml
-            - --storage.tsdb.path=/prometheus/data/
-            - --web.enable-admin-api
           ports:
             - containerPort: 9090
           readinessProbe:
@@ -45,7 +40,8 @@ spec:
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
             - name: prometheus-storage-volume
-              mountPath: /prometheus/
+              mountPath: /data
+              subPath: data
       priorityClassName: node-bound
       securityContext:
         runAsUser: 10000

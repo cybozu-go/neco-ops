@@ -1,12 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-  - name: calico/node
+  - name: docker.io/calico/node
     newName: quay.io/cybozu/calico
-    newTag: 3.16.5.1
-  - name: calico/typha
+    newTag: 3.17.1.1
+  - name: docker.io/calico/typha
     newName: quay.io/cybozu/calico
-    newTag: 3.16.5.1
+    newTag: 3.17.1.1
 resources:
   - calico/upstream/calico-policy-only.yaml
   - calico/podsecuritypolicy.yaml

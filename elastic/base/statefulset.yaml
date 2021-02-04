@@ -19,26 +19,24 @@ spec:
         prometheus.io/port: "9001"
     spec:
       containers:
-        - name: manager
-          args:
-            - "manager"
-            - "--log-verbosity=0"
-            - "--metrics-port=9001"
-            - "--container-registry=docker.elastic.co"
-            - "--max-concurrent-reconciles=3"
-            - "--ca-cert-validity=8760h"
-            - "--ca-cert-rotate-before=24h"
-            - "--cert-validity=8760h"
-            - "--cert-rotate-before=24h"
-            - "--enable-webhook"
-            - "--webhook-cert-dir=/certs/k8s-webhook-server/serving-certs"
-          resources:
-            limits: null
-          ports:
-            - containerPort: 9001
-              name: metrics
-          volumeMounts:
-            - $patch: replace
-            - mountPath: /certs/k8s-webhook-server/serving-certs
-              name: cert
-              readOnly: true
+      - name: manager
+        args:
+        - "manager"
+        - "--config=/conf/eck.yaml"
+        - "--distribution-channel=all-in-one"
+        - "--webhook-cert-dir=/certs/k8s-webhook-server/serving-certs"
+        - "--metrics-port=9001"
+        resources:
+          limits: null
+        ports:
+        - containerPort: 9001
+          name: metrics
+          protocol: TCP
+        volumeMounts:
+        - $patch: replace
+        - mountPath: /conf
+          name: conf
+          readOnly: true
+        - mountPath: /certs/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true

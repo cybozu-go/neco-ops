@@ -10,9 +10,9 @@ spec:
     tag: v0.21.0
   containers:
     - name: alertmanager
-      image: quay.io/cybozu/alertmanager:0.21.0.1
+      image: quay.io/cybozu/alertmanager:0.21.0.2
     - name: config-reloader
-      image: quay.io/cybozu/configmap-reload:0.4.0.1
+      image: quay.io/cybozu/configmap-reload:0.5.0.1
   replicaCount: 3
   # VMAlertmanager is able to detect configSecret content change and to reload alertmanager.
   # We don't need to use secretGenerator for alertmanager.yaml unlike monitoring/base/alertmanager/deployment.yaml

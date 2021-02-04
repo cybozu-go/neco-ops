@@ -19,7 +19,7 @@ spec:
       - name: ingress-health
         args:
           - --listen=:8080
-        image: quay.io/cybozu/testhttpd:0.1.1
+        image: quay.io/cybozu/testhttpd:0.1.2
         ports:
           - containerPort: 8080
         readinessProbe:

@@ -18,9 +18,10 @@ spec:
     spec:
       containers:
         - name: alertmanager
-          image: quay.io/cybozu/prometheus
-          command: ["alertmanager"]
-          args: ["--config.file=/etc/alertmanager.secret/alertmanager.yaml"]
+          image: quay.io/cybozu/alertmanager
+          args:
+          - --config.file=/etc/alertmanager.secret/alertmanager.yaml
+          - --storage.path=/data
           ports:
             - containerPort: 9093
           volumeMounts:
@@ -28,6 +29,8 @@ spec:
               mountPath: /etc/alertmanager/
             - name: alertmanager-secret-volume
               mountPath: /etc/alertmanager.secret/
+            - name: data
+              mountPath: /data
       volumes:
         - name: alertmanager-config-volume
           configMap:
@@ -35,3 +38,5 @@ spec:
         - name: alertmanager-secret-volume
           secret:
             secretName: alertmanager-k7cgm4c4h5
+        - name: data
+          emptyDir: {}

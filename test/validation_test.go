@@ -177,40 +177,6 @@ func testAppProjectResources(t *testing.T) {
 }
 
 func testApplicationResources(t *testing.T) {
-	syncWaves := map[string]string{
-		"namespaces":           "1",
-		"argocd":               "2",
-		"coil":                 "3",
-		"local-pv-provisioner": "3",
-		"secrets":              "3",
-		"cert-manager":         "4",
-		"external-dns":         "4",
-		"metallb":              "4",
-		"ingress":              "5",
-		"topolvm":              "5",
-		"unbound":              "5",
-		"elastic":              "6",
-		"moco":                 "6",
-		"rook":                 "6",
-		"monitoring":           "7",
-		"registry-elastic":     "7",
-		"registry-ghcr":        "7",
-		"registry-quay":        "7",
-		"sandbox":              "7",
-		"teleport":             "7",
-		"pvc-autoresizer":      "8",
-		"argocd-ingress":       "8",
-		"bmc-reverse-proxy":    "8",
-		"metrics-server":       "8",
-		"team-management":      "8",
-		"customer-egress":      "8",
-		"neco-admission":       "8",
-		"network-policy":       "9",
-		"tenant-apps":          "11",
-		"ept-apps":             "12",
-		"maneki-apps":          "12",
-	}
-
 	necoAppsTargetRevisions := map[string]string{
 		"gcp":      "release",
 		"gcp-rook": "release",
@@ -269,14 +235,6 @@ func testApplicationResources(t *testing.T) {
 				err = yaml.Unmarshal(data, &app)
 				if err != nil {
 					t.Error(err)
-				}
-
-				// Check the sync wave
-				if syncWaves[app.Name] == "" {
-					t.Errorf("expected sync-wave should be defined. application: %s", app.Name)
-				}
-				if app.GetAnnotations()["argocd.argoproj.io/sync-wave"] != syncWaves[app.Name] {
-					t.Errorf("invalid sync-wave. application: %s, sync-wave: %s (should be %s)", app.Name, app.GetAnnotations()["argocd.argoproj.io/sync-wave"], syncWaves[app.Name])
 				}
 
 				// Check the tergetRevision

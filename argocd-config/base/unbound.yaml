@@ -4,8 +4,7 @@ metadata:
   name: unbound
   namespace: argocd
   annotations:
-    # after metallb
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/manifest-generate-paths: ..
 spec:
   project: default
   source:

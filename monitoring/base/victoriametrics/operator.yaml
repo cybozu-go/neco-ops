@@ -24,8 +24,6 @@ spec:
       containers:
       - args:
         - --enable-leader-election
-        command:
-        - manager
         env:
         - name: WATCH_NAMESPACE
           value: ""
@@ -45,7 +43,7 @@ spec:
           value: "false"
         - name: VM_ENABLEDPROMETHEUSCONVERTER_PROBE
           value: "false"
-        image: quay.io/cybozu/victoriametrics-operator:0.7.3.1
+        image: quay.io/cybozu/victoriametrics-operator:0.7.4.1
         imagePullPolicy: IfNotPresent
         name: manager
         ports:
