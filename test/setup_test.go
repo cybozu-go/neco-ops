@@ -19,8 +19,8 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	k8sYaml "k8s.io/apimachinery/pkg/util/yaml"
-	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -83,6 +83,8 @@ stringData:
         severity: DEBUG
 `
 )
+
+var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
 func prepareNodes() {
 	It("should increase worker nodes", func() {
@@ -203,7 +205,18 @@ func testSetup() {
 		if !doUpgrade {
 			applyNetworkPolicy()
 			setupArgoCD()
+			applyMutatingWebhooks()
 		}
+
+		// TODO: remove this after #1139 gets merged
+		if doUpgrade {
+			ExecSafeAt(boot0, "kubectl", "-n", "argocd", "delete", "--ignore-not-found=true", "deployments", "argocd-application-controller")
+			data, err := ioutil.ReadFile("install.yaml")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-n", "argocd", "-f", "-")
+			Expect(err).ShouldNot(HaveOccurred(), "failed to apply install.yaml. stderr=%s", stderr)
+		}
+
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/base/*.yaml")
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/overlays/"+overlayName+"/*.yaml")
 		applyAndWaitForApplications(commitID)
@@ -311,15 +324,11 @@ func applyAndWaitForApplications(commitID string) {
 		return nil
 	}).Should(Succeed())
 
-	By("getting application list and sort the applications with sync wave in ascending order")
+	By("getting application list")
 	stdout, _, err := kustomizeBuild("../argocd-config/overlays/" + overlayName)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	type nameAndWave struct {
-		name     string
-		syncWave float64
-	}
-	var appList []nameAndWave
+	var appList []string
 	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(stdout)))
 	for {
 		data, err := y.Read()
@@ -328,40 +337,50 @@ func applyAndWaitForApplications(commitID string) {
 		}
 		Expect(err).ShouldNot(HaveOccurred())
 
-		var app Application
-		err = yaml.Unmarshal(data, &app)
-		if err != nil {
-			continue
-		}
+		app := &unstructured.Unstructured{}
+		_, _, err = decUnstructured.Decode(data, nil, app)
+		Expect(err).ShouldNot(HaveOccurred())
 
 		// Skip if the app is for tenants
-		if app.Labels["is-tenant"] == "true" {
+		if app.GetLabels()["is-tenant"] == "true" {
 			continue
 		}
-
-		wave, err := strconv.ParseFloat(app.GetAnnotations()["argocd.argoproj.io/sync-wave"], 32)
-		Expect(err).ShouldNot(HaveOccurred())
-		appList = append(appList, nameAndWave{name: app.Name, syncWave: wave})
-	}
-
-	sort.Slice(appList, func(i, j int) bool {
-		if appList[i].syncWave != appList[j].syncWave {
-			return appList[i].syncWave < appList[j].syncWave
-		} else {
-			return strings.Compare(appList[i].name, appList[j].name) <= 0
-		}
-	})
-
-	fmt.Printf("application list:\n")
-	for _, app := range appList {
-		fmt.Printf("  %4.1f: %s\n", app.syncWave, app.name)
+		appList = append(appList, app.GetName())
 	}
 	Expect(appList).ShouldNot(HaveLen(0))
+
+	sort.Strings(appList)
+	fmt.Printf("application list:\n")
+	for _, app := range appList {
+		fmt.Println("  " + app)
+	}
+
+	// TODO: remove this after #1139 gets merged and released
+	if doUpgrade {
+		By("removing kube-system/kube-state-metrics")
+		Eventually(func() error {
+			svc := &corev1.Service{}
+			stdout, _, err := ExecAt(boot0, "kubectl", "-n", "kube-system", "get", "-o", "json", "svc", "kube-state-metrics")
+			if err != nil {
+				return err
+			}
+			if err := json.Unmarshal(stdout, svc); err != nil {
+				return err
+			}
+			if svc.Spec.ClusterIP != "None" {
+				if _, _, err := ExecAt(boot0, "kubectl", "-n", "kube-system", "delete", "svc", "kube-state-metrics"); err != nil {
+					return fmt.Errorf("failed to delete kube-state-metrics service: %w", err)
+				}
+				return fmt.Errorf("kube-system/kube-state-metrics service has still clusterIP: %s", svc.Spec.ClusterIP)
+			}
+			return nil
+		}, 40*time.Minute).Should(Succeed())
+	}
 
 	By("waiting initialization")
 	checkAllAppsSynced := func() error {
 		for _, target := range appList {
-			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", target.name)
+			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", target)
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", appStdout, stderr, err)
 			}
@@ -371,12 +390,21 @@ func applyAndWaitForApplications(commitID string) {
 				return fmt.Errorf("stdout: %s, err: %v", appStdout, err)
 			}
 			if app.Status.Sync.ComparedTo.Source.TargetRevision != commitID {
-				return errors.New(target.name + " does not have correct target yet")
+				return errors.New(target + " does not have correct target yet")
 			}
 			if app.Status.Sync.Status == SyncStatusCodeSynced &&
 				app.Status.Health.Status == HealthStatusHealthy &&
 				app.Operation == nil {
 				continue
+			}
+
+			// TODO: remove this after #1145 gets merged and released
+			if doUpgrade &&
+				app.Name == "team-management" &&
+				app.Status.Sync.Status == SyncStatusCodeOutOfSync &&
+				app.Status.Health.Status == HealthStatusHealthy {
+				// ignore errors because this deletion will fail after a few days.
+				ExecAt(boot0, "kubectl", "delete", "rolebinding", "-n", "app-gorush", "maneki-role-binding")
 			}
 
 			// In upgrade test, syncing network-policy app may cause temporal network disruption.
@@ -387,26 +415,28 @@ func applyAndWaitForApplications(commitID string) {
 				app.Status.Health.Status == HealthStatusHealthy &&
 				app.Operation != nil &&
 				app.Status.OperationState.Phase == "Running" {
-				fmt.Printf("%s terminate unexpected operation: app=%s\n", time.Now().Format(time.RFC3339), target.name)
-				stdout, stderr, err := ExecAt(boot0, "argocd", "app", "terminate-op", target.name)
+				fmt.Printf("%s terminate unexpected operation: app=%s\n", time.Now().Format(time.RFC3339), target)
+				stdout, stderr, err := ExecAt(boot0, "argocd", "app", "terminate-op", target)
 				if err != nil {
-					return fmt.Errorf("failed to terminate operation. app: %s, stdout: %s, stderr: %s, err: %v", target.name, stdout, stderr, err)
+					return fmt.Errorf("failed to terminate operation. app: %s, stdout: %s, stderr: %s, err: %v", target, stdout, stderr, err)
 				}
-				stdout, stderr, err = ExecAt(boot0, "argocd", "app", "sync", target.name)
+				stdout, stderr, err = ExecAt(boot0, "argocd", "app", "sync", target)
 				if err != nil {
-					return fmt.Errorf("failed to sync application. app: %s, stdout: %s, stderr: %s, err: %v", target.name, stdout, stderr, err)
+					return fmt.Errorf("failed to sync application. app: %s, stdout: %s, stderr: %s, err: %v", target, stdout, stderr, err)
 				}
 			}
 
-			return fmt.Errorf("%s is not initialized. argocd app get %s -o json: %s", target.name, target.name, appStdout)
+			return fmt.Errorf("%s is not initialized. argocd app get %s -o json: %s", target, target, appStdout)
 		}
 		return nil
 	}
+
 	// want to do "Eventually( Consistently(checkAllAppsSynced, 15sec, 1sec) )"
 	Eventually(func() error {
-		for i := 0; i < 15; i++ {
-			if i%5 == 1 {
-				fmt.Printf("Checking all app synced: count=%d\n", i)
+		st := time.Now()
+		for {
+			if time.Since(st) > 15*time.Second {
+				return nil
 			}
 			err := checkAllAppsSynced()
 			if err != nil {
@@ -414,7 +444,6 @@ func applyAndWaitForApplications(commitID string) {
 			}
 			time.Sleep(1 * time.Second)
 		}
-		return nil
 	}, 40*time.Minute).Should(Succeed())
 }
 
@@ -446,11 +475,11 @@ func applyNetworkPolicy() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		resources := &unstructured.Unstructured{}
-		err = yaml.Unmarshal(data, &resources)
+		_, gvk, err := decUnstructured.Decode(data, nil, resources)
 		if err != nil {
 			continue
 		}
-		if resources.GetKind() != "CustomResourceDefinition" {
+		if gvk.Kind != "CustomResourceDefinition" {
 			nonCRDResources = append(nonCRDResources, resources)
 			continue
 		}
@@ -504,6 +533,50 @@ func applyNetworkPolicy() {
 		}
 		return nil
 	}, 3*time.Minute).Should(Succeed())
+}
+
+func applyWebhooksFrom(manifests []byte) {
+	var webhooks []*unstructured.Unstructured
+	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(manifests)))
+	for {
+		data, err := y.Read()
+		if err == io.EOF {
+			break
+		}
+		ExpectWithOffset(1, err).ShouldNot(HaveOccurred())
+
+		res := &unstructured.Unstructured{}
+		_, gvk, err := decUnstructured.Decode(data, nil, res)
+		ExpectWithOffset(1, err).ShouldNot(HaveOccurred())
+
+		if gvk.Kind == "MutatingWebhookConfiguration" {
+			webhooks = append(webhooks, res)
+		}
+	}
+
+	for _, r := range webhooks {
+		fmt.Printf("  applying %s\n", r.GetName())
+		data, err := r.MarshalJSON()
+		ExpectWithOffset(1, err).ShouldNot(HaveOccurred())
+
+		stdout, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
+		ExpectWithOffset(1, err).ShouldNot(HaveOccurred(), "failed to apply webhook %s: stdout=%s, stderr=%s", r.GetName(), stdout, stderr)
+	}
+}
+
+// Since Argo CD 1.8, it does not check and wait for Applications to become ready.
+// This is normally okay except for some critical mutating webhooks.
+// To workaround this bootstrap problem, we need to apply webhooks manually first.
+func applyMutatingWebhooks() {
+	By("applying neco-admission webhooks")
+	manifests, stderr, err := kustomizeBuild("../neco-admission/base/")
+	Expect(err).ShouldNot(HaveOccurred(), "failed to kustomize build: stderr=%s", stderr)
+	applyWebhooksFrom(manifests)
+
+	By("applying TopoLVM webhooks")
+	manifests, stderr, err = kustomizeBuild("../topolvm/base/")
+	Expect(err).ShouldNot(HaveOccurred(), "failed to kustomize build: stderr=%s", stderr)
+	applyWebhooksFrom(manifests)
 }
 
 func setupArgoCD() {

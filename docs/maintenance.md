@@ -14,9 +14,12 @@ How to maintain neco-apps
 - [moco](#moco)
 - [monitoring](#monitoring)
   - [prometheus, alertmanager, pushgateway](#prometheus-alertmanager-pushgateway)
+  - [mackerel-agent](#mackerel-agent)
   - [kube-state-metrics](#kube-state-metrics)
   - [grafana-operator](#grafana-operator)
-  - [victoriametrics (operator)](#victoriametrics-operator)
+  - [Grafana](#grafana)
+  - [victoriametrics-operator](#victoriametrics-operator)
+  - [VictoriaMetrics](#victoriametrics)
 - [neco-admission](#neco-admission)
 - [network-policy (Calico)](#network-policy-calico)
 - [pvc-autoresizer](#pvc-autoresizer)
@@ -45,12 +48,8 @@ How to maintain neco-apps
 
 Check [the upgrading section](https://cert-manager.io/docs/installation/upgrading/) in the official website.
 
-Download manifests and remove `Namespace` resource from it as follows:
-
 ```console
 $ curl -sLf -o cert-manager/base/upstream/cert-manager.yaml https://github.com/jetstack/cert-manager/releases/download/vX.Y.Z/cert-manager.yaml
-$ vi cert-manager/base/upstream/cert-manager.yaml
-  (Remove Namespace resources)
 ```
 
 ## customer-egress
@@ -74,15 +73,15 @@ However, if it needs to be upgraded alone for some reason, confirm ArgoCD SSO lo
 
 ## elastic (ECK)
 
-Check the [Upgrade ECK](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-upgrading-eck.html) in the official website.
+Check the [Release Notes](https://www.elastic.co/guide/en/cloud-on-k8s/current/eck-release-notes.html) and [Upgrade ECK](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-upgrading-eck.html) on the official website.
 
-Download manifests and remove `Namespace` resource from it as follows:
+Update the upstream manifests as follows:
 
 ```console
 $ curl -sLf -o elastic/base/upstream/all-in-one.yaml https://download.elastic.co/downloads/eck/X.Y.Z/all-in-one.yaml
-$ vi elastic/base/upstream/all-in-one.yaml
-  (Remove Namespace resources)
 ```
+
+Check the difference, and adjust our patches to the new manifests.
 
 ## external-dns
 
@@ -95,6 +94,7 @@ Download CRD manifest as follows:
 ```console
 $ curl -sLf -o external-dns/base/common.yaml https://github.com/kubernetes-sigs/external-dns/blob/vX.Y.Z/docs/contributing/crd-source/crd-manifest.yaml
 ```
+
 Then check the diffs by `git diff`.
 
 ## ingress (Contour & Envoy)
@@ -128,6 +128,8 @@ $ diff -u ingress/base/contour/03-envoy.yaml ingress/base/template/deployment-en
 Note that:
 - We do not use contour's certificate issuance feature, but use cert-manager to issue certificates required for gRPC.
 - We change Envoy manifest from DaemonSet to Deployment.
+  - We do not create `envoy` service account, and therefore `serviceAccountName: envoy` is removed from Envoy Deployment.
+  - We replace or add probes with our custom one bundled in our Envoy container image.
 - Not all manifests inherit the upstream. Please check `kustomization.yaml` which manifest inherits or not.
   - If the manifest in the upstream is usable as is, use it from `ingress/base/kustomization.yaml`.
   - If the manifest needs modification:
@@ -197,11 +199,31 @@ helm template prom prometheus-community/prometheus --version=11.16.7 > prom-2.21
 diff prom-2.18.1.yaml prom-2.21.0.yaml
 ```
 
+Then edit `monitoring/base/kustomization.yaml` to update the image tags.
+
 Update `PROMTOOL_VERSION` in `test/Makefile`.
+
+### mackerel-agent
+
+mackerel-agent runs only on the real data centers (stage, prod).
+
+Edit the image tags in `monitoring/overlays/*/mackerel-agent.yaml` files.
 
 ### kube-state-metrics
 
-Check [examples/standard](https://github.com/kubernetes/kube-state-metrics/tree/master/examples/standard)
+Check the manifests in [examples/standard](https://github.com/kubernetes/kube-state-metrics/tree/master/examples/standard) directory.
+
+```console
+$ mkdir -p $HOME/go/src/k8s.io
+$ cd $HOME/go/src/k8s.io
+$ git clone https://github.com/kubernetes/kube-state-metrics
+$ git checkout vX.Y.Z
+$ cd $HOME/go/src/github.com/cybozu-go/neco-apps/monitoring/base/kube-state-metrics
+$ rm *
+$ cp $HOME/go/src/k8s.io/kube-state-metrics/examples/standard/* .
+```
+
+Then edit `monitoring/base/kustomization.yaml` to update the image tag of `kube-state-metrics`.
 
 ### grafana-operator
 
@@ -210,18 +232,29 @@ Check [releases](https://github.com/integr8ly/grafana-operator/releases)
 Download the upstream manifest as follows:
 
 ```console
+$ mkdir -p $HOME/go/src/github.com/integr8ly
+$ cd $HOME/go/src/github.com/integr8ly
 $ git clone https://github.com/integr8ly/grafana-operator
-$ cd $GOPATH/src/github.com/integr8ly/grafana-operator
+$ cd grafana-operator
 $ git checkout vX.Y.Z
-$ UPSTREAM_DIR=$GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/grafana-operator/upstream/
+$ UPSTREAM_DIR=$HOME/go/src/github.com/cybozu-go/neco-apps/monitoring/base/grafana-operator/upstream/
 $ rm -r $UPSTREAM_DIR/*
-$ cp -r deploy/crds $GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/grafana-operator/upstream
-$ cp -r deploy/cluster_roles $GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/grafana-operator/upstream
-$ cp -r deploy/roles $GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/grafana-operator/upstream
-$ cp deploy/operator.yaml $GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/grafana-operator/upstream
+$ cp -r deploy/crds deploy/cluster_roles deploy/roles deploy/operator.yaml $UPSTREAM_DIR
 ```
 
-### victoriametrics (operator)
+Then edit `monitoring/base/kustomization.yaml` to update the tag for `quay.io/cybozu/grafana-operator`.
+
+### Grafana
+
+Edit `monitoring/base/grafana-operator/operator.yaml` and update the image tag like this:
+
+```yaml
+args:
+- --grafana-image=quay.io/cybozu/grafana
+- --grafana-image-tag=7.0.4.1
+```
+
+### victoriametrics-operator
 
 Check [releases](https://github.com/VictoriaMetrics/operator/releases)
 
@@ -230,12 +263,31 @@ And then, update upstream-derived manifests.
 ```console
 $ git clone https://github.com/VictoriaMetrics/operator
 $ git checkout vX.Y.Z
-$ UPSTREAM_DIR=$GOPATH/src/github.com/cybozu-go/neco-apps/monitoring/base/victoriametrics/upstream/
+$ UPSTREAM_DIR=$HOME/go/src/github.com/cybozu-go/neco-apps/monitoring/base/victoriametrics/upstream/
 $ rm -r $UPSTREAM_DIR/*
-$ cp -r config/{crd,rbac} $UPSTREAM_DIR/
+$ cp -r config/crd config/rbac $UPSTREAM_DIR/
 ```
 
-Note that the tag (version) of VictoriaMetrics itself is written in each component CRs.
+Edit `monitoring/base/victoriametrics/operator.yaml` to update the image tag.
+
+### VictoriaMetrics
+
+Edit the following files:
+
+- `monitoring/base/victoriametrics/alertmanager.yaml`
+  - Update `alertmanager` and `configmap-reload` image tags.
+- `monitoring/base/victoriametrics/vmagent-largeset.yaml`
+  - Update `victoriametrics-vmagent` and `prometheus-config-reloader` image tags.
+- `monitoring/base/victoriametrics/vmagent-smallset.yaml`
+  - Update `victoriametrics-vmagent` and `prometheus-config-reloader` image tags.
+- `monitoring/base/victoriametrics/vmalert-largeset.yaml`
+  - Update `victoriametrics-vmalert` and `configmap-reload` image tags.
+- `monitoring/base/victoriametrics/vmalert-smallset.yaml`
+  - Update `victoriametrics-vmalert` and `configmap-reload` image tags.
+- `monitoring/base/victoriametrics/vmcluster-largeset.yaml`
+  - Update `victoriametrics-vmstorage`, `victoriametrics-vmselect`, and `victoriametrics-vminsert` image tags.
+- `monitoring/base/victoriametrics/vmsingle-smallset.yaml`
+  - Update `victoriametrics-vmsingle` image tag.
 
 ## neco-admission
 
@@ -253,7 +305,7 @@ $ cp admission/config/webhook/manifests.yaml $GOPATH/src/github.com/cybozu-go/ne
 
 Check [the release notes](https://docs.projectcalico.org/release-notes/).
 
-Download the upstream manifest as follows:
+Download the upstream manifest as follows (note: do not add a patch version, just `vX.Y`):
 
 ```console
 $ curl -sLf -o network-policy/base/calico/upstream/calico-policy-only.yaml https://docs.projectcalico.org/vX.Y/manifests/calico-policy-only.yaml
@@ -261,6 +313,10 @@ $ curl -sLf -o network-policy/base/calico/upstream/calico-policy-only.yaml https
 
 Remove the resources related to `calico-kube-controllers` from `calico-policy-only.yaml` because we do not need to use `calico/kube-controllers`.
 See: [Kubernetes controllers configuration](https://docs.projectcalico.org/reference/resources/kubecontrollersconfig)
+
+Then, check `git diff network-policy/base/calico/upstream/` to see any changes that need to be addressed by our patches.
+
+Finally, edit `network-policy/base/kustomization.yaml` to update the image tags.
 
 ## pvc-autoresizer
 
@@ -356,6 +412,12 @@ Update `spec.cephVersion.image` field in CephCluster CR.
 There is no official kubernetes manifests actively maintained for teleport.
 So, check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github,
 and [Helm chart](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport).
+
+```console
+$ git checkout https://github.com/gravitational/teleport
+$ cd teleport
+$ git diff vx.y.z...vX.Y.Z examples/chart/teleport
+```
 
 Update `TELEPORT_VERSION` in `test/Makefile`.
 

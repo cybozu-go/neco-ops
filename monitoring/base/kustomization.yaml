@@ -54,11 +54,15 @@ configMapGenerator:
     files:
       - alertmanager/neco.template
 images:
+  - name: quay.io/cybozu/alertmanager
+    newTag: 0.21.0.2
   - name: quay.io/cybozu/prometheus
-    newTag: 2.21.0.2
-  - name: quay.io/coreos/kube-state-metrics
+    newTag: 2.24.1.2
+  - name: quay.io/cybozu/pushgateway
+    newTag: 1.4.0.1
+  - name: k8s.gcr.io/kube-state-metrics/kube-state-metrics
     newName: quay.io/cybozu/kube-state-metrics
-    newTag: 1.9.7.2
+    newTag: 2.0.0-beta.1
   - name: quay.io/integreatly/grafana-operator
     newName: quay.io/cybozu/grafana-operator
-    newTag: 3.7.0.1
+    newTag: 3.8.1.1

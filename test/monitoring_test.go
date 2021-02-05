@@ -1018,7 +1018,8 @@ func testVMSmallsetClusterComponents() {
 				podName := pod.Name
 
 				stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
-					podName, "curl", "http://localhost:8429/api/v1/targets")
+					"-c", "vmagent", podName, "--",
+					"curl", "http://localhost:8429/api/v1/targets")
 				if err != nil {
 					return fmt.Errorf("unable to curl http://%s:8429/api/v1/targets, stderr: %s, err: %v", podName, stderr, err)
 				}
@@ -1231,7 +1232,8 @@ func testVMLargesetClusterComponents() {
 				podName := pod.Name
 
 				_, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
-					podName, "curl", "http://localhost:8429/api/v1/targets")
+					"-c", "vmagent", podName, "--",
+					"curl", "http://localhost:8429/api/v1/targets")
 				if err != nil {
 					return fmt.Errorf("unable to curl http://%s:8429/api/v1/targets, stderr: %s, err: %v", podName, stderr, err)
 				}

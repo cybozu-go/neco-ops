@@ -7,10 +7,10 @@ spec:
   replicaCount: 1
   image:
     repository: quay.io/cybozu/victoriametrics-vmalert
-    tag: 1.51.0.1
+    tag: 1.52.0.1
   containers:
     - name: config-reloader
-      image: quay.io/cybozu/configmap-reload:0.4.0.1
+      image: quay.io/cybozu/configmap-reload:0.5.0.1
   datasource:
     url: "http://vmsingle-vmsingle-smallset.monitoring.svc:8429"
   notifiers:

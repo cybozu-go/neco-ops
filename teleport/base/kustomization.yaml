@@ -12,10 +12,11 @@ configMapGenerator:
     namespace: teleport
     files:
       - conf/admin-role.yaml
+      - conf/cydec-role.yaml
       - conf/ept-role.yaml
       - conf/garoon-role.yaml
       - conf/maneki-role.yaml
       - conf/neco-readonly-role.yaml
 images:
   - name: quay.io/gravitational/teleport-ent
-    newTag: 5.0.2
+    newTag: 5.1.2

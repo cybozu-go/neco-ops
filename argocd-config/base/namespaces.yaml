@@ -4,7 +4,7 @@ metadata:
   name: namespaces
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/manifest-generate-paths: ..
 spec:
   project: default
   source:

@@ -7,6 +7,10 @@ spec:
   sourceRepos:
   - '*'
   destinations:
+  # namespaces for cydec team
+  - namespace: app-gorush
+    server: '*'
+
   # namespaces for ept team
   - namespace: app-ept-wiki
     server: '*'
@@ -19,8 +23,6 @@ spec:
   - namespace: app-comconv-earthlab
     server: '*'
   - namespace: app-elasticsearch
-    server: '*'
-  - namespace: app-gorush
     server: '*'
   - namespace: app-kodama
     server: '*'

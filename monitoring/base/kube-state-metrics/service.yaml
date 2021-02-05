@@ -3,20 +3,17 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    app.kubernetes.io/version: v1.9.7
-  annotations:
-    prometheus.io/scrape: 'true'
+    app.kubernetes.io/version: 2.0.0-beta
   name: kube-state-metrics
   namespace: kube-system
 spec:
+  clusterIP: None
   ports:
   - name: http-metrics
     port: 8080
     targetPort: http-metrics
-    protocol: TCP
   - name: telemetry
     port: 8081
     targetPort: telemetry
-    protocol: TCP
   selector:
     app.kubernetes.io/name: kube-state-metrics

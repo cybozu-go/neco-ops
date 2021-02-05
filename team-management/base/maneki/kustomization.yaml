@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - app-comconv-earthlab.yaml
   - app-elasticsearch.yaml
-  - app-gorush.yaml
   - app-kodama.yaml
   - app-misc.yaml
   - app-monitoring-elasticstack.yaml

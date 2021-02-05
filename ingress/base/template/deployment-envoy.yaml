@@ -25,15 +25,6 @@ spec:
       labels:
         app.kubernetes.io/name: envoy
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: envoy
-              topologyKey: cke.cybozu.com/rack
-            weight: 100
       containers:
       - command:
         - /bin/contour
@@ -44,10 +35,11 @@ spec:
         imagePullPolicy: Always
         lifecycle:
           preStop:
-            httpGet:
-              path: /shutdown
-              port: 8090
-              scheme: HTTP
+            exec:
+              command:
+                - /bin/contour
+                - envoy
+                - shutdown
         livenessProbe:
           httpGet:
             path: /healthz
@@ -92,7 +84,7 @@ spec:
             path: /
             port: 8502
           initialDelaySeconds: 3
-          periodSeconds: 3
+          periodSeconds: 4
         volumeMounts:
           - name: envoy-config
             mountPath: /config
@@ -103,7 +95,7 @@ spec:
             path: /
             port: 8502
           initialDelaySeconds: 3
-          periodSeconds: 3
+          periodSeconds: 4
           failureThreshold: 6
         startupProbe:
           httpGet:
@@ -120,7 +112,7 @@ spec:
       - name: liveness-probe
         image: quay.io/cybozu/envoy
         command:
-          - /usr/local/bin/livenessprobe
+        - /usr/local/bin/livenessprobe
       initContainers:
       - args:
         - bootstrap
@@ -128,6 +120,7 @@ spec:
         - --xds-address=contour
         - --xds-port=8001
         - --xds-resource-version=v3
+        - --resources-dir=/config/resources
         - --envoy-cafile=/certs/ca.crt
         - --envoy-cert-file=/certs/tls.crt
         - --envoy-key-file=/certs/tls.key

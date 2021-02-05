@@ -1,13 +1,14 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: argocd-application-controller
 spec:
   template:
     spec:
       containers:
-        - image: quay.io/cybozu/argocd
-          name: argocd-application-controller
+      - image: quay.io/cybozu/argocd
+        imagePullPolicy: IfNotPresent
+        name: argocd-application-controller
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -17,8 +18,9 @@ spec:
   template:
     spec:
       containers:
-        - image: quay.io/cybozu/redis
-          name: redis
+      - image: quay.io/cybozu/redis
+        imagePullPolicy: IfNotPresent
+        name: redis
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -29,6 +31,7 @@ spec:
     spec:
       containers:
       - image: quay.io/cybozu/argocd
+        imagePullPolicy: IfNotPresent
         name: argocd-repo-server
         command:
         - argocd-repo-server
@@ -56,11 +59,8 @@ spec:
   template:
     spec:
       containers:
-      - command:
-        - argocd-server
-        - --staticassets
-        - /shared/argocd/app
-        image: quay.io/cybozu/argocd
+      - image: quay.io/cybozu/argocd
+        imagePullPolicy: IfNotPresent
         name: argocd-server
         env:
         - name: NO_PROXY
@@ -85,6 +85,7 @@ spec:
       initContainers:
       - name: copyutil
         image: quay.io/cybozu/argocd
+        imagePullPolicy: IfNotPresent
         command: [cp, /usr/local/argocd/bin/argocd-util, /shared]
         volumeMounts:
         - mountPath: /shared
@@ -92,6 +93,7 @@ spec:
       containers:
       - name: dex
         image: quay.io/cybozu/dex
+        imagePullPolicy: IfNotPresent
         command: [/shared/argocd-util, rundex]
         env:
         - name: NO_PROXY

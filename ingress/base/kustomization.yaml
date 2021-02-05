@@ -11,8 +11,8 @@ patchesStrategicMerge:
   - patch/crd.yaml
 images:
   - name: quay.io/cybozu/contour
-    newTag: 1.10.0.1
+    newTag: 1.11.0.1
   - name: quay.io/cybozu/contour-plus
-    newTag: 0.5.2
+    newTag: 0.6.0
   - name: quay.io/cybozu/envoy
-    newTag: 1.16.1.1
+    newTag: 1.16.2.1

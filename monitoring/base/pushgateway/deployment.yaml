@@ -18,9 +18,7 @@ spec:
     spec:
       containers:
       - name: pushgateway
-        image: quay.io/cybozu/prometheus
-        command:
-          - pushgateway
+        image: quay.io/cybozu/pushgateway
         ports:
         - containerPort: 9091
         livenessProbe:

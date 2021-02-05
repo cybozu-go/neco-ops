@@ -41,7 +41,9 @@ spec:
         # Specify the team's slug.
         - cybozu-private:neco
         - cybozu-private:maneki
-        - cybozu-private:garoon
+        # List the tenant teams below.
+        - cybozu-private:cydec
         - cybozu-private:ept
+        - cybozu-private:garoon
       policies:
         - p, proj:tenant-apps:admin, applications, *, tenant-apps/*, allow

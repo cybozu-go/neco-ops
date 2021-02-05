@@ -4,7 +4,7 @@ metadata:
   name: registry-elastic
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "7"
+    argocd.argoproj.io/manifest-generate-paths: .
 spec:
   project: default
   source:
