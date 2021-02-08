@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: local-pv-provisioner
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 35%
   template:
     metadata:
       labels:

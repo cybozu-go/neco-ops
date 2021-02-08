@@ -4,6 +4,10 @@ metadata:
   namespace: metallb-system
   name: speaker
 spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 35%
   template:
     spec:
       containers:

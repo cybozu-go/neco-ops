@@ -4,6 +4,9 @@ metadata:
   name: calico-node
   namespace: kube-system
 spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 35%
   template:
     spec:
       securityContext:

@@ -4,6 +4,10 @@ metadata:
   namespace: topolvm-system
   name: node
 spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 35%
   template:
     spec:
       nodeSelector:

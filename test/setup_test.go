@@ -208,15 +208,6 @@ func testSetup() {
 			applyMutatingWebhooks()
 		}
 
-		// TODO: remove this after #1139 gets merged
-		if doUpgrade {
-			ExecSafeAt(boot0, "kubectl", "-n", "argocd", "delete", "--ignore-not-found=true", "deployments", "argocd-application-controller")
-			data, err := ioutil.ReadFile("install.yaml")
-			Expect(err).ShouldNot(HaveOccurred())
-			_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-n", "argocd", "-f", "-")
-			Expect(err).ShouldNot(HaveOccurred(), "failed to apply install.yaml. stderr=%s", stderr)
-		}
-
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/base/*.yaml")
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/overlays/"+overlayName+"/*.yaml")
 		applyAndWaitForApplications(commitID)
@@ -353,28 +344,6 @@ func applyAndWaitForApplications(commitID string) {
 	fmt.Printf("application list:\n")
 	for _, app := range appList {
 		fmt.Println("  " + app)
-	}
-
-	// TODO: remove this after #1139 gets merged and released
-	if doUpgrade {
-		By("removing kube-system/kube-state-metrics")
-		Eventually(func() error {
-			svc := &corev1.Service{}
-			stdout, _, err := ExecAt(boot0, "kubectl", "-n", "kube-system", "get", "-o", "json", "svc", "kube-state-metrics")
-			if err != nil {
-				return err
-			}
-			if err := json.Unmarshal(stdout, svc); err != nil {
-				return err
-			}
-			if svc.Spec.ClusterIP != "None" {
-				if _, _, err := ExecAt(boot0, "kubectl", "-n", "kube-system", "delete", "svc", "kube-state-metrics"); err != nil {
-					return fmt.Errorf("failed to delete kube-state-metrics service: %w", err)
-				}
-				return fmt.Errorf("kube-system/kube-state-metrics service has still clusterIP: %s", svc.Spec.ClusterIP)
-			}
-			return nil
-		}, 40*time.Minute).Should(Succeed())
 	}
 
 	By("waiting initialization")

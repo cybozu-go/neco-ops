@@ -5,6 +5,7 @@ resources:
   - dashboards
   - configmap.yaml
   - datasources/datasource.yaml
+  - datasources/loki.yaml
   - datasources/victoriametrics.yaml
   - grafana.yaml
   - upstream/cluster_roles/cluster_role_aggregate_grafana_admin_edit.yaml
