@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: logging-loki
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: loki
+          image: "quay.io/cybozu/loki"
+          args:
+            - "-config.file=/etc/loki/loki.yaml"
+            - "-config.expand-env=true"
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_HOST
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_SECRET_ACCESS_KEY
+      volumes:
+        - name: config
+          configMap:
+            name: loki-config
+          secret: null
+---
+$patch: delete
+apiVersion: v1
+kind: Secret
+metadata:
+  name: logging-loki
+  namespace: logging
+---

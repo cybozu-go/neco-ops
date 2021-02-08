@@ -97,6 +97,7 @@ func runTest() {
 	Context("machines-endpoints", testMachinesEndpoints)
 	Context("kube-state-metrics", testKubeStateMetrics)
 	Context("prometheus", testPrometheus)
+	Context("logging", testLogging)
 	Context("grafana-operator", testGrafanaOperator)
 	Context("sandbox-grafana", testSandboxGrafana)
 	Context("alertmanager", testAlertmanager)

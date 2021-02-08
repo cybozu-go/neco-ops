@@ -8,6 +8,8 @@ How to maintain neco-apps
 - [elastic (ECK)](#elastic-eck)
 - [external-dns](#external-dns)
 - [ingress (Contour & Envoy)](#ingress-contour--envoy)
+- [logging](#logging)
+  - [loki, promtail](#loki-promtail)
 - [machines-endpoints](#machines-endpoints)
 - [metallb](#metallb)
 - [metrics-server](#metrics-server)
@@ -135,6 +137,42 @@ Note that:
   - If the manifest needs modification:
     - If the manifest is for a cluster-wide resource, put a modified version in the `common` directory.
     - If the manifest is for a namespaced resource, put a template in the `template` directory and apply patches.
+
+## logging
+
+Download Helm used in Loki. Follow `HELM_VERSION` in the upstream configuration.
+Grafana does not say helm version requirements explicitly. However, we confirm that the procedure succeeds using helm v3.1.0.
+The [document](https://github.com/grafana/helm-charts/tree/main/charts/grafana#upgrading-an-existing-release-to-a-new-major-version) is also helpful.
+
+```console
+$ HELM_VERSION=X.Y.Z
+$ mkdir -p $GOPATH/src/github.com/cybozu-go/neco-apps/logging/bin
+$ curl -sSLf https://get.helm.sh/helm-v$HELM_VERSION-linux-amd64.tar.gz | tar -C $GOPATH/src/github.com/cybozu-go/neco-apps/logging/bin linux-amd64/helm --strip-components 1 -xzf -
+```
+
+### loki, promtail
+There is no official kubernetes manifests for loki and promtail.
+So, check changes in release notes on github and helm charts like bellow.
+
+```
+LOGGING_DIR=$GOPATH/src/github.com/cybozu-go/neco-apps/logging
+${LOGGING_DIR}/bin/helm repo add grafana https://grafana.github.io/helm-charts
+
+# loki
+${LOGGING_DIR}/bin/helm search repo -l grafana | grep grafana/loki
+# Choose the latest `CHART VERSION` match with target Loki's `APP VERSION` and set value like below.
+LOKI_CHART_VERSION=X.Y.Z
+${LOGGING_DIR}/bin/helm template logging --namespace=logging grafana/loki --version=${LOKI_CHART_VERSION} > ${LOGGING_DIR}/base/loki/upstream/loki.yaml
+
+# promtail
+${LOGGING_DIR}/bin/helm search repo -l grafana | grep grafana/promtail
+# Choose the latest `CHART VERSION` match with target Loki's `APP VERSION` and set value like below.
+PROMTAIL_CHART_VERSION=X.Y.Z
+${LOGGING_DIR}/bin/helm template logging --namespace=logging grafana/promtail --version=${PROMTAIL_CHART_VERSION} --set rbac.pspEnabled=true > ${LOGGING_DIR}/base/promtail/upstream/promtail.yaml
+```
+
+Check the difference between the existing manifest and the new manifest, and update the kustomization patch.
+In upstream, loki and promtail settings are stored in secret resource. The configuration is now written in configmap, so decode base64 and compare the settings.
 
 ## machines-endpoints
 

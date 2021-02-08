@@ -12,6 +12,7 @@
 *.out
 
 # Ignore downloaded files
+/logging/bin
 /rook/bin
 
 # Editors

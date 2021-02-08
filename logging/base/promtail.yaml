@@ -1,0 +1,51 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: logging-promtail
+spec:
+  # not need to see journal and pod logs
+  allowPrivilegeEscalation: false
+  privileged: false
+  volumes:
+  - secret
+  - hostPath
+  - downwardAPI
+  - configMap
+  - emptyDir
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: logging-promtail
+spec:
+  template:
+    spec:
+      containers:
+        - name: promtail
+          image: "quay.io/cybozu/promtail"
+          args:
+            - "-config.file=/etc/promtail/promtail.yaml"
+            - "-config.expand-env=true"
+          volumeMounts:
+            - name: journal
+              mountPath: /var/log/journal
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: loki-promtail
+          secret: null
+        - hostPath:
+            path: /run/log/journal
+          name: journal
+      tolerations:
+        - key: cke.cybozu.com/role
+          operator: Equal
+          value: storage
+---
+$patch: delete
+apiVersion: v1
+kind: Secret
+metadata:
+  name: logging-promtail
+---

@@ -16,6 +16,7 @@ patchesStrategicMerge:
 - external-dns.yaml
 - ingress.yaml
 - local-pv-provisioner.yaml
+- logging.yaml
 - metallb.yaml
 - metrics-server.yaml
 - moco.yaml
