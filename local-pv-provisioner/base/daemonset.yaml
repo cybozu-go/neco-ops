@@ -30,6 +30,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          ports:
+            - containerPort: 8080
+              name: metrics
           volumeMounts:
             - name: dev
               mountPath: /dev/crypt-disk/by-path

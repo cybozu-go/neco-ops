@@ -1,0 +1,53 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: coild
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coil
+      app.kubernetes.io/component: coild
+  podMetricsEndpoints:
+  - port: metrics
+    relabelConfigs:
+    - replacement: coild
+      targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: coil-controller
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coil
+      app.kubernetes.io/component: coil-controller
+  podMetricsEndpoints:
+  - port: metrics
+    relabelConfigs:
+    - replacement: coil-controller
+      targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: coil-egress
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [internet-egress, domestic-egress, customer-egress]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coil
+      app.kubernetes.io/component: egress
+  podMetricsEndpoints:
+  - port: metrics
+    relabelConfigs:
+    - replacement: coil-egress
+      targetLabel: job

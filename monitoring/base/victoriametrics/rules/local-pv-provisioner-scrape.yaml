@@ -1,16 +1,16 @@
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMPodScrape
 metadata:
-  name: external-dns
+  name: local-pv-provisioner
   namespace: monitoring
 spec:
   namespaceSelector:
-    matchNames: [external-dns]
+    matchNames: [kube-system]
   selector:
     matchLabels:
-      app.kubernetes.io/name: external-dns
+      app.kubernetes.io/name: local-pv-provisioner
   podMetricsEndpoints:
   - port: metrics
     relabelConfigs:
-    - replacement: external-dns
+    - replacement: local-pv-provisioner
       targetLabel: job

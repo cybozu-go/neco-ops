@@ -18,6 +18,7 @@ resources:
   - rules/cert-manager-scrape.yaml
   - rules/cke-alertrule.yaml
   - rules/cke-scrape.yaml
+  - rules/coil-scrape.yaml
   - rules/elastic-operator-alertrule.yaml
   - rules/elastic-operator-scrape.yaml
   - rules/etcd-alertrule.yaml
@@ -31,6 +32,7 @@ resources:
   - rules/kube-state-metrics-alertrule.yaml
   - rules/kubernetes-scrape.yaml
   - rules/kubernetes-alertrule.yaml
+  - rules/local-pv-provisioner-scrape.yaml
   - rules/metallb-alertrule.yaml
   - rules/metallb-scrape.yaml
   - rules/monitoring-scrape.yaml

@@ -10,6 +10,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: neco-admission
   podMetricsEndpoints:
-  - relabelConfigs:
+  - port: metrics
+    relabelConfigs:
       - replacement: neco-admission
         targetLabel: job
