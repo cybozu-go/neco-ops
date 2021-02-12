@@ -37,6 +37,6 @@ spec:
             name: alertmanager
         - name: alertmanager-secret-volume
           secret:
-            secretName: alertmanager-k7cgm4c4h5
+            secretName: alertmanager-b2fh9686t4
         - name: data
           emptyDir: {}

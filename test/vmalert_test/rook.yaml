@@ -27,6 +27,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
+              category: storage
             exp_annotations:
               runbook: Please consider to find root causes, and solve the problems
               summary: Rook/Ceph ceph-hdd's metrics can not be got.
@@ -43,6 +44,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
+              category: storage
             exp_annotations:
               runbook: Please consider to find root causes, and solve the problems
               summary: Rook/Ceph ceph-hdd's metrics can not be got.
@@ -64,6 +66,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
+              category: storage
             exp_annotations:
               runbook: Please consider to find root causes, and solve the problems
               summary: Rook/Ceph ceph-ssd's metrics can not be got.
@@ -100,6 +103,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
+              category: storage
               job: rook
               namespace: ceph-hdd
             exp_annotations:
@@ -117,6 +121,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
+              category: storage
               job: rook
               namespace: ceph-ssd
             exp_annotations:

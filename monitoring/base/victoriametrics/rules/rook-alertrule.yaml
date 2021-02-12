@@ -14,6 +14,7 @@ spec:
         for: 15m
         labels:
           severity: critical
+          category: storage
         annotations:
           summary: "Rook/Ceph ceph-hdd's metrics can not be got."
           runbook: Please consider to find root causes, and solve the problems
@@ -22,6 +23,7 @@ spec:
         for: 15m
         labels:
           severity: critical
+          category: storage
         annotations:
           summary: "Rook/Ceph ceph-ssd's metrics can not be got."
           runbook: Please consider to find root causes, and solve the problems
@@ -29,6 +31,7 @@ spec:
         expr: ceph_health_status != 0 and ceph_health_status != 1
         labels:
           severity: critical
+          category: storage
         for: 15m
         annotations:
           summary: "Rook/Ceph {{ $labels.namespace }}'s status is HEALTH_ERR."

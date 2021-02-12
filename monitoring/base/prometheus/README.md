@@ -55,7 +55,50 @@ The severity names and their severity order are consistent with syslog severity.
 - `info`: No problem is occurred, but just notify.
 - `warning`: Investigate to decide whether any action is required.
 - `error`: Action is required, but the situation is not so serious at this time.
-- `critical`: Action is required immediately because the problem gets worse. Investigate and resolve the causes of alert as soon as possible.
+- `critical`: Action is required immediately because the problem gets worse. Investigate and resolve the causes of alert as soon as possible. Note: `critical` alerts are intended to be sent to pager even at midnight.
+
+### Critical Alerts
+
+At the moment, the list of `critical` alerts are as follows:
+
+- etcd are missing
+  - BootserverEtcdMissing
+  - CKEEtcdMissing
+- ingress is down
+  - ContourGlobalDown
+  - IngressGlobalDown
+  - ContourForestDown
+  - IngressForestDown
+  - ContourBastionDown
+  - IngressBastionDown
+- ingress is down (external probe)
+  - IngressDown
+  - IngressWatcherDown
+- basic kubernetes alerts
+  - KubernetesNodesDown
+  - KubeControllerManagerDown
+  - KubeSchedulerDown
+  - KubeAPIErrorsHigh
+  - K8sAPIServersDegraded
+  - PersistentVolumeSpaceExceeded
+- monitoring system failure
+  - VMAlertmanagerDown
+  - VMAgentSmallsetDown
+  - VMAlertSmallsetDown
+  - VMSingleSmallsetDown
+  - VMAgentLargesetDown
+  - VMStorageLargesetDown
+  - VMSelectLargesetDown
+  - VMInsertLargesetDown
+  - AlertmanagerDown
+  - PrometheusDown
+  - PushGatewayDown
+- calico (network-policy)
+  - CalicoNodeDown
+- rook - the following alerts are marked with `category: storage` label
+  - CephHddIsDown
+  - CephSsdIsDown
+  - RookCephStatusIsError
 
 Notice
 ------
