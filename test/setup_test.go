@@ -290,6 +290,29 @@ func testSetup() {
 	})
 }
 
+func restartRookOperator(ns string) error {
+	podList := &corev1.PodList{}
+	stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", ns, "get", "pods", "-l", "app=rook-ceph-operator")
+	if err != nil {
+		return fmt.Errorf("failed to get rook-ceph-operator pod: %s: %w", string(stderr), err)
+	}
+
+	if err := json.Unmarshal(stdout, podList); err != nil {
+		return err
+	}
+
+	if len(podList.Items) != 1 {
+		return fmt.Errorf("no rook-ceph-operator pod found: %d", len(podList.Items))
+	}
+	pod := podList.Items[0]
+
+	_, stderr, err = ExecAt(boot0, "kubectl", "-n", ns, "delete", "pods", pod.Name, "--grace-period=1")
+	if err != nil {
+		return fmt.Errorf("failed to delete rook-ceph-operator in %s, %s: %w", ns, string(stderr), err)
+	}
+	return nil
+}
+
 func applyAndWaitForApplications(commitID string) {
 	By("creating Argo CD app")
 	Eventually(func() error {
@@ -347,6 +370,7 @@ func applyAndWaitForApplications(commitID string) {
 	}
 
 	By("waiting initialization")
+	rookRestarted := false
 	checkAllAppsSynced := func() error {
 		for _, target := range appList {
 			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", target)
@@ -364,6 +388,18 @@ func applyAndWaitForApplications(commitID string) {
 			if app.Status.Sync.Status == SyncStatusCodeSynced &&
 				app.Status.Health.Status == HealthStatusHealthy &&
 				app.Operation == nil {
+
+				// Rook does not detect existing OBCs for a while.
+				// To make the synchronization faster, we restart the operator.
+				if app.Name == "rook" && !rookRestarted {
+					if err := restartRookOperator("ceph-ssd"); err != nil {
+						return err
+					}
+					if err := restartRookOperator("ceph-hdd"); err != nil {
+						return err
+					}
+					rookRestarted = true
+				}
 				continue
 			}
 
@@ -515,7 +551,6 @@ func applyWebhooksFrom(manifests []byte) {
 	}
 
 	for _, r := range webhooks {
-		fmt.Printf("  applying %s\n", r.GetName())
 		data, err := r.MarshalJSON()
 		ExpectWithOffset(1, err).ShouldNot(HaveOccurred())
 
