@@ -58,7 +58,6 @@ var _ = Describe("Test applications", func() {
 
 func bootstrapTest() {
 	Context("prepareNodes", prepareNodes)
-	Context("prepareLoadPods", prepareLoadPods)
 	Context("setup", testSetup)
 }
 

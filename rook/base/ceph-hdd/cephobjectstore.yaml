@@ -22,7 +22,7 @@ spec:
     resources:
       requests:
         cpu: "500m"
-        memory: "1024Mi"
+        memory: "1Gi"
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
