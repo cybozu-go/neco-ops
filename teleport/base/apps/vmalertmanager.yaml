@@ -6,8 +6,6 @@ metadata:
   labels:
     app.kubernetes.io/name: teleport
     app.kubernetes.io/component: app
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   selector:
     matchLabels:
