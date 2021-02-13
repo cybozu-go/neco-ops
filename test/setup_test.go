@@ -204,6 +204,7 @@ func testSetup() {
 	It("should setup applications", func() {
 		if !doUpgrade {
 			applyNetworkPolicy()
+			applyCertManager()
 			setupArgoCD()
 			applyMutatingWebhooks()
 		}
@@ -495,6 +496,75 @@ func applyNetworkPolicy() {
 	}, 3*time.Minute).Should(Succeed())
 }
 
+// This step is purely optional.  This is only for making Argo CD synchronization faster.
+func applyCertManager() {
+	// Egress in internet-egress is a dependency of cert-manager
+	By("apply coil")
+	ExecSafeAt(boot0, "kustomize build neco-apps/coil/base | kubectl apply -f -")
+
+	By("apply cert-manager")
+	manifest, stderr, err := kustomizeBuild("../cert-manager/overlays/" + overlayName)
+	Expect(err).ShouldNot(HaveOccurred(), "failed to kustomize build: stderr=%s", stderr)
+
+	var nonCRDResources []*unstructured.Unstructured
+	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(manifest)))
+	for {
+		data, err := y.Read()
+		if err == io.EOF {
+			break
+		}
+		Expect(err).ShouldNot(HaveOccurred())
+
+		resources := &unstructured.Unstructured{}
+		_, gvk, err := decUnstructured.Decode(data, nil, resources)
+		if err != nil {
+			continue
+		}
+		if gvk.Kind == "ClusterIssuer" {
+			continue
+		}
+		if gvk.Kind != "CustomResourceDefinition" {
+			nonCRDResources = append(nonCRDResources, resources)
+			continue
+		}
+
+		stdout, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
+		Expect(err).ShouldNot(HaveOccurred(), "failed to apply crd: stdout=%s, stderr=%s", stdout, stderr)
+	}
+
+	for _, r := range nonCRDResources {
+		labels := r.GetLabels()
+		if labels == nil {
+			labels = make(map[string]string)
+		}
+		// ArgoCD will add this label, so adding this label here beforehand to speed up CI
+		labels["app.kubernetes.io/instance"] = "cert-manager"
+		r.SetLabels(labels)
+		data, err := r.MarshalJSON()
+		Expect(err).ShouldNot(HaveOccurred(), "failed to marshal json. err=%s", err)
+		stdout, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
+		Expect(err).ShouldNot(HaveOccurred(), "failed to apply non-crd resource: stdout=%s, stderr=%s", stdout, stderr)
+	}
+
+	Eventually(func() error {
+		for _, name := range []string{"cert-manager", "cert-manager-cainjector", "cert-manager-webhook"} {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "cert-manager", "get", "deployments", name, "-o=json")
+			if err != nil {
+				return fmt.Errorf("%s, err: %w", stderr, err)
+			}
+			deployment := new(appsv1.Deployment)
+			err = json.Unmarshal(stdout, deployment)
+			if err != nil {
+				return err
+			}
+			if deployment.Status.ReadyReplicas != 1 {
+				return fmt.Errorf("cert-manager/%s is not ready: %d", name, deployment.Status.ReadyReplicas)
+			}
+		}
+		return nil
+	}, 3*time.Minute).Should(Succeed())
+}
+
 func applyWebhooksFrom(manifests []byte) {
 	var webhooks []*unstructured.Unstructured
 	y := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(manifests)))
@@ -515,7 +585,6 @@ func applyWebhooksFrom(manifests []byte) {
 	}
 
 	for _, r := range webhooks {
-		fmt.Printf("  applying %s\n", r.GetName())
 		data, err := r.MarshalJSON()
 		ExpectWithOffset(1, err).ShouldNot(HaveOccurred())
 
