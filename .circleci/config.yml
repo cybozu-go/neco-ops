@@ -74,7 +74,7 @@ commands:
                 command: |
                   cd neco
                   ./bin/run-dctest.sh bootstrap release "" menu-ss.yml
-                no_output_timeout: 41m
+                no_output_timeout: 61m
       - unless:
           condition: <<parameters.neco-release-branch>>
           steps:
