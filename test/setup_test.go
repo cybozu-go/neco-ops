@@ -405,7 +405,7 @@ func applyAndWaitForApplications(commitID string) {
 			}
 			time.Sleep(1 * time.Second)
 		}
-	}, 40*time.Minute).Should(Succeed())
+	}, 60*time.Minute).Should(Succeed())
 }
 
 // Sometimes synchronization fails when argocd applies network policies.
