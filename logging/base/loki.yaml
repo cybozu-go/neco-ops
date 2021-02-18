@@ -33,6 +33,7 @@ spec:
                 secretKeyRef:
                   name: loki-bucket
                   key: AWS_SECRET_ACCESS_KEY
+      terminationGracePeriodSeconds: 300
       volumes:
         - name: config
           configMap:
