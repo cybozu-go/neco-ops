@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - ../../base
 - ept-apps.yaml
+- garoon-apps.yaml
 - maneki-apps.yaml
 - tenant-apps.yaml
 patchesStrategicMerge:
