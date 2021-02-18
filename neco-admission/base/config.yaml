@@ -24,3 +24,13 @@ ArgoCDApplicationValidator:
         projects:
           - tenant-apps
           - tenant-app-of-apps
+      - repository: https://github.com/garoon-private/garoon-apps.git
+        projects:
+          - garoon
+          - maneki
+          - tenant-app-of-apps
+      - repository: https://github.com/garoon-private/static-deployment.git
+        projects:
+          - garoon
+          - maneki
+          - tenant-app-of-apps

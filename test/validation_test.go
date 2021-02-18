@@ -189,6 +189,9 @@ func testApplicationResources(t *testing.T) {
 		"ept-apps": {
 			"stage0": "main",
 		},
+		"garoon-apps": {
+			"stage0": "main",
+		},
 		"maneki-apps": {
 			"osaka0": "release",
 			"stage0": "stage",
