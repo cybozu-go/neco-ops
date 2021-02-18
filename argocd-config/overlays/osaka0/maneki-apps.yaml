@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: maneki-apps
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "12"
   labels:
     is-tenant: "true"
 spec:

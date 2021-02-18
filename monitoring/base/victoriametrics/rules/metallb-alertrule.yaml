@@ -19,7 +19,7 @@ spec:
         - alert: MetalLBSpeakerDown
           expr: |
             up{job="metallb-speaker"}==0
-              unless on(node) kube_node_spec_taint{key="node.kubernetes.io/unreachable",effect="NoExecute"}
+              unless on(node) kube_node_spec_taint{key="node.kubernetes.io/unreachable"}
           labels:
             severity: error
           for: 10m

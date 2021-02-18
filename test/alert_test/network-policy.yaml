@@ -22,7 +22,7 @@ tests:
     input_series:
       - series: 'up{job="calico-node",instance="10.0.0.1",node="10.0.0.1"}'
         values: '0+0x10'
-      - series: 'kube_node_spec_taint{key="node.kubernetes.io/unreachable",effect="NoExecute",node="10.0.0.1"}'
+      - series: 'kube_node_spec_taint{key="node.kubernetes.io/unreachable",effect="NoSchedule",node="10.0.0.1"}'
         values: '1+0x10'
     alert_rule_test:
       - eval_time: 10m

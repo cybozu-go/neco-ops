@@ -10,7 +10,7 @@ spec:
         - alert: CalicoNodeDown
           expr: |
             up{job="calico-node"}==0
-              unless on(node) kube_node_spec_taint{key="node.kubernetes.io/unreachable",effect="NoExecute"}
+              unless on(node) kube_node_spec_taint{key="node.kubernetes.io/unreachable"}
           labels:
             severity: critical
           for: 10m
