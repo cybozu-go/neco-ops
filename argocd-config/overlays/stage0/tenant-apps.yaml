@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: tenant-apps
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "11"
   labels:
     is-tenant: "true"
 spec:
