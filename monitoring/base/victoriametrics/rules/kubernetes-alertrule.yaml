@@ -209,8 +209,6 @@ kind: VMRule
 metadata:
   name: kubernetes
   namespace: monitoring
-  labels:
-    smallset: "true"
 spec:
   groups:
     - name: kubernetes-absent

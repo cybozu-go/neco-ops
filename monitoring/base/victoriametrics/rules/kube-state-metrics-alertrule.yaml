@@ -3,8 +3,6 @@ kind: VMRule
 metadata:
   name: kube-state-metrics
   namespace: monitoring
-  labels:
-    smallset: "true"
 spec:
   groups:
   - name: kube-state-metrics
