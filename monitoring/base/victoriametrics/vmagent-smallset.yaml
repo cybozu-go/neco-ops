@@ -1,44 +1,3 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: vmagent-smallset
-  namespace: monitoring
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: vmagent-smallset
-rules:
-  - apiGroups: ["","networking.k8s.io","extensions"]
-    resources:
-      - nodes
-      - nodes/proxy # required for "kubernetes-nodes" job
-      - services
-      - endpoints
-      - pods
-      - app
-      - ingresses
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
-    resources:
-      - configmaps
-    verbs: ["get"]
-  - nonResourceURLs: ["/metrics"]
-    verbs: ["get"]
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: vmagent-smallset
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: vmagent-smallset
-subjects:
-  - kind: ServiceAccount
-    name: vmagent-smallset
-    namespace: monitoring
----
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMAgent
 metadata:
@@ -63,36 +22,10 @@ spec:
   probeSelector:
     matchLabels:
       smallset: "true"
-  replicaCount: 3
-  serviceAccountName: vmagent-smallset
+  replicaCount: 1
   remoteWrite:
     - url: "http://vmsingle-vmsingle-smallset.monitoring.svc:8429/api/v1/write"
-    - url: "http://vminsert-vmcluster-largeset.monitoring.svc:8480/insert/0/prometheus/api/v1/write"
   resources:
     requests:
       cpu: 100m
       memory: 200Mi
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/component: monitoring
-          app.kubernetes.io/instance: vmagent-smallset
-          app.kubernetes.io/name: vmagent
-          managed-by: vm-operator
----
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  name: vmagent-smallset
-  namespace: monitoring
-spec:
-  minAvailable: 2
-  selector:
-    matchLabels:
-      app.kubernetes.io/component: monitoring
-      app.kubernetes.io/instance: vmagent-smallset
-      app.kubernetes.io/name: vmagent
-      managed-by: vm-operator

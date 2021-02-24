@@ -14,9 +14,9 @@ spec:
   datasource:
     url: "http://vmselect-vmcluster-largeset.monitoring.svc:8481/select/0/prometheus"
   notifiers:
-  - url: "http://vmalertmanager-vmalertmanager-0.vmalertmanager-vmalertmanager.monitoring.svc:9093"
-  - url: "http://vmalertmanager-vmalertmanager-1.vmalertmanager-vmalertmanager.monitoring.svc:9093"
-  - url: "http://vmalertmanager-vmalertmanager-2.vmalertmanager-vmalertmanager.monitoring.svc:9093"
+  - url: "http://vmalertmanager-vmalertmanager-largeset-0.vmalertmanager-vmalertmanager-largeset.monitoring.svc:9093"
+  - url: "http://vmalertmanager-vmalertmanager-largeset-1.vmalertmanager-vmalertmanager-largeset.monitoring.svc:9093"
+  - url: "http://vmalertmanager-vmalertmanager-largeset-2.vmalertmanager-vmalertmanager-largeset.monitoring.svc:9093"
   evaluationInterval: "30s"
   ruleSelector:
     matchExpressions:

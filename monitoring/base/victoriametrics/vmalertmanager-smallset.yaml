@@ -1,0 +1,50 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlertmanager
+metadata:
+  name: vmalertmanager-smallset
+  namespace: monitoring
+spec:
+  image:
+    tag: v0.21.0
+  containers:
+    - name: alertmanager
+      image: quay.io/cybozu/alertmanager:0.21.0.2
+    - name: config-reloader
+      image: quay.io/cybozu/configmap-reload:0.5.0.1
+  replicaCount: 1
+  configSecret: vmalertmanager-config
+  volumeMounts:
+    - name: alertmanager-config-volume
+      mountPath: /etc/vm/configs/vmalertmanager
+    - name: vmalertmanager-settype
+      mountPath: /etc/vm/configs/vmalertmanager-settype
+  volumes:
+    - name: alertmanager-config-volume
+      configMap:
+        name: vmalertmanager
+    - name: vmalertmanager-settype
+      configMap:
+        name: vmalertmanager-settype-smallset
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: topolvm-provisioner
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: monitoring
+              # do not specify app.kubernetes.io/instance to make {large,small}set repel each other
+              app.kubernetes.io/name: vmalertmanager
+              managed-by: vm-operator

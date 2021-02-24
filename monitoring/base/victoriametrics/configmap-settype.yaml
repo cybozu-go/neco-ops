@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmalertmanager-settype-largeset
+  namespace: monitoring
+data:
+  settype.template: |
+    {{ define "slack.neco.settype" }}largeset{{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmalertmanager-settype-smallset
+  namespace: monitoring
+data:
+  settype.template: |
+    {{ define "slack.neco.settype" }}smallset{{ end }}

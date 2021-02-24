@@ -499,7 +499,8 @@ func testVMCustomResources(t *testing.T) {
 		"vmagent-smallset",
 		"vmalert-largeset",
 		"vmalert-smallset",
-		"vmalertmanager",
+		"vmalertmanager-largeset",
+		"vmalertmanager-smallset",
 		"vminsert-largeset",
 		"vmselect-largeset",
 		"vmsingle-smallset",
@@ -515,8 +516,6 @@ func testVMCustomResources(t *testing.T) {
 	}
 	expectedSmallsetProbes := []string{}
 	expectedSmallsetRules := []string{
-		"kube-state-metrics",
-		"kubernetes",
 		"monitoring",
 		"rook",
 	}

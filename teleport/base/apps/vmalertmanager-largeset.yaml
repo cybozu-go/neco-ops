@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teleport-app-vmalertmanager-largeset
+  namespace: teleport
+  labels:
+    app.kubernetes.io/name: teleport
+    app.kubernetes.io/component: app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: teleport
+      app.kubernetes.io/component: app
+      app: vmalertmanager-largeset
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: teleport
+        app.kubernetes.io/component: app
+        app: vmalertmanager-largeset
+      annotations:
+        prometheus.io/port: "3020"
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - name: teleport-app-vmalertmanager-largeset
+        image: quay.io/gravitational/teleport-ent
+        imagePullPolicy: IfNotPresent
+        args:
+        - --roles=app
+        - --app-name=vmalertmanager-largeset
+        - --app-uri=http://vmalertmanager-vmalertmanager-largeset.monitoring.svc:9093/
+        - --labels=team=neco
+        - --diag-addr=0.0.0.0:3020
+        livenessProbe:
+          httpGet:
+            port: 3020
+            path: /healthz
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        ports:
+        - name: metrics
+          containerPort: 3020
+        volumeMounts:
+        - mountPath: /etc/teleport
+          name: teleport-app-secret
+          readOnly: true
+        - mountPath: /var/lib/teleport
+          name: teleport-storage
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10000
+      volumes:
+      - name: teleport-app-secret
+        secret:
+          secretName: teleport-app-secret-20201203
+      - name: teleport-storage
+        emptyDir: {}
+      serviceAccountName: teleport
