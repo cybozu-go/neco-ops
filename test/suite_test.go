@@ -70,6 +70,7 @@ func prepareTest() {
 	}
 
 	// preparing resources before test to make things faster
+	Context("preparing moco", prepareMoco)
 	Context("preparing rook-ceph", prepareRookCeph)
 	Context("preparing argocd-ingress", prepareArgoCDIngress)
 	Context("preparing contour", prepareContour)
@@ -82,7 +83,6 @@ func prepareTest() {
 	Context("preparing sandbox grafana", prepareSandboxGrafanaIngress)
 	Context("preparing topolvm", prepareTopoLVM)
 	Context("preparing cursotmer-egress", prepareCustomerEgress)
-	Context("preparing moco", prepareMoco)
 	Context("preparing sealed-secret", prepareSealedSecret)
 	Context("preparing network-policy", prepareNetworkPolicy) // this must be the last preparation.
 }

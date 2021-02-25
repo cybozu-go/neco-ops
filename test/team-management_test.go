@@ -42,6 +42,15 @@ var requiredResources = []string{
 var prohibitedResources = []string{
 	"limitranges",
 	"resourcequotas",
+	"egresses.coil.cybozu.com",
+}
+
+// viewableClusterResources is a list of cluster resources that Neco allows for tenant users
+// to view or list.
+var viewableClusterResources = []string{
+	"addressblocks.coil.cybozu.com",
+	"addresspools.coil.cybozu.com",
+	"objectbuckets.objectbucket.io",
 }
 
 var (
@@ -213,6 +222,18 @@ func testTeamManagement() {
 						actualVerbs[key] = prohibitedVerbs
 					}
 				}
+
+				// check viewable cluster resources
+				for _, resource := range viewableClusterResources {
+					key := keyGen(team, ns, resource)
+					expectedVerbs[key] = viewVerbs
+
+					if v, ok := actualVerbsByResource[resource]; ok {
+						actualVerbs[key] = v
+					} else {
+						actualVerbs[key] = prohibitedVerbs
+					}
+				}
 			}
 		}
 
@@ -279,39 +300,6 @@ func testTeamManagement() {
 
 		By("adding a ephemeral container by unprivileged team")
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "alpha", "debug", "-i", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:20.04", "--target=neco-ephemeral-test", "--as=test", "--as-group=maneki", "--as-group=system:authenticated", "--", "echo a")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-	})
-
-	// This test confirming the configuration of RBAC so it should be at team-management_test.go but rook/ceph isn't deployed for GCP (without gcp-ceph)
-	It("should deploy OBC resource with maneki role", func() {
-		obcYaml := `apiVersion: objectbucket.io/v1alpha1
-kind: ObjectBucketClaim
-metadata:
-  name: hdd-ob
-  namespace: maneki
-spec:
-  generateBucketName: obc-poc
-  storageClassName: ceph-hdd-bucket`
-		stdout, stderr, err := ExecAtWithInput(boot0, []byte(obcYaml), "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-	})
-
-	It("should read OB resource with maneki role", func() {
-		var obName string
-		Eventually(func() error {
-			stdout, _, err := ExecAtWithInput(boot0, nil, "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "get", "obc", "-n", "maneki", "hdd-ob", "-o=jsonpath={.spec.objectBucketName}")
-			if err != nil {
-				return err
-			}
-			if len(stdout) == 0 {
-				return fmt.Errorf("failed to get ob name")
-			}
-			obName = string(stdout)
-
-			return nil
-		}).Should(Succeed())
-
-		stdout, stderr, err := ExecAtWithInput(boot0, nil, "kubectl", "--as test", "--as-group sys:authenticated", "--as-group maneki", "get", "ob", string(obName))
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 	})
 }
