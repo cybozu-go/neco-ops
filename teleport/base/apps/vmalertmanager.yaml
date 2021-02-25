@@ -13,6 +13,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: teleport
       app.kubernetes.io/component: app
+      app: vmalertmanager
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -21,6 +22,7 @@ spec:
       labels:
         app.kubernetes.io/name: teleport
         app.kubernetes.io/component: app
+        app: vmalertmanager
       annotations:
         prometheus.io/port: "3020"
     spec:

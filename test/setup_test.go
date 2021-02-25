@@ -388,6 +388,30 @@ func applyAndWaitForApplications(commitID string) {
 		fmt.Println("  " + app)
 	}
 
+	// TODO: remove this after #1249 gets merged and released
+	if doUpgrade {
+		By("removing old teleport app Deployments")
+		Eventually(func() error {
+			for _, name := range []string{"teleport-app-alertmanager", "teleport-app-vmalertmanager"} {
+				dpl := &appsv1.Deployment{}
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "get", "deployment", name, "-o", "json")
+				if err != nil {
+					return fmt.Errorf("failed to get %s: %s: %w", name, stderr, err)
+				}
+				if err := json.Unmarshal(stdout, dpl); err != nil {
+					return err
+				}
+				if dpl.Spec.Selector.MatchLabels["app"] == "" {
+					if _, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "delete", "deployment", name); err != nil {
+						return fmt.Errorf("failed to delete %s: %s: %w", name, stderr, err)
+					}
+					return fmt.Errorf("%s is still old", name)
+				}
+			}
+			return nil
+		}).Should(Succeed())
+	}
+
 	By("waiting initialization")
 	checkAllAppsSynced := func() error {
 		for _, target := range appList {
