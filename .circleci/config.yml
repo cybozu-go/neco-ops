@@ -371,6 +371,17 @@ workflows:
             branches:
               ignore: ["main", "stage", "release", /^op-(stage|release)-.*/]
 
+  manual-reboot:
+    jobs:
+      - hold:
+          type: approval
+          filters:
+            branches:
+              ignore: ["main", "stage", "release", /^op-(stage|release)-.*/]
+      - reboot:
+          requires:
+            - hold
+
   daily:
     triggers:
       - schedule:
