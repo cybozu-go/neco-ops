@@ -458,22 +458,22 @@ func testRookRGW() {
 		ns := "sandbox"
 		waitRGW(ns, "pod-ob")
 
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c", `"echo foobar > /tmp/foobar"`)
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c", `"echo 'putting getting data' > /tmp/put_get"`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c",
-			`"s3cmd put /tmp/foobar --no-ssl --host=\${BUCKET_HOST} --host-bucket= s3://\${BUCKET_NAME}"`)
+			`"s3cmd put /tmp/put_get --no-ssl --host=\${BUCKET_HOST} --host-bucket= s3://\${BUCKET_NAME}"`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 		stdout, _, _ = ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c",
 			`"s3cmd ls s3://\${BUCKET_NAME} --no-ssl --host=\${BUCKET_HOST} --host-bucket= s3://\${BUCKET_NAME}"`)
-		Expect(stdout).NotTo(BeEmpty())
+		Expect(stdout).Should(ContainSubstring("put_get"))
 
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c",
-			`"s3cmd get s3://\${BUCKET_NAME}/foobar /tmp/downloaded --no-ssl --host=\${BUCKET_HOST} --host-bucket="`)
+			`"s3cmd get s3://\${BUCKET_NAME}/put_get /tmp/put_get_download --no-ssl --host=\${BUCKET_HOST} --host-bucket="`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "cat", "/tmp/downloaded")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "cat", "/tmp/put_get_download")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		Expect(stdout).To(Equal([]byte("foobar\n")))
+		Expect(stdout).To(Equal([]byte("putting getting data\n")))
 	})
 }
 
@@ -509,10 +509,10 @@ func prepareRebootRookCeph() {
 	It("should store data via RGW before reboot", func() {
 		ns := "sandbox"
 		waitRGW(ns, "pod-ob")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c", `"echo foobar > /tmp/foobar"`)
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c", `"echo 'reboot data' > /tmp/reboot"`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c",
-			`"s3cmd put /tmp/foobar --no-ssl --host=\${BUCKET_HOST} --host-bucket= s3://\${BUCKET_NAME}/foobar_reboot"`)
+			`"s3cmd put /tmp/reboot --no-ssl --host=\${BUCKET_HOST} --host-bucket= s3://\${BUCKET_NAME}/reboot"`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 	})
 }
@@ -545,11 +545,11 @@ spec:
 
 		waitRGW("sandbox", "pod-ob")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", "pod-ob", "--", "sh", "-c",
-			`"s3cmd get s3://\${BUCKET_NAME}/foobar_reboot /tmp/downloaded --no-ssl --host=\${BUCKET_HOST} --host-bucket="`)
+			`"s3cmd get s3://\${BUCKET_NAME}/reboot /tmp/reboot_download --no-ssl --host=\${BUCKET_HOST} --host-bucket="`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", "pod-ob", "--", "cat", "/tmp/downloaded")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", "pod-ob", "--", "cat", "/tmp/reboot_download")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		Expect(stdout).To(Equal([]byte("foobar\n")))
+		Expect(stdout).To(Equal([]byte("reboot data\n")))
 	})
 }
 
