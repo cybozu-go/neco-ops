@@ -460,7 +460,7 @@ So, check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/bl
 and [Helm chart](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport).
 
 ```console
-$ git checkout https://github.com/gravitational/teleport
+$ git clone https://github.com/gravitational/teleport
 $ cd teleport
 $ git diff vx.y.z...vX.Y.Z examples/chart/teleport
 ```

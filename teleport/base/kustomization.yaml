@@ -19,4 +19,4 @@ configMapGenerator:
       - conf/neco-readonly-role.yaml
 images:
   - name: quay.io/gravitational/teleport-ent
-    newTag: 5.1.2
+    newTag: 5.2.1
