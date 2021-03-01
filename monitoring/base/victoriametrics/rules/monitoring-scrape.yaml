@@ -23,7 +23,7 @@ spec:
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMServiceScrape
 metadata:
-  name: vmalertmanager
+  name: vmalertmanager-smallset
   namespace: monitoring
   labels:
     smallset: "true"
@@ -33,13 +33,13 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: monitoring
-      app.kubernetes.io/instance: vmalertmanager
+      app.kubernetes.io/instance: vmalertmanager-smallset
       app.kubernetes.io/name: vmalertmanager
       managed-by: vm-operator
   endpoints:
   - port: web
     relabelConfigs:
-      - replacement: vmalertmanager
+      - replacement: vmalertmanager-smallset
         targetLabel: job
 ---
 apiVersion: operator.victoriametrics.com/v1beta1
@@ -106,6 +106,28 @@ spec:
   - port: http
     relabelConfigs:
       - replacement: vmsingle-smallset
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: vmalertmanager-largeset
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  namespaceSelector:
+    matchNames: [monitoring]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: monitoring
+      app.kubernetes.io/instance: vmalertmanager-largeset
+      app.kubernetes.io/name: vmalertmanager
+      managed-by: vm-operator
+  endpoints:
+  - port: web
+    relabelConfigs:
+      - replacement: vmalertmanager-largeset
         targetLabel: job
 ---
 apiVersion: operator.victoriametrics.com/v1beta1

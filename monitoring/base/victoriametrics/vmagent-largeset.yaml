@@ -12,40 +12,24 @@ spec:
       image: quay.io/cybozu/prometheus-config-reloader:0.45.0.2
   serviceScrapeSelector:
     matchExpressions:
-      - key: smallset
-        operator: NotIn
-        values:
-          - "true"
       - key: managed-by
         operator: NotIn
         values:
           - vm-operator
   podScrapeSelector:
     matchExpressions:
-      - key: smallset
-        operator: NotIn
-        values:
-          - "true"
       - key: managed-by
         operator: NotIn
         values:
           - vm-operator
   nodeScrapeSelector:
     matchExpressions:
-      - key: smallset
-        operator: NotIn
-        values:
-          - "true"
       - key: managed-by
         operator: NotIn
         values:
           - vm-operator
   probeSelector:
     matchExpressions:
-      - key: smallset
-        operator: NotIn
-        values:
-          - "true"
       - key: managed-by
         operator: NotIn
         values:

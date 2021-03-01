@@ -18,16 +18,16 @@ spec:
         for: 15m
         labels:
           severity: error
-      - alert: VMAlertmanagerDown
+
+      - alert: VMAlertmanagerSmallsetDown
         annotations:
-          summary: VMAlertmanager has disappeared.
+          summary: VMAlertmanager for smallset has disappeared.
           runbook: TBD
         expr: |
-          absent(up{job="vmalertmanager"} == 1)
+          absent(up{job="vmalertmanager-smallset"} == 1)
         for: 15m
         labels:
           severity: critical
-
       - alert: VMAgentSmallsetDown
         annotations:
           summary: VMAgent for smallset has disappeared.
@@ -56,6 +56,15 @@ spec:
         labels:
           severity: critical
 
+      - alert: VMAlertmanagerLargesetDown
+        annotations:
+          summary: VMAlertmanager for largeset has disappeared.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmalertmanager-largeset"} == 1)
+        for: 15m
+        labels:
+          severity: critical
       - alert: VMAgentLargesetDown
         annotations:
           summary: VMAgent for largeset has disappeared.

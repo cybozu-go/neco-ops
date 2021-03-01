@@ -103,7 +103,7 @@ func testTopoLVM() {
 
 		By("waiting for the PV getting resized")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n=monitoring", "exec", "prometheus-0", "-i", "--", "curl", "-sf", "http://localhost:9090/api/v1/query?query=kubelet_volume_stats_capacity_bytes")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n=monitoring", "exec", "vmselect-vmcluster-largeset-0", "-i", "--", "curl", "-sf", "http://localhost:8481/select/0/prometheus/api/v1/query?query=kubelet_volume_stats_capacity_bytes")
 			if err != nil {
 				return fmt.Errorf("stderr=%s: %w", string(stderr), err)
 			}

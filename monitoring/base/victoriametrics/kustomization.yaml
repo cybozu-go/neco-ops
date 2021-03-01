@@ -19,10 +19,12 @@ resources:
   - upstream/rbac/vmservicescrape_viewer_role.yaml
   - rbac
   - operator.yaml
-  - alertmanager.yaml
+  - configmap-settype.yaml
+  - vmalertmanager-smallset.yaml
   - vmagent-smallset.yaml
   - vmalert-smallset.yaml
   - vmsingle-smallset.yaml
+  - vmalertmanager-largeset.yaml
   - vmagent-largeset.yaml
   - vmalert-largeset.yaml
   - vmcluster-largeset.yaml

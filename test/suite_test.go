@@ -105,7 +105,6 @@ func runTest() {
 	Context("prometheus-metrics", testPrometheusMetrics)
 	Context("metrics-server", testMetricsServer)
 	Context("victoriametrics-operator", testVictoriaMetricsOperator)
-	Context("vmalertmanager", testVMAlertmanager)
 	Context("vmsmallset-components", testVMSmallsetClusterComponents)
 	Context("vmlargeset-components", testVMLargesetClusterComponents)
 	Context("topolvm", testTopoLVM)

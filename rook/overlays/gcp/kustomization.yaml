@@ -32,3 +32,23 @@ patchesJson6902:
     - op: replace
       path: /spec/storage/storageClassDeviceSets/0/volumeClaimTemplates/0/spec/resources/requests/storage
       value: 5Gi
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: rook-ceph-operator
+    namespace: ceph-hdd
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/env/2/value
+      value: DEBUG
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: rook-ceph-operator
+    namespace: ceph-ssd
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/env/2/value
+      value: DEBUG

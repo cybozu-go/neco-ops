@@ -1,7 +1,7 @@
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMAlertmanager
 metadata:
-  name: vmalertmanager
+  name: vmalertmanager-largeset
   namespace: monitoring
 spec:
   image:
@@ -20,12 +20,17 @@ spec:
   volumeMounts:
     - name: alertmanager-config-volume
       mountPath: /etc/vm/configs/vmalertmanager
+    - name: vmalertmanager-settype
+      mountPath: /etc/vm/configs/vmalertmanager-settype
   volumes:
     # However, it is not able to detect this configMap content change. So use configMapGenerator.
     # Note that we don't use VMAlertmanager.spec.configMaps because they use name of ConfigMap (which is changed any time) as mount point.
     - name: alertmanager-config-volume
       configMap:
         name: vmalertmanager
+    - name: vmalertmanager-settype
+      configMap:
+        name: vmalertmanager-settype-largeset
   resources:
     requests:
       cpu: 100m
@@ -39,6 +44,16 @@ spec:
           requests:
             storage: 1Gi
         storageClassName: topolvm-provisioner
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: monitoring
+              # do not specify app.kubernetes.io/instance to make {large,small}set repel each other
+              app.kubernetes.io/name: vmalertmanager
+              managed-by: vm-operator
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
@@ -46,20 +61,20 @@ spec:
       labelSelector:
         matchLabels:
           app.kubernetes.io/component: monitoring
-          app.kubernetes.io/instance: vmalertmanager
+          app.kubernetes.io/instance: vmalertmanager-largeset
           app.kubernetes.io/name: vmalertmanager
           managed-by: vm-operator
 ---
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  name: vmalertmanager
+  name: vmalertmanager-largeset
   namespace: monitoring
 spec:
   minAvailable: 2
   selector:
     matchLabels:
       app.kubernetes.io/component: monitoring
-      app.kubernetes.io/instance: vmalertmanager
+      app.kubernetes.io/instance: vmalertmanager-largeset
       app.kubernetes.io/name: vmalertmanager
       managed-by: vm-operator

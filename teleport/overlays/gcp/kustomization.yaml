@@ -7,7 +7,8 @@ patchesStrategicMerge:
   - deployment.yaml
   - statefulset.yaml
   - apps/alertmanager.yaml
-  - apps/vmalertmanager.yaml
+  - apps/vmalertmanager-largeset.yaml
+  - apps/vmalertmanager-smallset.yaml
 images:
   - name: quay.io/gravitational/teleport-ent
     newName: quay.io/gravitational/teleport

@@ -832,13 +832,14 @@ func testVictoriaMetricsOperator() {
 	})
 }
 
-func testVMAlertmanager() {
-	const vmamCount = 3
+func testVMSmallsetClusterComponents() {
+	const vmamCount = 1
+	const vmagentCount = 1
 
-	It("should be deployed successfully", func() {
+	It("should be deployed successfully (vmalertmanager)", func() {
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=monitoring",
-				"get", "statefulset/vmalertmanager-vmalertmanager", "-o=json")
+				"get", "statefulset/vmalertmanager-vmalertmanager-smallset", "-o=json")
 			if err != nil {
 				return err
 			}
@@ -855,10 +856,10 @@ func testVMAlertmanager() {
 		}).Should(Succeed())
 	})
 
-	It("should reply successfully", func() {
+	It("should reply successfully (vmalertmanager)", func() {
 		Eventually(func() error {
 			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=monitoring",
-				"get", "pods", "--selector=app.kubernetes.io/name=vmalertmanager", "-o=json")
+				"get", "pods", "--selector=app.kubernetes.io/name=vmalertmanager,app.kubernetes.io/instance=vmalertmanager-smallset", "-o=json")
 			if err != nil {
 				return err
 			}
@@ -882,10 +883,6 @@ func testVMAlertmanager() {
 			return nil
 		}).Should(Succeed())
 	})
-}
-
-func testVMSmallsetClusterComponents() {
-	const vmagentCount = 3
 
 	It("should be deployed successfully (vmsingle)", func() {
 		Eventually(func() error {
@@ -1051,11 +1048,60 @@ func testVMSmallsetClusterComponents() {
 }
 
 func testVMLargesetClusterComponents() {
+	const vmamCount = 3
 	const vmstorageCount = 3
 	const vmselectCount = 3
 	const vminsertCount = 3
 	const vmagentCount = 3
 	const vmalertCount = 3
+
+	It("should be deployed successfully (vmalertmanager)", func() {
+		Eventually(func() error {
+			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=monitoring",
+				"get", "statefulset/vmalertmanager-vmalertmanager-largeset", "-o=json")
+			if err != nil {
+				return err
+			}
+			sts := new(appsv1.StatefulSet)
+			err = json.Unmarshal(stdout, sts)
+			if err != nil {
+				return err
+			}
+
+			if int(sts.Status.ReadyReplicas) != vmamCount {
+				return fmt.Errorf("ReadyReplicas is not %d: %d", vmamCount, int(sts.Status.ReadyReplicas))
+			}
+			return nil
+		}).Should(Succeed())
+	})
+
+	It("should reply successfully (vmalertmanager)", func() {
+		Eventually(func() error {
+			stdout, _, err := ExecAt(boot0, "kubectl", "--namespace=monitoring",
+				"get", "pods", "--selector=app.kubernetes.io/name=vmalertmanager,app.kubernetes.io/instance=vmalertmanager-largeset", "-o=json")
+			if err != nil {
+				return err
+			}
+			podList := new(corev1.PodList)
+			err = json.Unmarshal(stdout, podList)
+			if err != nil {
+				return err
+			}
+			if len(podList.Items) != vmamCount {
+				return errors.New("vmalertmanager pod count mismatch")
+			}
+			for _, pod := range podList.Items {
+				podName := pod.Name
+
+				_, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
+					podName, "curl", "http://localhost:9093/-/healthy")
+				if err != nil {
+					return fmt.Errorf("unable to curl http://%s:9093/-/halthy, stderr: %s, err: %v", podName, stderr, err)
+				}
+			}
+			return nil
+		}).Should(Succeed())
+	})
 
 	It("should be deployed successfully (vmstorage)", func() {
 		Eventually(func() error {
@@ -1231,11 +1277,32 @@ func testVMLargesetClusterComponents() {
 			for _, pod := range podList.Items {
 				podName := pod.Name
 
-				_, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
+				stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
 					"-c", "vmagent", podName, "--",
 					"curl", "http://localhost:8429/api/v1/targets")
 				if err != nil {
 					return fmt.Errorf("unable to curl http://%s:8429/api/v1/targets, stderr: %s, err: %v", podName, stderr, err)
+				}
+
+				var response struct {
+					TargetsResult promv1.TargetsResult `json:"data"`
+				}
+				err = json.Unmarshal(stdout, &response)
+				if err != nil {
+					return err
+				}
+
+				found := false
+				for _, target := range response.TargetsResult.Active {
+					if value, ok := target.Labels["job"]; ok {
+						if value == "kubernetes-nodes" && target.Health == promv1.HealthGood {
+							found = true
+							break
+						}
+					}
+				}
+				if !found {
+					return errors.New("cannot find target")
 				}
 			}
 			return nil

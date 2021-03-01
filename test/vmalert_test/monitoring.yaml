@@ -15,20 +15,20 @@ tests:
             exp_annotations:
               runbook: TBD
               summary: VictoriaMetrics operator has disappeared.
+
   - interval: 1m
     input_series:
-      - series: 'up{job="vmalertmanager"}'
+      - series: 'up{job="vmalertmanager-smallset"}'
         values: '0+0x15'
     alert_rule_test:
       - eval_time: 15m
-        alertname: VMAlertmanagerDown
+        alertname: VMAlertmanagerSmallsetDown
         exp_alerts:
           - exp_labels:
               severity: critical
             exp_annotations:
               runbook: TBD
-              summary: VMAlertmanager has disappeared.
-
+              summary: VMAlertmanager for smallset has disappeared.
   - interval: 1m
     input_series:
       - series: 'up{job="vmagent-smallset"}'
@@ -69,6 +69,19 @@ tests:
               runbook: TBD
               summary: VMSingle for smallset has disappeared.
 
+  - interval: 1m
+    input_series:
+      - series: 'up{job="vmalertmanager-largeset"}'
+        values: '0+0x15'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMAlertmanagerLargesetDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: TBD
+              summary: VMAlertmanager for largeset has disappeared.
   - interval: 1m
     input_series:
       - series: 'up{job="vmagent-largeset"}'

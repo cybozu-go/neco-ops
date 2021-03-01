@@ -14,9 +14,7 @@ spec:
   datasource:
     url: "http://vmsingle-vmsingle-smallset.monitoring.svc:8429"
   notifiers:
-  - url: "http://vmalertmanager-vmalertmanager-0.vmalertmanager-vmalertmanager.monitoring.svc:9093"
-  - url: "http://vmalertmanager-vmalertmanager-1.vmalertmanager-vmalertmanager.monitoring.svc:9093"
-  - url: "http://vmalertmanager-vmalertmanager-2.vmalertmanager-vmalertmanager.monitoring.svc:9093"
+  - url: "http://vmalertmanager-vmalertmanager-smallset-0.vmalertmanager-vmalertmanager-smallset.monitoring.svc:9093"
   evaluationInterval: "30s"
   ruleSelector:
     matchLabels:
