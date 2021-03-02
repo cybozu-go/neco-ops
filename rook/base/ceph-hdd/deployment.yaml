@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: rook-ceph-operator
-        image: "quay.io/llamerada_jp/rook:1.5.7.3"
+        image: "quay.io/toshipp/rook:1.5.7.4"
         imagePullPolicy: IfNotPresent
         args: ["ceph", "operator"]
         env:
