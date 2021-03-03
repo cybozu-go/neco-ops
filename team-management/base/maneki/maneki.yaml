@@ -18,3 +18,6 @@ subjects:
   - kind: Group
     name: maneki
     apiGroup: rbac.authorization.k8s.io
+  - kind: ServiceAccount
+    name: node-maneki
+    namespace: teleport

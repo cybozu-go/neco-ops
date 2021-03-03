@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: node-maneki
+  namespace: teleport
+spec:
+  template:
+    spec:
+      containers:
+      - name: node-maneki
+        args:
+        - --roles=node
+        - --labels=team=maneki
+        - --diag-addr=0.0.0.0:3020
+        - --insecure
