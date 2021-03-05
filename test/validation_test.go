@@ -462,9 +462,31 @@ func testAlertRules(t *testing.T) {
 	}
 }
 
+type RelabelConfig struct {
+	Action      string `json:"action"`
+	TargetLabel string `json:"targetLabel"`
+	Replacement string `json:"replacement"`
+}
+
 type resourceMeta struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
+}
+
+// shrinked and merged version of VMServiceScrape, VMPodScrape and VMNodeScrape
+type VMScrapeOrRule struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              struct {
+		ServiceScrapeEndpoints []struct {
+			RelabelConfigs []RelabelConfig `json:"relabelConfigs"`
+		} `json:"endpoints"`
+		PodScrapeEndpoints []struct {
+			RelabelConfigs []RelabelConfig `json:"relabelConfigs"`
+		} `json:"podMetricsEndpoints"`
+		NodeScrapeRelabelConfigs []RelabelConfig `json:"relabelConfigs"`
+		// VMProbe is not used yet.
+	} `json:"spec"`
 }
 
 // shrinked version of github.com/VictoriaMetrics/operator/api/v1beta1.VMAgent
@@ -549,18 +571,38 @@ func testVMCustomResources(t *testing.T) {
 			} else if err != nil {
 				return fmt.Errorf("failed to read yaml: %v", err)
 			}
-			var r resourceMeta
+			var r VMScrapeOrRule
 			yaml.Unmarshal(data, &r)
+			var relabelConfigs [][]RelabelConfig
 			switch r.Kind {
 			case "VMServiceScrape":
+				for _, ep := range r.Spec.ServiceScrapeEndpoints {
+					relabelConfigs = append(relabelConfigs, ep.RelabelConfigs)
+				}
 			case "VMPodScrape":
+				for _, ep := range r.Spec.PodScrapeEndpoints {
+					relabelConfigs = append(relabelConfigs, ep.RelabelConfigs)
+				}
 			case "VMNodeScrape":
+				relabelConfigs = append(relabelConfigs, r.Spec.NodeScrapeRelabelConfigs)
 			case "VMProbe":
 			case "VMRule":
 			default:
 				continue
 			}
 			crsInFiles = append(crsInFiles, r.Kind+"/"+r.Name)
+
+			for i, rcs := range relabelConfigs {
+				found := false
+				for _, rc := range rcs {
+					if rc.Action == "" && rc.TargetLabel == "job" && rc.Replacement != "" && !strings.Contains(rc.Replacement, "/") {
+						found = true
+					}
+				}
+				if !found {
+					t.Errorf("%s %s endpoint %d should have a relabelConfig that set job label explicitly", r.Kind, r.Name, i)
+				}
+			}
 		}
 		return nil
 	})

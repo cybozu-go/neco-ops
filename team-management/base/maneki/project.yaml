@@ -12,6 +12,8 @@ spec:
     server: '*'
 
   # namespaces for ept team
+  - namespace: app-ept-monitoring
+    server: '*'
   - namespace: app-ept-wiki
     server: '*'
 

@@ -19,13 +19,10 @@ import (
 )
 
 func prepareNetworkPolicy() {
-	It("should create test-netpol namespace", func() {
-		ExecSafeAt(boot0, "kubectl", "delete", "namespace", "test-netpol", "--ignore-not-found=true")
+	It("should prepare test pods in test-netpol namespace", func() {
+		By("preparing namespace")
 		createNamespaceIfNotExists("test-netpol")
-		ExecSafeAt(boot0, "kubectl", "annotate", "namespaces", "test-netpol", "admission.cybozu.com/i-am-sure-to-delete=test-netpol")
-	})
 
-	It("should prepare test pods", func() {
 		By("deploying testhttpd pods")
 		deployYAML := `
 apiVersion: apps/v1
@@ -193,6 +190,45 @@ spec:
 
 			return nil
 		}).Should(Succeed())
+
+		Eventually(func() error {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "get", "deployments/vmagent-vmagent-smallset", "-o=json")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+
+			deployment := new(appsv1.Deployment)
+			err = json.Unmarshal(stdout, deployment)
+			if err != nil {
+				return err
+			}
+
+			if deployment.Status.AvailableReplicas != 1 {
+				return errors.New("vmagent-smallset AvailableReplicas is not 1")
+			}
+
+			return nil
+		}).Should(Succeed())
+
+		const vmagentLargesetCount = 3
+		Eventually(func() error {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "get", "deployments/vmagent-vmagent-largeset", "-o=json")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+
+			deployment := new(appsv1.Deployment)
+			err = json.Unmarshal(stdout, deployment)
+			if err != nil {
+				return err
+			}
+
+			if deployment.Status.AvailableReplicas != vmagentLargesetCount {
+				return fmt.Errorf("vmagent-smallset AvailableReplicas is not %d", vmagentLargesetCount)
+			}
+
+			return nil
+		}).Should(Succeed())
 	})
 }
 
@@ -314,6 +350,56 @@ func testNetworkPolicy() {
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
 		By("accessing node-expoter port of some node as prometheus")
+		Eventually(func() error {
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "monitoring", "exec", "-i", podName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "9100", "-e", "X")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+			return nil
+		}).Should(Succeed())
+
+		By("getting vmagent-smallset pod name")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=monitoring", "-l=app.kubernetes.io/name=vmagent,app.kubernetes.io/instance=vmagent-smallset", "-o", "go-template='{{ (index .items 0).metadata.name }}'")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		podName = string(stdout)
+
+		By("adding an ubuntu-debug container as an ephemeral container to vmagent-smallset")
+		stdout, stderr, err = ExecAt(boot0,
+			"kubectl", "alpha", "debug", podName,
+			"-n=monitoring",
+			"--container=ubuntu",
+			"--image=quay.io/cybozu/ubuntu-debug:20.04",
+			"--target=vmagent",
+			"--", "pause",
+		)
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+		By("accessing node-expoter port of some node as vmagent-smallset")
+		Eventually(func() error {
+			stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "monitoring", "exec", "-i", podName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "9100", "-e", "X")
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+			return nil
+		}).Should(Succeed())
+
+		By("getting vmagent-largeset pod name")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pods", "-n=monitoring", "-l=app.kubernetes.io/name=vmagent,app.kubernetes.io/instance=vmagent-largeset", "-o", "go-template='{{ (index .items 0).metadata.name }}'")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		podName = string(stdout)
+
+		By("adding an ubuntu-debug container as an ephemeral container to vmagent-largeset")
+		stdout, stderr, err = ExecAt(boot0,
+			"kubectl", "alpha", "debug", podName,
+			"-n=monitoring",
+			"--container=ubuntu",
+			"--image=quay.io/cybozu/ubuntu-debug:20.04",
+			"--target=vmagent",
+			"--", "pause",
+		)
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+		By("accessing node-expoter port of some node as vmagent-largeset")
 		Eventually(func() error {
 			stdout, stderr, err := ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "-n", "monitoring", "exec", "-i", podName, "-c", "ubuntu", "--", "timeout", "3s", "telnet", nodeIP, "9100", "-e", "X")
 			if err != nil {
