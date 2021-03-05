@@ -16,13 +16,10 @@ import (
 var ingressNamespaces = []string{"ingress-global", "ingress-forest", "ingress-bastion"}
 
 func prepareContour() {
-	It("should create test-ingress namespace", func() {
-		ExecSafeAt(boot0, "kubectl", "delete", "namespace", "test-ingress", "--ignore-not-found=true")
+	It("should prepare resources in test-ingress namespace", func() {
+		By("preparing namespace")
 		createNamespaceIfNotExists("test-ingress")
-		ExecSafeAt(boot0, "kubectl", "annotate", "namespaces", "test-ingress", "admission.cybozu.com/i-am-sure-to-delete=test-ingress")
-	})
 
-	It("should prepare resources", func() {
 		By("creating pod and service")
 		deployYAML := `
 apiVersion: apps/v1
