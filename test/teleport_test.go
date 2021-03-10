@@ -74,8 +74,8 @@ func teleportSSHConnectionTest() {
 	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 
 	By("creating user")
-	ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "rm", "cybozu")
-	stdout, stderr, err = ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "add", "cybozu", "cybozu,root")
+	ExecAt(boot1, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "rm", "cybozu")
+	stdout, stderr, err = ExecAt(boot1, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "add", "cybozu", "cybozu,root")
 	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 	tctlOutput := string(stdout)
 	fmt.Println("output:")
