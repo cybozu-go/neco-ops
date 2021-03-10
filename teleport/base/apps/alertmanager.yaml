@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: teleport-app-vmalertmanager-largeset
+  name: teleport-app-alertmanager
   namespace: teleport
   labels:
     app.kubernetes.io/name: teleport
@@ -13,7 +13,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: teleport
       app.kubernetes.io/component: app
-      app: vmalertmanager-largeset
+      app: alertmanager
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -22,19 +22,19 @@ spec:
       labels:
         app.kubernetes.io/name: teleport
         app.kubernetes.io/component: app
-        app: vmalertmanager-largeset
+        app: alertmanager
       annotations:
         prometheus.io/port: "3020"
     spec:
       automountServiceAccountToken: true
       containers:
-      - name: teleport-app-vmalertmanager-largeset
+      - name: teleport-app-alertmanager
         image: quay.io/gravitational/teleport-ent
         imagePullPolicy: IfNotPresent
         args:
         - --roles=app
-        - --app-name=vmalertmanager-largeset
-        - --app-uri=http://vmalertmanager-vmalertmanager-largeset.monitoring.svc:9093/
+        - --app-name=alertmanager
+        - --app-uri=http://alertmanager.monitoring.svc:9093/
         - --labels=team=neco
         - --diag-addr=0.0.0.0:3020
         livenessProbe:
