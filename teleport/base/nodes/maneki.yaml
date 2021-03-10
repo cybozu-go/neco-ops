@@ -14,7 +14,7 @@ spec:
       app.kubernetes.io/name: teleport
       app.kubernetes.io/component: node
       teleport-node: maneki
-  replicas: 2
+  replicas: 1
   serviceName: node-maneki
   template:
     metadata:
@@ -28,7 +28,7 @@ spec:
       automountServiceAccountToken: true
       containers:
       - name: node-maneki
-        image: quay.io/kfyharukz/teleport-node:6.0.0.17
+        image: quay.io/cybozu/teleport-node
         args:
         - --roles=node
         - --labels=team=maneki

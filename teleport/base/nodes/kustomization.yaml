@@ -3,3 +3,6 @@ kind: Kustomization
 resources:
   - serviceaccount.yaml
   - maneki.yaml
+images:
+  - name: quay.io/cybozu/teleport-node
+    newTag: 6.0.1.1
