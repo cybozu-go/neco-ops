@@ -185,10 +185,9 @@ func teleportSSHConnectionTest() {
 	By("confirming kubectl works in node Pod using tsh command")
 	for _, n := range []string{"node-maneki-0", "node-maneki-1"} {
 		Eventually(func() error {
-			cmd := exec.Command("tsh", "--insecure", "--proxy=teleport.gcp0.dev-ne.co:443", "--user=cybozu", "ssh", "cybozu@"+n, ". /etc/profile.d/update-necocli.sh && kubectl -v5 -n maneki get pod")
-			output, err := cmd.CombinedOutput()
+			stdout, stderr, err := ExecAt(boot1, "tsh", "--insecure", "--proxy=teleport.gcp0.dev-ne.co:443", "--user=cybozu", "ssh", "cybozu@"+n, ". /etc/profile.d/update-necocli.sh && kubectl -v5 -n maneki get pod")
 			if err != nil {
-				return fmt.Errorf("tsh ssh failed for %s: %s", n, string(output))
+				return fmt.Errorf("tsh ssh failed for %s: stdout=%s, stderr=%s", n, string(stdout), string(stderr))
 			}
 			return nil
 		}).Should(Succeed())
