@@ -29,7 +29,6 @@ spec:
                 secretKeyRef:
                   name: loki-bucket
                   key: AWS_SECRET_ACCESS_KEY
-      terminationGracePeriodSeconds: 300
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -62,7 +61,7 @@ spec:
                 secretKeyRef:
                   name: loki-bucket
                   key: AWS_SECRET_ACCESS_KEY
-      terminationGracePeriodSeconds: 300
+      terminationGracePeriodSeconds: 0
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -95,4 +94,3 @@ spec:
                 secretKeyRef:
                   name: loki-bucket
                   key: AWS_SECRET_ACCESS_KEY
-      terminationGracePeriodSeconds: 300

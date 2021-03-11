@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        config_hash: 7d24e5f431bbd1a56f45e7a0b8a793eb
+        config_hash: e4e7dd0aa0e0dabc20142525d1b1c57e
       labels:
         name: table-manager
     spec:
@@ -27,7 +27,7 @@ spec:
         - -config.file=/etc/loki/config/config.yaml
         - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
         - -target=table-manager
-        image: quay.io/cybozu/loki:2.1.0.1
+        image: quay.io/llamerada_jp/debug:loki-master-20210311
         imagePullPolicy: IfNotPresent
         name: table-manager
         ports:

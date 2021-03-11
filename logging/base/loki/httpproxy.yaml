@@ -13,31 +13,31 @@ spec:
         - prefix: /api/prom/push
       services:
         - name: distributor
-          port: 80
+          port: 3100
     - conditions:
         - prefix: /api/prom/tail
       enableWebsockets: true
       services:
         - name: querier
-          port: 80
+          port: 3100
     - conditions:
         - prefix: /api/prom
       services:
         - name: query-frontend
-          port: 80
+          port: 3100
     - conditions:
         - prefix: /loki/api/v1/push
       services:
         - name: distributor
-          port: 80
+          port: 3100
     - conditions:
         - prefix: /loki/api/v1/tail
       enableWebsockets: true
       services:
         - name: querier
-          port: 80
+          port: 3100
     - conditions:
         - prefix: /loki/api
       services:
         - name: query-frontend
-          port: 80
+          port: 3100
