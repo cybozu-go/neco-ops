@@ -1,25 +1,20 @@
-# permissions for end users to edit vmpodscrapes.
+# permissions for end users to view vmstaticscrapes.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: vmpodscrape-editor-role
+  name: vmstaticscrape-viewer-role
 rules:
 - apiGroups:
   - operator.victoriametrics.com
   resources:
-  - vmpodscrapes
+  - vmstaticscrapes
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
-  - deletecollection
 - apiGroups:
   - operator.victoriametrics.com
   resources:
-  - vmpodscrapes/status
+  - vmstaticscrapes/status
   verbs:
   - get
