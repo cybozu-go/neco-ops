@@ -16,6 +16,7 @@ stringData:
       tokens:
         - "proxy,node:{{ .Token }}"
         - "app:teleport-app-token"
+        - "node:teleport-node-token"
     teleport:
       data_dir: /var/lib/teleport
       auth_token: {{ .Token }}
