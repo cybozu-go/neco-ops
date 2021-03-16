@@ -10,7 +10,6 @@ require (
 	github.com/google/go-cmp v0.5.4
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.4
 	github.com/prometheus/client_golang v1.9.0
@@ -23,6 +22,7 @@ require (
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
 	k8s.io/api v0.19.7
+	k8s.io/apiextensions-apiserver v0.19.7
 	k8s.io/apimachinery v0.19.7
 	k8s.io/klog/v2 v2.4.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.0.2 // indirect

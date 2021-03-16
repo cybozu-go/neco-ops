@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 // requiredResources is a list of namespace resources that the Neco has explicitly provided to unprivileged teams.
@@ -34,6 +35,35 @@ var requiredResources = []string{
 	"vmrules.operator.victoriametrics.com",
 	"vmservicescrapes.operator.victoriametrics.com",
 	"vmstaticscrapes.operator.victoriametrics.com",
+	"apmservers.apm.k8s.elastic.co",
+	"beats.beat.k8s.elastic.co",
+	"certificaterequests.cert-manager.io",
+	"certificates.cert-manager.io",
+	"dnsendpoints.externaldns.k8s.io",
+	"enterprisesearches.enterprisesearch.k8s.elastic.co",
+	"grafanas.integreatly.org",
+	"issuers.cert-manager.io",
+	"networksets.crd.projectcalico.org",
+	"sealedsecrets.bitnami.com",
+}
+
+// viewableResources is a list of resources that Neco allows for tenant users
+// to view or list.
+var viewableResources = []string{
+	"applications.argoproj.io",
+	"appprojects.argoproj.io",
+	"blockrequests.coil.cybozu.com",
+	"certificatesigningrequests.certificates.k8s.io",
+	"challenges.acme.cert-manager.io",
+	"clusterinformations.crd.projectcalico.org",
+	"clusterissuers.cert-manager.io",
+	"felixconfigurations.crd.projectcalico.org",
+	"globalnetworkpolicies.crd.projectcalico.org",
+	"globalnetworksets.crd.projectcalico.org",
+	"hostendpoints.crd.projectcalico.org",
+	"logicalvolumes.topolvm.cybozu.com",
+	"orders.acme.cert-manager.io",
+	"tlscertificatedelegations.projectcontour.io",
 }
 
 // prohibitedResources is a list of namespace resources that are not allowed to be created by unprivileged teams.
@@ -52,6 +82,33 @@ var viewableClusterResources = []string{
 	"addressblocks.coil.cybozu.com",
 	"addresspools.coil.cybozu.com",
 	"objectbuckets.objectbucket.io",
+}
+
+// prohibitedClusterResources is a list of cluster resources that are not allowed to be created by unprivileged teams
+var prohibitedClusterResources = []string{
+	"bgpconfigurations.crd.projectcalico.org",
+	"bgppeers.crd.projectcalico.org",
+	"blockaffinities.crd.projectcalico.org",
+	"cephblockpools.ceph.rook.io",
+	"cephclients.ceph.rook.io",
+	"cephclusters.ceph.rook.io",
+	"cephfilesystems.ceph.rook.io",
+	"cephnfses.ceph.rook.io",
+	"cephobjectrealms.ceph.rook.io",
+	"cephobjectstores.ceph.rook.io",
+	"cephobjectstoreusers.ceph.rook.io",
+	"cephobjectzonegroups.ceph.rook.io",
+	"cephobjectzones.ceph.rook.io",
+	"cephrbdmirrors.ceph.rook.io",
+	"ipamblocks.crd.projectcalico.org",
+	"ipamconfigs.crd.projectcalico.org",
+	"ipamhandles.crd.projectcalico.org",
+	"ippools.crd.projectcalico.org",
+	"kubecontrollersconfigurations.crd.projectcalico.org",
+	"vmclusters.operator.victoriametrics.com",
+	"vmnodescrapes.operator.victoriametrics.com",
+	"vmsingles.operator.victoriametrics.com",
+	"volumes.rook.io",
 }
 
 var (
@@ -130,8 +187,53 @@ func testTeamManagement() {
 		nsOwner := map[string]string{}
 		tenantTeamList := []string{}
 
+		By("checking CRD list")
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "crd", "-o=json")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		crds := &apiextensionsv1.CustomResourceDefinitionList{}
+		crdSet := make(map[string]bool)
+		err = json.Unmarshal(stdout, crds)
+		Expect(err).NotTo(HaveOccurred())
+		for _, c := range crds.Items {
+			crdSet[c.Name] = false
+		}
+
+		for _, r := range requiredResources {
+			if _, ok := crdSet[r]; ok {
+				crdSet[r] = true
+			}
+		}
+		for _, r := range viewableResources {
+			if _, ok := crdSet[r]; ok {
+				crdSet[r] = true
+			}
+		}
+		for _, r := range prohibitedResources {
+			if _, ok := crdSet[r]; ok {
+				crdSet[r] = true
+			}
+		}
+		for _, r := range viewableClusterResources {
+			if _, ok := crdSet[r]; ok {
+				crdSet[r] = true
+			}
+		}
+		for _, r := range prohibitedClusterResources {
+			if _, ok := crdSet[r]; ok {
+				crdSet[r] = true
+			}
+		}
+
+		uncheckedCRDList := []string{}
+		for key, val := range crdSet {
+			if !val {
+				uncheckedCRDList = append(uncheckedCRDList, key)
+			}
+		}
+		Expect(uncheckedCRDList).Should(HaveLen(0), "tenants' permissions to all the CRDs should be checked., but %v are not checked", uncheckedCRDList)
+
 		By("listing namespaces and their owner team")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "namespaces", "-o=json")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "namespaces", "-o=json")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
 		nsList := new(corev1.NamespaceList)
@@ -212,6 +314,18 @@ func testTeamManagement() {
 					}
 				}
 
+				// check viewable resources
+				for _, resource := range viewableResources {
+					key := keyGen(team, ns, resource)
+					expectedVerbs[key] = viewVerbs
+
+					if v, ok := actualVerbsByResource[resource]; ok {
+						actualVerbs[key] = v
+					} else {
+						actualVerbs[key] = prohibitedVerbs
+					}
+				}
+
 				// check prohibited resources
 				for _, resource := range prohibitedResources {
 					key := keyGen(team, ns, resource)
@@ -234,6 +348,12 @@ func testTeamManagement() {
 					} else {
 						actualVerbs[key] = prohibitedVerbs
 					}
+				}
+
+				// check prohibited cluster resources
+				for _, resource := range prohibitedClusterResources {
+					v, ok := actualVerbsByResource[resource]
+					Expect(ok).To(BeFalse(), "unexpected permission was attached. name: %v. permission: %v", resource, v)
 				}
 			}
 		}

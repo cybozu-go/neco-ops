@@ -115,7 +115,7 @@ $(TSH):
 
 .PHONY: setup
 setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH)
-	go install github.com/onsi/ginkgo/ginkgo
+	go install github.com/onsi/ginkgo/ginkgo@latest
 
 .PHONY: test-tools
 test-tools: staticcheck nilerr
