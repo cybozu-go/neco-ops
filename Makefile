@@ -101,6 +101,17 @@ update-kube-state-metrics:
 	rm -rf /tmp/kube-state-metrics
 	sed -i -E '/newName:.*kube-state-metrics$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' monitoring/base/kustomization.yaml
 
+.PHONY: update-logging-fluentbit
+LOGGING_FLUENTBIT_TAG := fluent-bit-0.12.3
+update-logging-fluentbit:
+	$(call get-latest-tag,fluent-bit)
+	rm -rf /tmp/fluent-bit
+	cd /tmp; git clone -b $(LOGGING_FLUENTBIT_TAG) --depth 1 https://github.com/fluent/helm-charts fluent-bit
+	helm template -f logging/base/fluent-bit/values.yaml logging /tmp/fluent-bit/charts/fluent-bit > logging/base/fluent-bit/upstream/manifest.yaml
+	rm -rf /tmp/fluent-bit
+	sed -i 's/newTag: .*/newTag: $(latest_tag)/' logging/base/fluent-bit/kustomization.yaml
+
+
 .PHONY: update-machines-endpoints
 update-machines-endpoints:
 	$(call get-latest-tag,machines-endpoints)

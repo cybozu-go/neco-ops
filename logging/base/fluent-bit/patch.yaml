@@ -1,0 +1,13 @@
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: logging-fluent-bit
+spec:
+  readOnlyRootFilesystem: true
+---
+$patch: delete
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "logging-fluent-bit-test-connection"

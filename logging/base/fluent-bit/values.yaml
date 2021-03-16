@@ -1,0 +1,97 @@
+image:
+  repository: quay.io/cybozu/fluent-bit
+
+podSecurityPolicy:
+  create: true
+
+securityContext:
+  runAsUser: 10000
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+tolerations:
+- key: cke.cybozu.com/role
+  operator: Equal
+  value: storage
+
+env:
+- name: NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+
+extraVolumes:
+- name: journal
+  hostPath:
+    path: /run/log/journal
+- name: run
+  hostPath:
+    path: /run/fluent-bit
+- name: audit
+  hostPath:
+    path: /var/log/audit
+extraVolumeMounts:
+- name: journal
+  mountPath: /var/log/journal
+  readOnly: true
+- name: run
+  mountPath: /run/fluent-bit
+- name: audit
+  mountPath: /var/log/audit
+  readOnly: true
+
+config:
+  inputs: |
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        Parser docker
+        Tag kube.*
+        Buffer_Max_Size 1MB
+        Mem_Buf_Limit 5MB
+        Skip_Long_Lines On
+        DB /run/fluent-bit/tail.db
+    [INPUT]
+        Name systemd
+        Tag host.*
+        DB /run/fluent-bit/systemd.db
+    [INPUT]
+        Name tail
+        Path /var/log/audit/*.log
+        Parser kubernetes-audit
+        Tag kubernetes-audit.*
+        Buffer_Max_Size 1MB
+        Mem_Buf_Limit 5MB
+        Skip_Long_Lines On
+        DB /run/fluent-bit/kubernetes-audit.db
+  filters: |
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        # Merge_Log On
+        # Keep_Log Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude On
+        Annotations Off
+  outputs: |
+    [OUTPUT]
+        Name loki
+        Match *
+        Host logging-loki
+    [OUTPUT]
+        Name loki
+        Match kubernetes-audit.*
+        Host logging-loki
+        labels job=kubernetes-apiservers, type=audit, instance=${NODE_NAME}
+  customParsers: |
+    [PARSER]
+        Name   kubernetes-audit
+        Format json
+        Time_Key stageTimestamp
+        Time_Format %Y-%m-%dT%H:%M:%S.%LZ

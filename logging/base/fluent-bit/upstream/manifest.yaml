@@ -1,0 +1,302 @@
+---
+# Source: fluent-bit/templates/psp.yaml
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: logging-fluent-bit
+spec:
+  privileged: false
+  # Required to prevent escalations to root.
+  allowPrivilegeEscalation: false
+  # This is redundant with non-root + disallow privilege escalation,
+  # but we can provide it for defense in depth.
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - '*'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    # TODO: Require the container to run without root privileges.
+    rule: 'RunAsAny'
+  seLinux:
+    # This policy assumes the nodes are using AppArmor rather than SELinux.
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      # Forbid adding the root group.
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      # Forbid adding the root group.
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: false
+---
+# Source: fluent-bit/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: logging-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.12.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: fluent-bit/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logging-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.12.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/managed-by: Helm
+data:
+  custom_parsers.conf: |
+    [PARSER]
+        Name docker_no_time
+        Format json
+        Time_Keep Off
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+    
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush 1
+        Daemon Off
+        Log_Level info
+        Parsers_File parsers.conf
+        Parsers_File custom_parsers.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port 2020
+    
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        Parser docker
+        Tag kube.*
+        Buffer_Max_Size 1MB
+        Mem_Buf_Limit 5MB
+        Skip_Long_Lines On
+        DB /run/fluent-bit/tail.db
+    [INPUT]
+        Name systemd
+        Tag host.*
+        DB /run/fluent-bit/systemd.db
+    
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        # Merge_Log On
+        # Keep_Log Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude On
+        Annotations Off
+    
+    [OUTPUT]
+        Name loki
+        Match *
+        Host logging-loki
+---
+# Source: fluent-bit/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: logging-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.12.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - policy
+    resources:
+      - podsecuritypolicies
+    resourceNames:
+      - logging-fluent-bit
+    verbs:
+      - use
+---
+# Source: fluent-bit/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: logging-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.12.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: logging-fluent-bit
+subjects:
+  - kind: ServiceAccount
+    name: logging-fluent-bit
+    namespace: default
+---
+# Source: fluent-bit/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: logging-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.12.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 2020
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+---
+# Source: fluent-bit/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: logging-fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.12.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+      app.kubernetes.io/instance: logging
+  template:
+    metadata:
+      annotations:
+        checksum/config: 8dd547fb9d888da2019a1007633078f5f970e13b5b9d0a4ec0a36fd04e1e549d
+        checksum/luascripts: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      labels:
+        app.kubernetes.io/name: fluent-bit
+        app.kubernetes.io/instance: logging
+    spec:
+      
+      serviceAccountName: logging-fluent-bit
+      securityContext:
+        {}
+      containers:
+        - name: fluent-bit
+          securityContext:
+            runAsUser: 10000
+          image: "quay.io/cybozu/fluent-bit:1.7.1"
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 2020
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
+            - name: config
+              mountPath: /fluent-bit/etc/custom_parsers.conf
+              subPath: custom_parsers.conf
+            - name: varlog
+              mountPath: /var/log
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+            - name: etcmachineid
+              mountPath: /etc/machine-id
+              readOnly: true
+            - mountPath: /var/log/journal
+              name: journal
+              readOnly: true
+            - mountPath: /run/fluent-bit
+              name: run
+      volumes:
+        - name: config
+          configMap:
+            name: logging-fluent-bit
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: etcmachineid
+          hostPath:
+            path: /etc/machine-id
+            type: File
+        - hostPath:
+            path: /run/log/journal
+          name: journal
+        - hostPath:
+            path: /run/fluent-bit
+          name: run
+      tolerations:
+        - key: cke.cybozu.com/role
+          operator: Equal
+          value: storage
+---
+# Source: fluent-bit/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "logging-fluent-bit-test-connection"
+  labels:
+    helm.sh/chart: fluent-bit-0.12.3
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: logging
+    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: "busybox:latest"
+      imagePullPolicy: Always
+      command: ['wget']
+      args: ['logging-fluent-bit:2020']
+  restartPolicy: Never

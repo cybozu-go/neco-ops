@@ -2,16 +2,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: logging
 resources:
+  - fluent-bit
   - loki/upstream/loki.yaml
   - loki/configmap.yaml
   - loki/obc.yaml
-  - promtail/upstream/promtail.yaml
-  - promtail/configmap.yaml
 patchesStrategicMerge:
   - loki.yaml
-  - promtail.yaml
 images:
   - name: quay.io/cybozu/loki
-    newTag: 2.1.0.1
-  - name: quay.io/cybozu/promtail
     newTag: 2.1.0.1
