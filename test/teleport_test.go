@@ -183,7 +183,7 @@ func teleportSSHConnectionTest() {
 	}
 
 	By("confirming kubectl works in node Pod using tsh command")
-	for _, n := range []string{"node-maneki-0", "node-maneki-1"} {
+	for _, n := range []string{"node-maneki-0"} {
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot1, "tsh", "--insecure", "--proxy=teleport.gcp0.dev-ne.co:443", "--user=cybozu", "ssh", "cybozu@"+n, ". /etc/profile.d/update-necocli.sh && kubectl -v5 -n maneki get pod")
 			if err != nil {
