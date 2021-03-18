@@ -31,6 +31,24 @@ tests:
               summary: VMAlertmanager for smallset has disappeared.
   - interval: 1m
     input_series:
+      - series: 'up{job="vmalertmanager-smallset"}'
+        values: '0+0x30'
+      - series: 'cke_reboot_queue_entries'
+        values: '10+0x30'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VMAlertmanagerSmallsetDown
+        exp_alerts: []
+      - eval_time: 30m
+        alertname: VMAlertmanagerSmallsetDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              runbook: TBD
+              summary: VMAlertmanager for smallset has disappeared for long time.
+  - interval: 1m
+    input_series:
       - series: 'up{job="vmagent-smallset"}'
         values: '0+0x15'
     alert_rule_test:

@@ -1185,7 +1185,6 @@ spec:
             "type": "row"
         }
         ],
-        "refresh": "5m",
         "schemaVersion": 25,
         "style": "dark",
         "tags": [
@@ -1348,7 +1347,7 @@ spec:
         ]
         },
         "time": {
-        "from": "now-3h",
+        "from": "now-1h",
         "to": "now"
         },
         "timepicker": {

@@ -24,8 +24,17 @@ spec:
           summary: VMAlertmanager for smallset has disappeared.
           runbook: TBD
         expr: |
-          absent(up{job="vmalertmanager-smallset"} == 1)
+          absent(up{job="vmalertmanager-smallset"} == 1) and absent(sum(cke_reboot_queue_entries) > 0)
         for: 15m
+        labels:
+          severity: critical
+      - alert: VMAlertmanagerSmallsetDown
+        annotations:
+          summary: VMAlertmanager for smallset has disappeared for long time.
+          runbook: TBD
+        expr: |
+          absent(up{job="vmalertmanager-smallset"} == 1) and (sum(cke_reboot_queue_entries) > 0)
+        for: 30m
         labels:
           severity: critical
       - alert: VMAgentSmallsetDown

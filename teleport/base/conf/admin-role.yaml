@@ -11,7 +11,7 @@ spec:
     logins:
     - cybozu
     node_labels:
-      '*': '*'
+      'team': 'neco'
     rules:
     - resources:
       - role
