@@ -153,28 +153,28 @@ spec:
             "steppedLine": false,
             "targets": [
               {
-                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\", instance=~\"10\\\\.69\\\\.0\\\\.201|10\\\\.69\\\\.0\\\\.21|10\\\\.69\\\\.1\\\\.149\",code=~\"2..\"}[5m]))",
+                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\",code=~\"2..\"}[5m]))",
                 "format": "time_series",
                 "intervalFactor": 2,
                 "legendFormat": "2xx",
                 "refId": "A"
               },
               {
-                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\", instance=~\"10\\\\.69\\\\.0\\\\.201|10\\\\.69\\\\.0\\\\.21|10\\\\.69\\\\.1\\\\.149\",code=~\"3..\"}[5m]))",
+                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\",code=~\"3..\"}[5m]))",
                 "format": "time_series",
                 "intervalFactor": 2,
                 "legendFormat": "3xx",
                 "refId": "B"
               },
               {
-                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\", instance=~\"10\\\\.69\\\\.0\\\\.201|10\\\\.69\\\\.0\\\\.21|10\\\\.69\\\\.1\\\\.149\",code=~\"4..\"}[5m]))",
+                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\",code=~\"4..\"}[5m]))",
                 "format": "time_series",
                 "intervalFactor": 2,
                 "legendFormat": "4xx",
                 "refId": "C"
               },
               {
-                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\", instance=~\"10\\\\.69\\\\.0\\\\.201|10\\\\.69\\\\.0\\\\.21|10\\\\.69\\\\.1\\\\.149\",code=~\"5..\"}[5m]))",
+                "expr": "sum(rate(rest_client_requests_total{job=\"kube-controller-manager\",code=~\"5..\"}[5m]))",
                 "format": "time_series",
                 "intervalFactor": 2,
                 "legendFormat": "5xx",

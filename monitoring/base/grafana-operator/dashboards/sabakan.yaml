@@ -67,7 +67,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(sabakan_machine_status{status=\"healthy\", instance=\"10.69.0.3:10081\"})",
+              "expr": "max(sum(sabakan_machine_status{status=\"healthy\"}) by (instance))",
               "refId": "A"
             }
           ],
@@ -155,7 +155,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(sabakan_machine_status{status!=\"healthy\", instance=\"10.69.0.3:10081\"}) by (status)",
+              "expr": "max(sum(sabakan_machine_status{status!=\"healthy\"}) by (status,instance)) by (status)",
               "refId": "A"
             }
           ],
@@ -268,7 +268,7 @@ spec:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "100 * sum(max(sabakan_machine_status{status=\"healthy\"}) by (address, serial)) / sum(sabakan_machine_status{instance=\"10.69.0.3:10081\"})",
+              "expr": "100 * max(sum(max(sabakan_machine_status{status=\"healthy\"}) by (address, serial,instance)) by (instance) / sum(sabakan_machine_status) by (instance))",
               "refId": "A"
             }
           ],
@@ -423,7 +423,7 @@ spec:
           ],
           "targets": [
             {
-              "expr": "avg(sabakan_machine_status{instance=\"10.69.0.3:10081\", status=\"unhealthy\"})by(address, role, rack, serial) > 0",
+              "expr": "avg(sabakan_machine_status{status=\"unhealthy\"})by(address, role, rack, serial) > 0",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -489,7 +489,7 @@ spec:
           ],
           "targets": [
             {
-              "expr": "avg(sabakan_machine_status{instance=\"10.69.0.3:10081\", status=\"unreachable\"})by(address, role, rack, serial) > 0",
+              "expr": "avg(sabakan_machine_status{status=\"unreachable\"})by(address, role, rack, serial) > 0",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -727,7 +727,7 @@ spec:
         ]
       },
       "time": {
-        "from": "now-6h",
+        "from": "now-1h",
         "to": "now"
       },
       "timepicker": {

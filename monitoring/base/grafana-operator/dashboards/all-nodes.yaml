@@ -612,7 +612,7 @@ spec:
             "list": []
         },
         "time": {
-            "from": "now-5m",
+            "from": "now-1h",
             "to": "now"
         },
         "timepicker": {

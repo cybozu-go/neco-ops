@@ -809,7 +809,6 @@ spec:
                 }
             }
         ],
-        "refresh": "10s",
         "schemaVersion": 19,
         "style": "dark",
         "tags": [
@@ -874,7 +873,7 @@ spec:
             ]
         },
         "time": {
-            "from": "now-30m",
+            "from": "now-1h",
             "to": "now"
         },
         "timepicker": {

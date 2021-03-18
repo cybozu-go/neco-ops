@@ -17,6 +17,8 @@ resources:
   - upstream/rbac/vmrule_viewer_role.yaml
   - upstream/rbac/vmservicescrape_editor_role.yaml
   - upstream/rbac/vmservicescrape_viewer_role.yaml
+  - upstream/rbac/vmstaticscrape_editor_role.yaml
+  - upstream/rbac/vmstaticscrape_viewer_role.yaml
   - rbac
   - operator.yaml
   - configmap-settype.yaml

@@ -33,6 +33,7 @@ var requiredResources = []string{
 	"vmprobes.operator.victoriametrics.com",
 	"vmrules.operator.victoriametrics.com",
 	"vmservicescrapes.operator.victoriametrics.com",
+	"vmstaticscrapes.operator.victoriametrics.com",
 }
 
 // prohibitedResources is a list of namespace resources that are not allowed to be created by unprivileged teams.

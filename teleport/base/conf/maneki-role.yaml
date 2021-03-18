@@ -9,9 +9,9 @@ spec:
     kubernetes_groups:
     - maneki
     logins:
-    - dummy
+    - cybozu
     node_labels:
-      '*': '*'
+      'team': 'maneki'
     rules: []
   deny:
     logins: null
