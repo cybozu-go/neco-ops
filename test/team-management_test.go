@@ -17,6 +17,12 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
+// secretResources is a list of namespace resources that the Neco has explicitly provided to unprivileged teams and each team can't see the resources of the other teams.
+var secretResources = []string{
+	"secrets",
+	"sealedsecrets.bitnami.com",
+}
+
 // requiredResources is a list of namespace resources that the Neco has explicitly provided to unprivileged teams.
 var requiredResources = []string{
 	"elasticsearches.elasticsearch.k8s.elastic.co",
@@ -44,12 +50,15 @@ var requiredResources = []string{
 	"grafanas.integreatly.org",
 	"issuers.cert-manager.io",
 	"networksets.crd.projectcalico.org",
-	"sealedsecrets.bitnami.com",
 }
 
 // viewableResources is a list of resources that Neco allows for tenant users
 // to view or list.
 var viewableResources = []string{
+	"limitranges",
+	"resourcequotas",
+	"egresses.coil.cybozu.com",
+
 	"applications.argoproj.io",
 	"appprojects.argoproj.io",
 	"blockrequests.coil.cybozu.com",
@@ -66,14 +75,12 @@ var viewableResources = []string{
 	"tlscertificatedelegations.projectcontour.io",
 }
 
-// prohibitedResources is a list of namespace resources that are not allowed to be created by unprivileged teams.
+// prohibitedResources is a list of namespace resources that are not allowed to be created or viewed by unprivileged teams.
 // This should be matched the `.spec.namespaceResourceBlacklist` field in the AppProject except for `networkpolicies.networking.k8s.io`.
 // `networkpolicies.networking.k8s.io` is configured as bootstrappolicy so we cannot remove the definition.
 // - ref: https://github.com/kubernetes/kubernetes/blob/release-1.18/plugin/pkg/auth/authorizer/rbac/bootstrappolicy/policy.go#L297
 var prohibitedResources = []string{
-	"limitranges",
-	"resourcequotas",
-	"egresses.coil.cybozu.com",
+	"extensionservices.projectcontour.io",
 }
 
 // viewableClusterResources is a list of cluster resources that Neco allows for tenant users
@@ -198,6 +205,11 @@ func testTeamManagement() {
 			crdSet[c.Name] = false
 		}
 
+		for _, r := range secretResources {
+			if _, ok := crdSet[r]; ok {
+				crdSet[r] = true
+			}
+		}
 		for _, r := range requiredResources {
 			if _, ok := crdSet[r]; ok {
 				crdSet[r] = true
@@ -281,7 +293,7 @@ func testTeamManagement() {
 				actualVerbsByResource := getActualVerbs(team, ns)
 
 				// check secrets
-				for _, resource := range []string{"secrets", "sealedsecrets.bitnami.com"} {
+				for _, resource := range secretResources {
 					key := keyGen(team, ns, resource)
 
 					if ns == "sandbox" || nsOwner[ns] == team || (team == "maneki" && nsOwner[ns] != "neco") {
@@ -328,14 +340,8 @@ func testTeamManagement() {
 
 				// check prohibited resources
 				for _, resource := range prohibitedResources {
-					key := keyGen(team, ns, resource)
-					expectedVerbs[key] = viewVerbs
-
-					if v, ok := actualVerbsByResource[resource]; ok {
-						actualVerbs[key] = v
-					} else {
-						actualVerbs[key] = prohibitedVerbs
-					}
+					v, ok := actualVerbsByResource[resource]
+					Expect(ok).To(BeFalse(), "unexpected permission was attached to prohibited resources. name: %v. permission: %v", resource, v)
 				}
 
 				// check viewable cluster resources
@@ -353,7 +359,7 @@ func testTeamManagement() {
 				// check prohibited cluster resources
 				for _, resource := range prohibitedClusterResources {
 					v, ok := actualVerbsByResource[resource]
-					Expect(ok).To(BeFalse(), "unexpected permission was attached. name: %v. permission: %v", resource, v)
+					Expect(ok).To(BeFalse(), "unexpected permission was attached to prohibited cluster resources. name: %v. permission: %v", resource, v)
 				}
 			}
 		}
