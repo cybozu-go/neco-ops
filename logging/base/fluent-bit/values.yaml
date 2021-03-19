@@ -51,7 +51,7 @@ config:
     [INPUT]
         Name tail
         Path /var/log/containers/*.log
-        Parser docker
+        Parser cri
         Tag kube.*
         Buffer_Max_Size 1MB
         Mem_Buf_Limit 5MB
@@ -90,6 +90,13 @@ config:
         Host logging-loki
         labels job=kubernetes-apiservers, type=audit, instance=${NODE_NAME}
   customParsers: |
+    [PARSER]
+        # http://rubular.com/r/tjUt3Awgg4
+        Name cri
+        Format regex
+        Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
     [PARSER]
         Name   kubernetes-audit
         Format json
