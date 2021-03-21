@@ -358,11 +358,15 @@ func testTeamManagement() {
 				}
 
 				// prohibited resources will not be listed by `kubectl auth can-i` command.
-				// So, we will check if the resource name exists or not.
-				// check prohibited resources
 				for _, resource := range prohibitedResources {
-					v, ok := actualVerbsByResource[resource]
-					Expect(ok).To(BeFalse(), "unexpected permission was attached to prohibited resources. name: %v. permission: %v", resource, v)
+					key := keyGen(team, ns, resource)
+					expectedVerbs[key] = prohibitedVerbs
+
+					if v, ok := actualVerbsByResource[resource]; ok {
+						actualVerbs[key] = v
+					} else {
+						actualVerbs[key] = prohibitedVerbs
+					}
 				}
 
 				// check viewable cluster resources
@@ -378,11 +382,15 @@ func testTeamManagement() {
 				}
 
 				// prohibited cluster resources will not be listed by `kubectl auth can-i` command.
-				// So, we will check if the resource name exists or not.
-				// check prohibited cluster resources
 				for _, resource := range prohibitedClusterResources {
-					v, ok := actualVerbsByResource[resource]
-					Expect(ok).To(BeFalse(), "unexpected permission was attached to prohibited cluster resources. name: %v. permission: %v", resource, v)
+					key := keyGen(team, ns, resource)
+					expectedVerbs[key] = prohibitedVerbs
+
+					if v, ok := actualVerbsByResource[resource]; ok {
+						actualVerbs[key] = v
+					} else {
+						actualVerbs[key] = prohibitedVerbs
+					}
 				}
 			}
 		}
