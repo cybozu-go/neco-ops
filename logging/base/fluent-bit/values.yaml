@@ -5,15 +5,16 @@ podSecurityPolicy:
   create: true
 
 securityContext:
-  runAsUser: 10000
+  runAsUser: 0
+  runAsGroup: 0
 
 resources:
   limits:
     cpu: 100m
-    memory: 128Mi
+    memory: 1Gi
   requests:
     cpu: 100m
-    memory: 128Mi
+    memory: 1Gi
 
 tolerations:
 - key: cke.cybozu.com/role
@@ -54,7 +55,7 @@ config:
         Parser cri
         Tag kube.*
         Buffer_Max_Size 1MB
-        Mem_Buf_Limit 5MB
+        Mem_Buf_Limit 128MB
         Skip_Long_Lines On
         DB /run/fluent-bit/tail.db
     [INPUT]
@@ -66,7 +67,7 @@ config:
         Path /var/log/audit/*.log
         Parser kubernetes-audit
         Tag kubernetes-audit.*
-        Buffer_Max_Size 1MB
+        Buffer_Max_Size 128MB
         Mem_Buf_Limit 5MB
         Skip_Long_Lines On
         DB /run/fluent-bit/kubernetes-audit.db
@@ -79,30 +80,40 @@ config:
         K8S-Logging.Parser On
         K8S-Logging.Exclude On
         Annotations Off
+    [FILTER]
+        Name nest
+        Match kube.*
+        Operation lift
+        Nested_under kubernetes
+    [FILTER]
+        Name nest
+        Match kube.*
+        Operation lift
+        Nested_under labels
+        Add_prefix label_
+    [FILTER]
+        Name modify
+        Match kube.*
+        Copy label_app.kubernetes.io/name app
+        Copy label_app app
+        Remove_wildcard label_
   outputs: |
     [OUTPUT]
         Name loki
         Match kube.*
         Host logging-loki
-        labels job=
+        labels namespace=$namespace_name, pod=$pod_name, container=container_name, node_name=$host, $stream, $app
     [OUTPUT]
         Name loki
         Match host.*
         Host logging-loki
-        labels job=systemd-journal, hostname=$_HOSTNAME, instance=${NODE_NAME}, syslog_identifier=$SYSLOG_IDENTIFIER, unit=$_SYSTEMD_UNIT
+        labels job=systemd-journal, instance=${NODE_NAME}, hostname=$_HOSTNAME, unit=$_SYSTEMD_UNIT, syslog_identifier=SYSLOG_IDENTIFIER
     [OUTPUT]
         Name loki
         Match kubernetes-audit.*
         Host logging-loki
         labels job=kubernetes-apiservers, type=audit, instance=${NODE_NAME}
   customParsers: |
-    [PARSER]
-        # http://rubular.com/r/tjUt3Awgg4
-        Name cri
-        Format regex
-        Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
-        Time_Key    time
-        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
     [PARSER]
         Name   kubernetes-audit
         Format json

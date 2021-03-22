@@ -63,11 +63,10 @@ metadata:
 data:
   custom_parsers.conf: |
     [PARSER]
-        Name docker_no_time
+        Name   kubernetes-audit
         Format json
-        Time_Keep Off
-        Time_Key time
-        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Key stageTimestamp
+        Time_Format %Y-%m-%dT%H:%M:%S.%LZ
     
   fluent-bit.conf: |
     [SERVICE]
@@ -83,16 +82,25 @@ data:
     [INPUT]
         Name tail
         Path /var/log/containers/*.log
-        Parser docker
+        Parser cri
         Tag kube.*
         Buffer_Max_Size 1MB
-        Mem_Buf_Limit 5MB
+        Mem_Buf_Limit 128MB
         Skip_Long_Lines On
         DB /run/fluent-bit/tail.db
     [INPUT]
         Name systemd
         Tag host.*
         DB /run/fluent-bit/systemd.db
+    [INPUT]
+        Name tail
+        Path /var/log/audit/*.log
+        Parser kubernetes-audit
+        Tag kubernetes-audit.*
+        Buffer_Max_Size 128MB
+        Mem_Buf_Limit 5MB
+        Skip_Long_Lines On
+        DB /run/fluent-bit/kubernetes-audit.db
     
     [FILTER]
         Name kubernetes
@@ -102,11 +110,39 @@ data:
         K8S-Logging.Parser On
         K8S-Logging.Exclude On
         Annotations Off
+    [FILTER]
+        Name nest
+        Match kube.*
+        Operation lift
+        Nested_under kubernetes
+    [FILTER]
+        Name nest
+        Match kube.*
+        Operation lift
+        Nested_under labels
+        Add_prefix label_
+    [FILTER]
+        Name modify
+        Match kube.*
+        Copy label_app.kubernetes.io/name app
+        Copy label_app app
+        Remove_wildcard label_
     
     [OUTPUT]
         Name loki
-        Match *
+        Match kube.*
         Host logging-loki
+        labels namespace=$namespace_name, pod=$pod_name, container=container_name, node_name=$host, $stream, $app
+    [OUTPUT]
+        Name loki
+        Match host.*
+        Host logging-loki
+        labels job=systemd-journal, instance=${NODE_NAME}, hostname=$_HOSTNAME, unit=$_SYSTEMD_UNIT, syslog_identifier=SYSLOG_IDENTIFIER
+    [OUTPUT]
+        Name loki
+        Match kubernetes-audit.*
+        Host logging-loki
+        labels job=kubernetes-apiservers, type=audit, instance=${NODE_NAME}
 ---
 # Source: fluent-bit/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -199,7 +235,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 8dd547fb9d888da2019a1007633078f5f970e13b5b9d0a4ec0a36fd04e1e549d
+        checksum/config: 997da3e558a6a8b8b5cc0abd576d2373097e6e510e34977fca5e96eec298f4e9
         checksum/luascripts: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       labels:
         app.kubernetes.io/name: fluent-bit
@@ -212,9 +248,15 @@ spec:
       containers:
         - name: fluent-bit
           securityContext:
-            runAsUser: 10000
+            runAsGroup: 0
+            runAsUser: 0
           image: "quay.io/cybozu/fluent-bit:1.7.1"
           imagePullPolicy: Always
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
           ports:
             - name: http
               containerPort: 2020
@@ -230,10 +272,10 @@ spec:
           resources:
             limits:
               cpu: 100m
-              memory: 128Mi
+              memory: 1Gi
             requests:
               cpu: 100m
-              memory: 128Mi
+              memory: 1Gi
           volumeMounts:
             - name: config
               mountPath: /fluent-bit/etc/fluent-bit.conf
@@ -254,6 +296,9 @@ spec:
               readOnly: true
             - mountPath: /run/fluent-bit
               name: run
+            - mountPath: /var/log/audit
+              name: audit
+              readOnly: true
       volumes:
         - name: config
           configMap:
@@ -274,6 +319,9 @@ spec:
         - hostPath:
             path: /run/fluent-bit
           name: run
+        - hostPath:
+            path: /var/log/audit
+          name: audit
       tolerations:
         - key: cke.cybozu.com/role
           operator: Equal
