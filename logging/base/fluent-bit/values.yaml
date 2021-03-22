@@ -82,8 +82,14 @@ config:
   outputs: |
     [OUTPUT]
         Name loki
-        Match *
+        Match kube.*
         Host logging-loki
+        labels job=
+    [OUTPUT]
+        Name loki
+        Match host.*
+        Host logging-loki
+        labels job=systemd-journal, hostname=$_HOSTNAME, instance=${NODE_NAME}, syslog_identifier=$SYSLOG_IDENTIFIER, unit=$_SYSTEMD_UNIT
     [OUTPUT]
         Name loki
         Match kubernetes-audit.*
