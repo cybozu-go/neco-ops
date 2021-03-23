@@ -42,8 +42,17 @@ spec:
           labelSelector:
             matchLabels:
               app.kubernetes.io/component: monitoring
-              # do not specify app.kubernetes.io/instance to make {large,small}set repel each other
+              # do not specify app.kubernetes.io/instance to make large set repel each other
               app.kubernetes.io/name: vmalertmanager
+              managed-by: vm-operator
+        - topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: monitoring
+              # rule1: vmsingle-smallset and vmalertmanager-smallset place in the same node.
+              # rule2: avoid placing vmalertmanager-smallset and vmalertmanager-largest in the same node.
+              # to satisfy rule1 and 2: vmsingle-smallset and vmalertmanager-largest are place in the different node.
+              app.kubernetes.io/instance: vmsingle-smallset
               managed-by: vm-operator
   topologySpreadConstraints:
     - maxSkew: 1

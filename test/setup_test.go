@@ -190,6 +190,17 @@ func testSetup() {
 			applyMutatingWebhooks()
 		}
 
+		// TODO: remove this block after operation of remove vmsingles and vmalertmanagers from stage and prod.
+		// https://app.zenhub.com/workspaces/neco-5ca28d055128c041a68c0a8f/issues/cybozu-go/neco/1479
+		if doUpgrade {
+			ExecSafeAt(boot0, "argocd", "app", "set", "argocd-config", "--sync-policy", "none")
+			ExecSafeAt(boot0, "argocd", "app", "set", "monitoring", "--sync-policy", "none")
+			ExecSafeAt(boot0, "kubectl", "delete", "vmsingles", "-n", "monitoring", "vmsingle-smallset")
+			ExecSafeAt(boot0, "kubectl", "delete", "pvc", "-n", "monitoring", "vmsingle-vmsingle-smallset")
+			ExecSafeAt(boot0, "kubectl", "delete", "vmalertmanagers", "-n", "monitoring", "vmalertmanager-smallset")
+			ExecSafeAt(boot0, "kubectl", "delete", "pvc", "-n", "monitoring", "vmalertmanager-vmalertmanager-smallset-db-vmalertmanager-vmalertmanager-smallset-0")
+		}
+
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/base/*.yaml")
 		ExecSafeAt(boot0, "sed", "-i", "s/release/"+commitID+"/", "./neco-apps/argocd-config/overlays/"+overlayName+"/*.yaml")
 		applyAndWaitForApplications(commitID)

@@ -32,12 +32,12 @@ spec:
             storage: 1Gi
         storageClassName: topolvm-provisioner
   affinity:
-    podAntiAffinity:
+    podAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/component: monitoring
-              # do not specify app.kubernetes.io/instance to make {large,small}set repel each other
-              app.kubernetes.io/name: vmalertmanager
-              managed-by: vm-operator
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: monitoring
+            app.kubernetes.io/instance: vmsingle-smallset
+            app.kubernetes.io/name: vmsingle
+            managed-by: vm-operator
+        topologyKey: kubernetes.io/hostname
