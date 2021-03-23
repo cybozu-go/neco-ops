@@ -16,11 +16,29 @@ spec:
       app.kubernetes.io/name: kube-state-metrics
   endpoints:
   - honorLabels: true
+    port: http-metrics
     relabelConfigs:
       - action: labelkeep
         regex: __.*
       - replacement: kube-state-metrics
         targetLabel: job
-      - sourceLabels: [__meta_kubernetes_service_port_name]
-        action: keep
-        regex: (http-metrics|telemetry)
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: kube-state-metrics-telemetry
+  namespace: monitoring
+  labels:
+    smallset: "true"
+spec:
+  discoveryRole: endpoints
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-state-metrics
+  endpoints:
+  - port: telemetry
+    relabelConfigs:
+      - replacement: kube-state-metrics
+        targetLabel: job
