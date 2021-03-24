@@ -441,7 +441,6 @@ func testVMCustomResources(t *testing.T) {
 	// expected resource names of each CRs which are handled by smallset cluster (must be sorted)
 	expectedSmallsetServiceScrapes := []string{
 		"kube-state-metrics",
-		"kube-state-metrics-telemetry",
 		"kubernetes",
 		"rook",
 		"vmagent-largeset",
@@ -456,6 +455,7 @@ func testVMCustomResources(t *testing.T) {
 		"vmstorage-largeset",
 	}
 	expectedSmallsetPodScrapes := []string{
+		"kube-state-metrics",
 		"topolvm",
 		"victoriametrics-operator",
 	}

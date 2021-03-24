@@ -24,20 +24,19 @@ spec:
         targetLabel: job
 ---
 apiVersion: operator.victoriametrics.com/v1beta1
-kind: VMServiceScrape
+kind: VMPodScrape
 metadata:
-  name: kube-state-metrics-telemetry
+  name: kube-state-metrics
   namespace: monitoring
   labels:
     smallset: "true"
 spec:
-  discoveryRole: endpoints
   namespaceSelector:
     matchNames: [kube-system]
   selector:
     matchLabels:
       app.kubernetes.io/name: kube-state-metrics
-  endpoints:
+  podMetricsEndpoints:
   - port: telemetry
     relabelConfigs:
       - replacement: kube-state-metrics
