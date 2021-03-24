@@ -1,0 +1,42 @@
+rule_files:
+  - ../../monitoring/base/victoriametrics/rules/converted/kube-state-metrics-alertrule.yaml
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'kube_state_metrics_list_total{job="kube-state-metrics-telemetry",result="error"}'
+        values: '0+1x30'
+      - series: 'kube_state_metrics_list_total{job="kube-state-metrics-telemetry",result="success"}'
+        values: '0+9x30'
+    alert_rule_test:
+      - eval_time: 15m
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: KubeStateMetricsListErrors
+        exp_alerts:
+          - exp_labels:
+              severity: error
+            exp_annotations:
+              summary: kube-state-metrics is experiencing errors at an elevated rate in list
+                operations. This is likely causing it to not be able to expose metrics about
+                Kubernetes objects correctly or at all.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'kube_state_metrics_watch_total{job="kube-state-metrics-telemetry",result="error"}'
+        values: '0+1x30'
+      - series: 'kube_state_metrics_watch_total{job="kube-state-metrics-telemetry",result="success"}'
+        values: '0+9x30'
+    alert_rule_test:
+      - eval_time: 15m
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: KubeStateMetricsWatchErrors
+        exp_alerts:
+          - exp_labels:
+              severity: error
+            exp_annotations:
+              summary: kube-state-metrics is experiencing errors at an elevated rate in watch
+                operations. This is likely causing it to not be able to expose metrics about
+                Kubernetes objects correctly or at all.
+              runbook: TBD

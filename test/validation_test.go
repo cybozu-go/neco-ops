@@ -455,7 +455,7 @@ func testVMCustomResources(t *testing.T) {
 		"vmstorage-largeset",
 	}
 	expectedSmallsetPodScrapes := []string{
-		"kube-state-metrics",
+		"kube-state-metrics-telemetry",
 		"topolvm",
 		"victoriametrics-operator",
 	}
