@@ -242,8 +242,8 @@ spec:
             runbook: Please consider to find root causes, and solve the problems
         - alert: KubeControllerManagerDown
           annotations:
-            message: KubeControllerManager has disappeared from Prometheus target discovery.
-            runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecontrollermanagerdown
+            summary: KubeControllerManager has disappeared from Prometheus target discovery.
+            runbook: TBD
           expr: |
             absent(up{job="kube-controller-manager"} == 1)
           for: 10m
@@ -251,8 +251,8 @@ spec:
             severity: critical
         - alert: KubeSchedulerDown
           annotations:
-            message: KubeScheduler has disappeared from Prometheus target discovery.
-            runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeschedulerdown
+            summary: KubeScheduler has disappeared from Prometheus target discovery.
+            runbook: TBD
           expr: |
             absent(up{job="kube-scheduler"} == 1)
           for: 10m
