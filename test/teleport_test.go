@@ -63,6 +63,10 @@ func teleportSSHConnectionTest() {
 		"--output=jsonpath={.status.loadBalancer.ingress[0].ip}")
 	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 	addr := string(stdout)
+	// Save a backup before editing /etc/hosts
+	b, err := ioutil.ReadFile("/etc/hosts")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(ioutil.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
 	f, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	Expect(err).ShouldNot(HaveOccurred())
 	_, err = f.Write([]byte(addr + " teleport.gcp0.dev-ne.co\n"))
@@ -186,8 +190,11 @@ func teleportSSHConnectionTest() {
 	}
 
 	By("clearing /etc/hosts")
-	output, err = exec.Command("sed", "-i", "-e", "/teleport.gcp0.dev-ne.co/d", "/etc/hosts").CombinedOutput()
-	Expect(err).ShouldNot(HaveOccurred(), "output=%s", output)
+	// /etc/hosts cannot be modified via sed directly inside a container because that is a mount point
+	b, err = ioutil.ReadFile("./hosts")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(ioutil.WriteFile("/etc/hosts", b, 0644)).NotTo(HaveOccurred())
+	Expect(os.Remove("./hosts")).NotTo(HaveOccurred())
 }
 
 func teleportAuthTest() {
