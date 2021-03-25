@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -64,9 +63,9 @@ func teleportSSHConnectionTest() {
 	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 	addr := string(stdout)
 	// Save a backup before editing /etc/hosts
-	b, err := ioutil.ReadFile("/etc/hosts")
+	b, err := os.ReadFile("/etc/hosts")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(ioutil.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
+	Expect(os.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
 	f, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	Expect(err).ShouldNot(HaveOccurred())
 	_, err = f.Write([]byte(addr + " teleport.gcp0.dev-ne.co\n"))
@@ -109,7 +108,7 @@ func teleportSSHConnectionTest() {
 	cmd := exec.Command("curl", "--fail", "--insecure", "-c", filename, inviteURL)
 	output, err := cmd.CombinedOutput()
 	Expect(err).ShouldNot(HaveOccurred(), "output=%s", output)
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := os.ReadFile(filename)
 	Expect(err).ShouldNot(HaveOccurred(), "cookie=%s", buf)
 	cookieFileContents := string(buf)
 	fmt.Println("cookie file:")
@@ -191,9 +190,9 @@ func teleportSSHConnectionTest() {
 
 	By("clearing /etc/hosts")
 	// /etc/hosts cannot be modified via sed directly inside a container because that is a mount point
-	b, err = ioutil.ReadFile("./hosts")
+	b, err = os.ReadFile("./hosts")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(ioutil.WriteFile("/etc/hosts", b, 0644)).NotTo(HaveOccurred())
+	Expect(os.WriteFile("/etc/hosts", b, 0644)).NotTo(HaveOccurred())
 	Expect(os.Remove("./hosts")).NotTo(HaveOccurred())
 }
 
