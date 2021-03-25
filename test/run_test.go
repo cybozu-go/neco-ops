@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -172,6 +173,21 @@ func ExecSafeAt(host string, args ...string) []byte {
 	stdout, stderr, err := ExecAt(host, args...)
 	ExpectWithOffset(1, err).To(Succeed(), "[%s] %v, stdout: %s, stderr: %s", host, args, stdout, stderr)
 	return stdout
+}
+
+func ExecInNetns(netns string, args ...string) ([]byte, []byte, error) {
+	return ExecInNetnsWithInput(netns, nil, args...)
+}
+
+func ExecInNetnsWithInput(netns string, input []byte, args ...string) ([]byte, []byte, error) {
+	outBuf := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
+	cmd := exec.Command("ip", "netns", "exec", netns, strings.Join(args, " "))
+	cmd.Stdout = outBuf
+	cmd.Stderr = errBuf
+	cmd.Stdin = bytes.NewReader(input)
+	err := cmd.Run()
+	return outBuf.Bytes(), errBuf.Bytes(), err
 }
 
 func loadArgoCDPassword() string {

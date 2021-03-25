@@ -140,9 +140,11 @@ func testPushgateway() {
 
 	It("should be accessed from Bastion", func() {
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0,
-				"curl", "-s", "http://"+bastionPushgatewayFQDN+"/-/healthy", "-o", "/dev/null",
-			)
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", bastionPushgatewayFQDN+":80:"+ip, "-s", "http://"+bastionPushgatewayFQDN+"/-/healthy", "-o", "/dev/null")
 			if err != nil {
 				log.Warn("curl failed", map[string]interface{}{
 					"stdout": string(stdout),
@@ -249,7 +251,11 @@ permitInsecure: true
 
 		By("getting metrics from push-gateway server")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-s", "http://"+bastionPushgatewayFQDN+"/metrics")
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", bastionPushgatewayFQDN+":80:"+ip+", -s", "http://"+bastionPushgatewayFQDN+"/metrics")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -334,7 +340,11 @@ func testGrafanaOperator() {
 	It("should have data sources and dashboards", func() {
 		By("getting admin stats from grafana")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", grafanaFQDN+"/api/admin/stats")
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", grafanaFQDN+":443:"+ip, "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", "https://"+grafanaFQDN+"/api/admin/stats", "-m", "5")
 			if err != nil {
 				return fmt.Errorf("unable to get admin stats, stderr: %s, err: %v", stderr, err)
 			}
