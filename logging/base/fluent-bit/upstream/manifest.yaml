@@ -72,7 +72,7 @@ data:
     [SERVICE]
         Flush 1
         Daemon Off
-        Log_Level info
+        Log_Level trace
         Parsers_File parsers.conf
         Parsers_File custom_parsers.conf
         HTTP_Server On
@@ -235,7 +235,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 0ab88f1065a92091b5a9f4f724ff82659dce60cbc3b60d5037a0a9f4e0f3474c
+        checksum/config: 6b30f439108f1cf150878581f82ad6b31d7d665267c1ad8d5f07723fd17e88c5
         checksum/luascripts: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       labels:
         app.kubernetes.io/name: fluent-bit

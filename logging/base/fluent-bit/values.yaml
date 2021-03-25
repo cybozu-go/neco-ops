@@ -48,6 +48,16 @@ extraVolumeMounts:
   readOnly: true
 
 config:
+  service: |
+    [SERVICE]
+        Flush 1
+        Daemon Off
+        Log_Level trace
+        Parsers_File parsers.conf
+        Parsers_File custom_parsers.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port {{ .Values.service.port }}
   inputs: |
     [INPUT]
         Name tail
