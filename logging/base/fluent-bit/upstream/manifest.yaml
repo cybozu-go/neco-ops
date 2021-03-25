@@ -137,7 +137,7 @@ data:
         Name loki
         Match host.*
         Host logging-loki
-        labels job=systemd-journal, instance=${NODE_NAME}, hostname=$_HOSTNAME, unit=$_SYSTEMD_UNIT, syslog_identifier=SYSLOG_IDENTIFIER
+        labels job=systemd-journal, instance=${NODE_NAME}, hostname=$_HOSTNAME, unit=$_SYSTEMD_UNIT, syslog_identifier=$SYSLOG_IDENTIFIER
     [OUTPUT]
         Name loki
         Match kubernetes-audit.*
@@ -235,7 +235,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 997da3e558a6a8b8b5cc0abd576d2373097e6e510e34977fca5e96eec298f4e9
+        checksum/config: 081f2017ca0a9f92602bb39fbae949c1e29577c7e466e83d5d55793745ee6adf
         checksum/luascripts: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       labels:
         app.kubernetes.io/name: fluent-bit
@@ -250,7 +250,7 @@ spec:
           securityContext:
             runAsGroup: 0
             runAsUser: 0
-          image: "quay.io/cybozu/fluent-bit:1.7.1"
+          image: "quay.io/llamerada_jp/debug:fluent-bit-20210325d"
           imagePullPolicy: Always
           env:
           - name: NODE_NAME
@@ -261,18 +261,7 @@ spec:
             - name: http
               containerPort: 2020
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
-            limits:
-              cpu: 100m
-              memory: 1Gi
             requests:
               cpu: 100m
               memory: 1Gi

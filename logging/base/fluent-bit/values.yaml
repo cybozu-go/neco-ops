@@ -1,5 +1,5 @@
 image:
-  repository: quay.io/cybozu/fluent-bit
+  repository: quay.io/llamerada_jp/debug:fluent-bit-20210325a
 
 podSecurityPolicy:
   create: true
@@ -9,9 +9,9 @@ securityContext:
   runAsGroup: 0
 
 resources:
-  limits:
-    cpu: 100m
-    memory: 1Gi
+  #limits:
+  #  cpu: 100m
+  #  memory: 1Gi
   requests:
     cpu: 100m
     memory: 1Gi
@@ -107,7 +107,7 @@ config:
         Name loki
         Match host.*
         Host logging-loki
-        labels job=systemd-journal, instance=${NODE_NAME}, hostname=$_HOSTNAME, unit=$_SYSTEMD_UNIT, syslog_identifier=SYSLOG_IDENTIFIER
+        labels job=systemd-journal, instance=${NODE_NAME}, hostname=$_HOSTNAME, unit=$_SYSTEMD_UNIT, syslog_identifier=$SYSLOG_IDENTIFIER
     [OUTPUT]
         Name loki
         Match kubernetes-audit.*
