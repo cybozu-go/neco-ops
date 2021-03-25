@@ -1,5 +1,5 @@
 image:
-  repository: quay.io/llamerada_jp/debug:fluent-bit-20210325a
+  repository: quay.io/llamerada_jp/debug:fluent-bit-20210325d
 
 podSecurityPolicy:
   create: true
@@ -102,7 +102,7 @@ config:
         Name loki
         Match kube.*
         Host logging-loki
-        labels namespace=$namespace_name, pod=$pod_name, container=container_name, node_name=$host, $stream, $app
+        labels namespace=$namespace_name, pod=$pod_name, container=container_name, node_name=$host, stream=$stream, app=$app
     [OUTPUT]
         Name loki
         Match host.*

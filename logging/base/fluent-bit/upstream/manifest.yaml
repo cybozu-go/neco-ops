@@ -132,7 +132,7 @@ data:
         Name loki
         Match kube.*
         Host logging-loki
-        labels namespace=$namespace_name, pod=$pod_name, container=container_name, node_name=$host, $stream, $app
+        labels namespace=$namespace_name, pod=$pod_name, container=container_name, node_name=$host, stream=$stream, app=$app
     [OUTPUT]
         Name loki
         Match host.*
@@ -235,7 +235,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 081f2017ca0a9f92602bb39fbae949c1e29577c7e466e83d5d55793745ee6adf
+        checksum/config: 0ab88f1065a92091b5a9f4f724ff82659dce60cbc3b60d5037a0a9f4e0f3474c
         checksum/luascripts: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       labels:
         app.kubernetes.io/name: fluent-bit
