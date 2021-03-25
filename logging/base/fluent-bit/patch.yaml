@@ -4,11 +4,7 @@ kind: PodSecurityPolicy
 metadata:
   name: logging-fluent-bit
 spec:
-  # readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: true
-  # This is redundant with non-root + disallow privilege escalation,
-  # but we can provide it for defense in depth.
-  requiredDropCapabilities: []
+  readOnlyRootFilesystem: true
 ---
 $patch: delete
 apiVersion: v1

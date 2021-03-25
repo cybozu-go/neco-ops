@@ -250,7 +250,7 @@ spec:
           securityContext:
             runAsGroup: 0
             runAsUser: 0
-          image: "quay.io/llamerada_jp/debug:fluent-bit-20210325d"
+          image: "quay.io/cybozu/fluent-bit:1.7.1"
           imagePullPolicy: Always
           env:
           - name: NODE_NAME
@@ -261,7 +261,18 @@ spec:
             - name: http
               containerPort: 2020
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
           resources:
+            limits:
+              cpu: 100m
+              memory: 1Gi
             requests:
               cpu: 100m
               memory: 1Gi

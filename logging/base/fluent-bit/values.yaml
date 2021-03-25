@@ -1,5 +1,5 @@
 image:
-  repository: quay.io/llamerada_jp/debug:fluent-bit-20210325d
+  repository: quay.io/cybozu/fluent-bit
 
 podSecurityPolicy:
   create: true
@@ -9,9 +9,9 @@ securityContext:
   runAsGroup: 0
 
 resources:
-  #limits:
-  #  cpu: 100m
-  #  memory: 1Gi
+  limits:
+    cpu: 100m
+    memory: 1Gi
   requests:
     cpu: 100m
     memory: 1Gi
