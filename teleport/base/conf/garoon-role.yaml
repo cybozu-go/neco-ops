@@ -9,9 +9,9 @@ spec:
     kubernetes_groups:
     - garoon
     logins:
-    - dummy
+    - cybozu
     node_labels:
-      '*': '*'
+      'team': 'garoon'
     rules: []
   deny:
     logins: null

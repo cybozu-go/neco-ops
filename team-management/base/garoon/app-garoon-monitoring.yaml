@@ -22,3 +22,6 @@ subjects:
   - kind: ServiceAccount
     name: node-maneki
     namespace: teleport
+  - kind: ServiceAccount
+    name: node-garoon
+    namespace: teleport
