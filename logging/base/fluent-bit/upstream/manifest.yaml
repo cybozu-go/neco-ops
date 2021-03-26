@@ -250,7 +250,7 @@ spec:
           securityContext:
             runAsGroup: 0
             runAsUser: 0
-          image: "quay.io/cybozu/fluent-bit:1.7.1"
+          image: "quay.io/toshipp/misc:fluentbit172-fix-timeout"
           imagePullPolicy: Always
           env:
           - name: NODE_NAME
