@@ -204,7 +204,7 @@ func testContour() {
 
 		By("accessing with curl: http")
 		Eventually(func() error {
-			_, _, err := ExecAt(boot0, "curl", "--resolve", fqdnHTTP+":80:"+targetIP,
+			_, _, err := ExecInNetns("external", "curl", "--resolve", fqdnHTTP+":80:"+targetIP,
 				"http://"+fqdnHTTP+"/testhttpd", "-m", "5", "--fail")
 			return err
 		}).Should(Succeed())

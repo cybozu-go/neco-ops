@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -64,9 +65,22 @@ func testArgoCDIngress() {
 			return checkCertificate("argocd-server-test", "argocd")
 		}).Should(Succeed())
 
+		By("adding argocd service addr entry to /etc/hosts")
+		ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+		Expect(err).ShouldNot(HaveOccurred())
+		// Save a backup before editing /etc/hosts
+		b, err := os.ReadFile("/etc/hosts")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(os.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
+		f, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		Expect(err).ShouldNot(HaveOccurred())
+		_, err = f.Write([]byte(ip + " " + argocdFQDN + " \n"))
+		Expect(err).ShouldNot(HaveOccurred())
+		f.Close()
+
 		By("logging in to Argo CD")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "argocd", "login", argocdFQDN,
+			stdout, stderr, err := ExecInNetns("operation", "argocd", "login", argocdFQDN,
 				"--insecure", "--username", "admin", "--password", loadArgoCDPassword())
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
@@ -75,7 +89,7 @@ func testArgoCDIngress() {
 		}).Should(Succeed())
 
 		By("requesting to web UI with https")
-		stdout, stderr, err := ExecAt(boot0,
+		stdout, stderr, err := ExecInNetns("operation",
 			"curl", "-skL", "https://"+argocdFQDN,
 			"-o", "/dev/null",
 			"-w", `'%{http_code}\n%{content_type}'`,
@@ -86,7 +100,7 @@ func testArgoCDIngress() {
 		Expect(s[1]).To(Equal("text/html; charset=utf-8"))
 
 		By("requesting to argocd-dex-server via argocd-server with https")
-		stdout, stderr, err = ExecAt(boot0,
+		stdout, stderr, err = ExecInNetns("operation",
 			"curl", "-skL", "https://"+argocdFQDN+"/api/dex/.well-known/openid-configuration",
 			"-o", "/dev/null",
 			"-w", `'%{http_code}\n%{content_type}'`,
@@ -97,7 +111,7 @@ func testArgoCDIngress() {
 		Expect(s[1]).To(Equal("application/json"))
 
 		By("requesting to argocd-server with gRPC")
-		stdout, stderr, err = ExecAt(boot0,
+		stdout, stderr, err = ExecInNetns("operation",
 			"curl", "-skL", "https://"+argocdFQDN+"/account.AccountService/Read",
 			"-H", "'Content-Type: application/grpc'",
 			"-o", "/dev/null",
@@ -109,7 +123,7 @@ func testArgoCDIngress() {
 		Expect(s[1]).To(Equal("application/grpc"))
 
 		By("requesting to argocd-server with gRPC-Web")
-		stdout, stderr, err = ExecAt(boot0,
+		stdout, stderr, err = ExecInNetns("operation",
 			"curl", "-skL", "https://"+argocdFQDN+"/application.ApplicationService/Read",
 			"-H", "'Content-Type: application/grpc-web+proto'",
 			"-o", "/dev/null",
