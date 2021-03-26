@@ -255,7 +255,14 @@ permitInsecure: true
 			if err != nil {
 				return err
 			}
-			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", bastionPushgatewayFQDN+":80:"+ip+", -s", "http://"+bastionPushgatewayFQDN+"/metrics")
+			stdout, stderr, err := ExecInNetns(
+				"external",
+				"curl",
+				"--resolve",
+				bastionPushgatewayFQDN+":80:"+ip+", -s",
+				"http://"+bastionPushgatewayFQDN+"/metrics",
+				"-m",
+				"5")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -367,7 +374,14 @@ func testGrafanaOperator() {
 
 		By("confirming all dashboards are successfully registered")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", grafanaFQDN+"/api/search?type=dash-db")
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", grafanaFQDN+":443:"+ip, "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", "https://"+grafanaFQDN+"/api/search?type=dash-db")
+			if err != nil {
+				return fmt.Errorf("unable to get admin stats, stderr: %s, err: %v", stderr, err)
+			}
 			if err != nil {
 				return fmt.Errorf("unable to get dashboards, stderr: %s, err: %v", stderr, err)
 			}

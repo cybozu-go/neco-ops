@@ -213,11 +213,17 @@ func testContour() {
 		ExecSafeAt(boot0, "HTTPS_PROXY=http://10.0.49.3:3128",
 			"curl", "-sfL", "-o", "lets.crt", "https://letsencrypt.org/certs/fakelerootx1.pem")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-v", "--resolve", fqdnHTTPS+":443:"+targetIP,
+			stdout, stderr, err := ExecInNetns(
+				"external",
+				"curl",
+				"-v",
+				"--resolve",
+				fqdnHTTPS+":443:"+targetIP,
 				"https://"+fqdnHTTPS+"/",
-				"-m", "5",
-				"--fail",
-				"--cacert", "lets.crt",
+				"-m",
+				"5",
+				"--cacert",
+				"lets.crt",
 			)
 			if err != nil {
 				return fmt.Errorf("failed to curl; stdout: %s, stderr: %s, err: %v", stdout, stderr, err)

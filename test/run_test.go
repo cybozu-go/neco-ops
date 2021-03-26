@@ -180,12 +180,15 @@ func ExecInNetns(netns string, args ...string) ([]byte, []byte, error) {
 }
 
 func ExecInNetnsWithInput(netns string, input []byte, args ...string) ([]byte, []byte, error) {
-	outBuf := new(bytes.Buffer)
-	errBuf := new(bytes.Buffer)
-	cmd := exec.Command("ip", "netns", "exec", netns, strings.Join(args, " "))
-	cmd.Stdout = outBuf
-	cmd.Stderr = errBuf
-	cmd.Stdin = bytes.NewReader(input)
+	var outBuf bytes.Buffer
+	var errBuf bytes.Buffer
+	args = append([]string{"netns", "exec", netns}, args...)
+	cmd := exec.Command("ip", args...)
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+	if input != nil {
+		cmd.Stdin = bytes.NewReader(input)
+	}
 	err := cmd.Run()
 	return outBuf.Bytes(), errBuf.Bytes(), err
 }
