@@ -259,7 +259,8 @@ permitInsecure: true
 				"external",
 				"curl",
 				"--resolve",
-				bastionPushgatewayFQDN+":80:"+ip+", -s",
+				bastionPushgatewayFQDN+":80:"+ip,
+				"-s",
 				"http://"+bastionPushgatewayFQDN+"/metrics",
 				"-m",
 				"5")

@@ -103,7 +103,7 @@ func testArgoCDIngress() {
 			"-w", `'%{http_code}\n%{content_type}'`,
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
-		fmt.Printf("output: %v\n", output)
+		fmt.Printf("output: %v\n", string(output))
 		s := strings.Split(string(output), "\n")
 		Expect(s[0]).To(Equal(strconv.Itoa(http.StatusOK)))
 		Expect(s[1]).To(Equal("text/html; charset=utf-8"))

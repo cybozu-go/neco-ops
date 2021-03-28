@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os/exec"
 	"text/template"
 
 	"github.com/cybozu-go/log"
@@ -210,8 +211,7 @@ func testContour() {
 		}).Should(Succeed())
 
 		By("accessing with curl: https")
-		ExecSafeAt(boot0, "HTTPS_PROXY=http://10.0.49.3:3128",
-			"curl", "-sfL", "-o", "lets.crt", "https://letsencrypt.org/certs/fakelerootx1.pem")
+		exec.Command("curl", "-sfL", "-o", "lets.crt", "https://letsencrypt.org/certs/fakelerootx1.pem")
 		Eventually(func() error {
 			stdout, stderr, err := ExecInNetns(
 				"external",
