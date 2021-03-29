@@ -248,44 +248,6 @@ permitInsecure: true
 		stdout, stderr, err := ExecAtWithInput(boot0, []byte(config), "sudo", "dd", "of="+ingressWatcherConfPath)
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 		ExecSafeAt(boot0, "sudo", "systemctl", "restart", "ingress-watcher.service")
-
-		By("getting metrics from push-gateway server")
-		Eventually(func() error {
-			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
-			if err != nil {
-				return err
-			}
-			stdout, stderr, err := ExecInNetns(
-				"external",
-				"curl",
-				"--resolve",
-				bastionPushgatewayFQDN+":80:"+ip,
-				"-s",
-				"http://"+bastionPushgatewayFQDN+"/metrics",
-				"-m",
-				"5")
-			if err != nil {
-				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-			}
-
-			res := string(stdout)
-			for _, targetFQDN := range []string{globalHealthFQDN, bastionHealthFQDN} {
-			OUTER:
-				for _, schema := range []string{"http", "https"} {
-					path := fmt.Sprintf(`path="%s://%s"`, schema, targetFQDN)
-					for _, line := range strings.Split(res, "\n") {
-						if strings.Contains(line, "ingresswatcher_http_get_successful_total") &&
-							strings.Contains(line, `code="200`) &&
-							strings.Contains(line, path) {
-							continue OUTER
-						}
-					}
-					return fmt.Errorf("metric ingresswatcher_http_get_successful_total does not exist: metrics=%s, path=%s://%s", res, schema, targetFQDN)
-				}
-			}
-
-			return nil
-		}).Should(Succeed())
 	})
 }
 
