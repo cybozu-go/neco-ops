@@ -20,10 +20,6 @@ git clone https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAM
 cd \$HOME/go/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
 git checkout -qf ${CIRCLE_SHA1}
 
-# Temporal workaround
-curl -sLf https://github.com/argoproj/argo-cd/releases/download/v1.8.3/argocd-linux-amd64 -o /usr/local/bin/argocd
-chmod 755 /usr/local/bin/argocd
-
 cd test
 cp /home/cybozu/account.json /home/cybozu/zerossl-secret-resource.json ./
 make setup

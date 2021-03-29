@@ -12,6 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var argocdFQDN = testID + "-argocd.gcp0.dev-ne.co"
+
 func prepareArgoCDIngress() {
 	argocdFQDN := testID + "-argocd.gcp0.dev-ne.co"
 	It("should create HTTPProxy for ArgoCD", func() {
@@ -56,17 +58,8 @@ spec:
 		_, stderr, err := ExecAtWithInput(boot0, []byte(manifest), "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 	})
-}
 
-func testArgoCDIngress() {
-	argocdFQDN := testID + "-argocd.gcp0.dev-ne.co"
-	It("should confirm Argo CD functionalities", func() {
-		By("confirming created Certificate")
-		Eventually(func() error {
-			return checkCertificate("argocd-server-test", "argocd")
-		}).Should(Succeed())
-
-		By("adding argocd service addr entry to /etc/hosts")
+	It("should add argocd service addr entry to /etc/hosts", func() {
 		ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
 		Expect(err).ShouldNot(HaveOccurred())
 		// Save a backup before editing /etc/hosts
@@ -78,6 +71,15 @@ func testArgoCDIngress() {
 		_, err = f.Write([]byte(ip + " " + argocdFQDN + " \n"))
 		Expect(err).ShouldNot(HaveOccurred())
 		f.Close()
+	})
+}
+
+func testArgoCDIngress() {
+	It("should confirm Argo CD functionalities", func() {
+		By("confirming created Certificate")
+		Eventually(func() error {
+			return checkCertificate("argocd-server-test", "argocd")
+		}).Should(Succeed())
 
 		By("logging in to Argo CD")
 		Eventually(func() error {
@@ -105,8 +107,8 @@ func testArgoCDIngress() {
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		fmt.Printf("output: %v\n", string(output))
 		s := strings.Split(string(output), "\n")
-		Expect(s[0]).To(Equal(strconv.Itoa(http.StatusOK)))
-		Expect(s[1]).To(Equal("text/html; charset=utf-8"))
+		Expect(s[0]).To(ContainSubstring(strconv.Itoa(http.StatusOK)))
+		Expect(s[1]).To(ContainSubstring("text/html; charset=utf-8"))
 
 		By("requesting to argocd-dex-server via argocd-server with https")
 		output, err = exec.Command(
@@ -117,8 +119,8 @@ func testArgoCDIngress() {
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		s = strings.Split(string(output), "\n")
 		fmt.Printf("output: %v\n", output)
-		Expect(s[0]).To(Equal(strconv.Itoa(http.StatusOK)))
-		Expect(s[1]).To(Equal("application/json"))
+		Expect(s[0]).To(ContainSubstring(strconv.Itoa(http.StatusOK)))
+		Expect(s[1]).To(ContainSubstring("application/json"))
 
 		By("requesting to argocd-server with gRPC")
 		output, err = exec.Command(
@@ -130,8 +132,8 @@ func testArgoCDIngress() {
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		s = strings.Split(string(output), "\n")
 		fmt.Printf("output: %v\n", output)
-		Expect(s[0]).To(Equal(strconv.Itoa(http.StatusOK)))
-		Expect(s[1]).To(Equal("application/grpc"))
+		Expect(s[0]).To(ContainSubstring(strconv.Itoa(http.StatusOK)))
+		Expect(s[1]).To(ContainSubstring("application/grpc"))
 
 		By("requesting to argocd-server with gRPC-Web")
 		output, err = exec.Command(
@@ -143,7 +145,7 @@ func testArgoCDIngress() {
 		Expect(err).ShouldNot(HaveOccurred(), "output:%s", output)
 		s = strings.Split(string(output), "\n")
 		fmt.Printf("output: %v\n", output)
-		Expect(s[0]).To(Equal(strconv.Itoa(http.StatusOK)))
-		Expect(s[1]).To(Equal("application/grpc-web+proto"))
+		Expect(s[0]).To(ContainSubstring(strconv.Itoa(http.StatusOK)))
+		Expect(s[1]).To(ContainSubstring("application/grpc-web+proto"))
 	})
 }
