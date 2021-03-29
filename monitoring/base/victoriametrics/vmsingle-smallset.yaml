@@ -18,3 +18,15 @@ spec:
     requests:
       cpu: 100m
       memory: 500Mi
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: monitoring
+              # rule1: vmsingle-smallset and vmalertmanager-smallset place in the same node.
+              # rule2: avoid placing vmalertmanager-smallset and vmalertmanager-largest in the same node.
+              # to satisfy rule1 and 2: vmsingle-smallset and vmalertmanager-largest are place in the different node.
+              app.kubernetes.io/instance: vmalertmanager-largeset
+              managed-by: vm-operator

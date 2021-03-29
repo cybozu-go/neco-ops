@@ -23,3 +23,13 @@ spec:
     requests:
       cpu: 100m
       memory: 200Mi
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: monitoring
+            app.kubernetes.io/instance: vmsingle-smallset
+            app.kubernetes.io/name: vmsingle
+            managed-by: vm-operator
+        topologyKey: kubernetes.io/hostname
