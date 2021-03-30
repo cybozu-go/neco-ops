@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: logging
+resources:
+  - upstream/apps-v1.Deployment-distributor.yaml
+  - upstream/apps-v1.Deployment-query-frontend.yaml
+  - upstream/apps-v1.Deployment-table-manager.yaml
+  - upstream/apps-v1.StatefulSet-compactor.yaml
+  - upstream/apps-v1.StatefulSet-ingester.yaml
+  - upstream/apps-v1.StatefulSet-memcached-frontend.yaml
+  - upstream/apps-v1.StatefulSet-memcached-index-queries.yaml
+  - upstream/apps-v1.StatefulSet-memcached.yaml
+  - upstream/apps-v1.StatefulSet-querier.yaml
+  - upstream/policy-v1beta1.PodDisruptionBudget-loki-ingester-pdb.yaml
+  - upstream/v1.ConfigMap-loki.yaml
+  - upstream/v1.ConfigMap-overrides.yaml
+  - upstream/v1.Service-distributor.yaml
+  - upstream/v1.Service-ingester.yaml
+  - upstream/v1.Service-memcached-frontend.yaml
+  - upstream/v1.Service-memcached-index-queries.yaml
+  - upstream/v1.Service-memcached.yaml
+  - upstream/v1.Service-querier.yaml
+  - upstream/v1.Service-query-frontend.yaml
+  - upstream/v1.Service-table-manager.yaml
+  - obc.yaml
+patchesStrategicMerge:
+  - patch.yaml
+images:
+  - name: quay.io/cybozu/memcached
+    newTag: 1.6.9.1
+  - name: quay.io/cybozu/memcached-exporter
+    newTag: 0.9.0.1
+  - name: quay.io/cybozu/loki
+    newTag: 2.2.0.1

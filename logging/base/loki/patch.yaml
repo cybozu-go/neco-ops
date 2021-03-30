@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: compactor
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: compactor
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_HOST
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_SECRET_ACCESS_KEY
+      terminationGracePeriodSeconds: 300
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ingester
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: ingester
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_HOST
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_SECRET_ACCESS_KEY
+      terminationGracePeriodSeconds: 300
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: querier
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: querier
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_HOST
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_SECRET_ACCESS_KEY
+      terminationGracePeriodSeconds: 300

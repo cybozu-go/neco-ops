@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: query-frontend
+  namespace: logging
+spec:
+  minReadySeconds: 10
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: query-frontend
+  template:
+    metadata:
+      annotations:
+        config_hash: 7d24e5f431bbd1a56f45e7a0b8a793eb
+      labels:
+        name: query-frontend
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                name: query-frontend
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -config.expand-env=true
+        - -config.file=/etc/loki/config/config.yaml
+        - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
+        - -log.level=debug
+        - -target=query-frontend
+        image: quay.io/cybozu/loki:2.1.0.1
+        imagePullPolicy: IfNotPresent
+        name: query-frontend
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+        - containerPort: 9095
+          name: grpc
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: 1200Mi
+          requests:
+            cpu: "2"
+            memory: 600Mi
+        volumeMounts:
+        - mountPath: /etc/loki/config
+          name: loki
+        - mountPath: /etc/loki/overrides
+          name: overrides
+      volumes:
+      - configMap:
+          name: loki
+        name: loki
+      - configMap:
+          name: overrides
+        name: overrides

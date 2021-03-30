@@ -1,0 +1,13 @@
+global:
+  enabled: false
+  image: quay.io/cybozu/consul
+
+server:
+  enabled: true
+  storageClass: topolvm-provisioner
+
+ui:
+  enabled: false
+
+tests:
+  enabled: false

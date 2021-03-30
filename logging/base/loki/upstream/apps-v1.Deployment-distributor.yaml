@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distributor
+  namespace: logging
+spec:
+  minReadySeconds: 10
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: distributor
+  template:
+    metadata:
+      annotations:
+        config_hash: 7d24e5f431bbd1a56f45e7a0b8a793eb
+      labels:
+        name: distributor
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                name: distributor
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -config.expand-env=true
+        - -config.file=/etc/loki/config/config.yaml
+        - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
+        - -target=distributor
+        image: quay.io/cybozu/loki:2.1.0.1
+        imagePullPolicy: IfNotPresent
+        name: distributor
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+        - containerPort: 9095
+          name: grpc
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /etc/loki/config
+          name: loki
+        - mountPath: /etc/loki/overrides
+          name: overrides
+      volumes:
+      - configMap:
+          name: loki
+        name: loki
+      - configMap:
+          name: overrides
+        name: overrides

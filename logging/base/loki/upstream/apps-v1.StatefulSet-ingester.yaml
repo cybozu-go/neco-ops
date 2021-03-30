@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ingester
+  namespace: logging
+spec:
+  podManagementPolicy: Parallel
+  replicas: 3
+  selector:
+    matchLabels:
+      name: ingester
+  serviceName: ingester
+  template:
+    metadata:
+      annotations:
+        config_hash: 7d24e5f431bbd1a56f45e7a0b8a793eb
+      labels:
+        name: ingester
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                name: ingester
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -config.expand-env=true
+        - -config.file=/etc/loki/config/config.yaml
+        - -ingester.max-transfer-retries=0
+        - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
+        - -target=ingester
+        image: quay.io/cybozu/loki:2.1.0.1
+        imagePullPolicy: IfNotPresent
+        name: ingester
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+        - containerPort: 9095
+          name: grpc
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "2"
+            memory: 10Gi
+          requests:
+            cpu: "1"
+            memory: 5Gi
+        volumeMounts:
+        - mountPath: /data
+          name: ingester-data
+        - mountPath: /etc/loki/config
+          name: loki
+        - mountPath: /etc/loki/overrides
+          name: overrides
+      securityContext:
+        fsGroup: 10001
+      terminationGracePeriodSeconds: 4800
+      volumes:
+      - configMap:
+          name: loki
+        name: loki
+      - configMap:
+          name: overrides
+        name: overrides
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ingester-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: ceph-ssd-block

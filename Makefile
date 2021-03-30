@@ -1,6 +1,7 @@
 # Makefile to update manifests
 
 HELM_VERSION = 3.5.2
+TANKA_VERSION = 0.15.0
 
 .PHONY: all
 all:
@@ -217,7 +218,12 @@ endef
 
 .PHONY: setup
 setup:
+	# helm
 	curl -o /tmp/helm.tgz -fsL https://get.helm.sh/helm-v$(HELM_VERSION)-linux-amd64.tar.gz
 	mkdir -p $$(go env GOPATH)/bin
 	tar --strip-components=1 -C $$(go env GOPATH)/bin -xzf /tmp/helm.tgz linux-amd64/helm
 	rm -f /tmp/helm.tgz
+
+	# tanka
+	curl -o $$(go env GOPATH)/bin/tk -fsL https://github.com/grafana/tanka/releases/download/v$(TANKA_VERSION)/tk-linux-amd64
+	chmod +x $$(go env GOPATH)/bin/tk

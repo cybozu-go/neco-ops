@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: table-manager
+  name: table-manager
+  namespace: logging
+spec:
+  ports:
+  - name: table-manager-http-metrics
+    port: 3100
+    targetPort: 3100
+  - name: table-manager-grpc
+    port: 9095
+    targetPort: 9095
+  selector:
+    name: table-manager

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: query-frontend
+  name: query-frontend
+  namespace: logging
+spec:
+  clusterIP: None
+  ports:
+  - name: query-frontend-http-metrics
+    port: 3100
+    targetPort: 3100
+  - name: query-frontend-grpc
+    port: 9095
+    targetPort: 9095
+  publishNotReadyAddresses: true
+  selector:
+    name: query-frontend

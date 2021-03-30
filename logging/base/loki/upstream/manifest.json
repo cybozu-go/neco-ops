@@ -1,0 +1,23 @@
+{
+    "apps-v1.Deployment-distributor.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.Deployment-query-frontend.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.Deployment-table-manager.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.StatefulSet-compactor.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.StatefulSet-ingester.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.StatefulSet-memcached-frontend.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.StatefulSet-memcached-index-queries.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.StatefulSet-memcached.yaml": "environments/loki/main.jsonnet",
+    "apps-v1.StatefulSet-querier.yaml": "environments/loki/main.jsonnet",
+    "policy-v1beta1.PodDisruptionBudget-loki-ingester-pdb.yaml": "environments/loki/main.jsonnet",
+    "v1.ConfigMap-loki.yaml": "environments/loki/main.jsonnet",
+    "v1.ConfigMap-overrides.yaml": "environments/loki/main.jsonnet",
+    "v1.Namespace-logging.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-distributor.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-ingester.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-memcached-frontend.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-memcached-index-queries.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-memcached.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-querier.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-query-frontend.yaml": "environments/loki/main.jsonnet",
+    "v1.Service-table-manager.yaml": "environments/loki/main.jsonnet"
+}

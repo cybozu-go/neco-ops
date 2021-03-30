@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: querier
+  namespace: logging
+spec:
+  podManagementPolicy: Parallel
+  replicas: 3
+  selector:
+    matchLabels:
+      name: querier
+  serviceName: querier
+  template:
+    metadata:
+      annotations:
+        config_hash: 7d24e5f431bbd1a56f45e7a0b8a793eb
+      labels:
+        name: querier
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                name: querier
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -config.expand-env=true
+        - -config.file=/etc/loki/config/config.yaml
+        - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
+        - -target=querier
+        image: quay.io/cybozu/loki:2.1.0.1
+        imagePullPolicy: IfNotPresent
+        name: querier
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+        - containerPort: 9095
+          name: grpc
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: "4"
+            memory: 2Gi
+        volumeMounts:
+        - mountPath: /data
+          name: querier-data
+        - mountPath: /etc/loki/config
+          name: loki
+        - mountPath: /etc/loki/overrides
+          name: overrides
+      securityContext:
+        fsGroup: 10001
+      volumes:
+      - configMap:
+          name: loki
+        name: loki
+      - configMap:
+          name: overrides
+        name: overrides
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: querier-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: ceph-ssd-block

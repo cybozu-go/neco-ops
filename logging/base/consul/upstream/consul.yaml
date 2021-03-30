@@ -1,0 +1,304 @@
+---
+# Source: consul/templates/server-disruptionbudget.yaml
+# PodDisruptionBudget to prevent degrading the server cluster through
+# voluntary cluster changes.
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: logging-consul-server
+  namespace: logging
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: logging
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: consul
+      release: "logging"
+      component: server
+---
+# Source: consul/templates/server-serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: logging-consul-server
+  namespace: logging
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: logging
+---
+# Source: consul/templates/server-config-configmap.yaml
+# StatefulSet to run the actual Consul server cluster.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logging-consul-server-config
+  namespace: logging
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: logging
+data:
+  extra-from-values.json: |-
+    {}
+    
+  central-config.json: |-
+    {
+      "enable_central_service_config": true
+    }
+---
+# Source: consul/templates/server-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: logging-consul-server
+  namespace: logging
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: logging
+rules: []
+---
+# Source: consul/templates/server-rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: logging-consul-server
+  namespace: logging
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: logging
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: logging-consul-server
+subjects:
+  - kind: ServiceAccount
+    name: logging-consul-server
+---
+# Source: consul/templates/server-service.yaml
+# Headless service for Consul server DNS entries. This service should only
+# point to Consul servers. For access to an agent, one should assume that
+# the agent is installed locally on the node and the NODE_IP should be used.
+# If the node can't run a Consul agent, then this service can be used to
+# communicate directly to a server agent.
+apiVersion: v1
+kind: Service
+metadata:
+  name: logging-consul-server
+  namespace: logging
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: logging
+    component: server
+  annotations:
+    # This must be set in addition to publishNotReadyAddresses due
+    # to an open issue where it may not work:
+    # https://github.com/kubernetes/kubernetes/issues/58662
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  clusterIP: None
+  # We want the servers to become available even if they're not ready
+  # since this DNS is also used for join operations.
+  publishNotReadyAddresses: true
+  ports:
+    - name: http
+      port: 8500
+      targetPort: 8500
+    - name: serflan-tcp
+      protocol: "TCP"
+      port: 8301
+      targetPort: 8301
+    - name: serflan-udp
+      protocol: "UDP"
+      port: 8301
+      targetPort: 8301
+    - name: serfwan-tcp
+      protocol: "TCP"
+      port: 8302
+      targetPort: 8302
+    - name: serfwan-udp
+      protocol: "UDP"
+      port: 8302
+      targetPort: 8302
+    - name: server
+      port: 8300
+      targetPort: 8300
+    - name: dns-tcp
+      protocol: "TCP"
+      port: 8600
+      targetPort: dns-tcp
+    - name: dns-udp
+      protocol: "UDP"
+      port: 8600
+      targetPort: dns-udp
+  selector:
+    app: consul
+    release: "logging"
+    component: server
+---
+# Source: consul/templates/server-statefulset.yaml
+# StatefulSet to run the actual Consul server cluster.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: logging-consul-server
+  namespace: logging
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: logging
+    component: server
+spec:
+  serviceName: logging-consul-server
+  podManagementPolicy: Parallel
+  replicas: 3
+  selector:
+    matchLabels:
+      app: consul
+      chart: consul-helm
+      release: logging
+      component: server
+      hasDNS: "true"
+  template:
+    metadata:
+      labels:
+        app: consul
+        chart: consul-helm
+        release: logging
+        component: server
+        hasDNS: "true"
+      annotations:
+        "consul.hashicorp.com/connect-inject": "false"
+        "consul.hashicorp.com/config-checksum": 050c462e2d2e1e7535ecc7c87a9953681034b3e3ce311b58c5a3e0e8a787ee6e
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: consul
+                  release: "logging"
+                  component: server
+              topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 30
+      serviceAccountName: logging-consul-server
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 100
+      volumes:
+        - name: config
+          configMap:
+            name: logging-consul-server-config
+      containers:
+        - name: consul
+          image: "quay.io/cybozu/consul"
+          env:
+            - name: ADVERTISE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            
+          command:
+            - "/bin/sh"
+            - "-ec"
+            - |
+              CONSUL_FULLNAME="logging-consul"
+
+              exec /bin/consul agent \
+                -advertise="${ADVERTISE_IP}" \
+                -bind=0.0.0.0 \
+                -bootstrap-expect=3 \
+                -client=0.0.0.0 \
+                -config-dir=/consul/config \
+                -datacenter=dc1 \
+                -data-dir=/consul/data \
+                -domain=consul \
+                -hcl="connect { enabled = true }" \
+                -retry-join="${CONSUL_FULLNAME}-server-0.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc:8301" \
+                -retry-join="${CONSUL_FULLNAME}-server-1.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc:8301" \
+                -retry-join="${CONSUL_FULLNAME}-server-2.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc:8301" \
+                -serf-lan-port=8301 \
+                -server
+          volumeMounts:
+            - name: data-logging
+              mountPath: /consul/data
+            - name: config
+              mountPath: /consul/config
+          ports:
+            - name: http
+              containerPort: 8500
+            - name: serflan-tcp
+              containerPort: 8301
+              protocol: "TCP"
+            - name: serflan-udp
+              containerPort: 8301
+              protocol: "UDP"
+            - name: serfwan-tcp
+              containerPort: 8302
+              protocol: "TCP"
+            - name: serfwan-udp
+              containerPort: 8302
+              protocol: "UDP"
+            - name: server
+              containerPort: 8300
+            - name: dns-tcp
+              containerPort: 8600
+              protocol: "TCP"
+            - name: dns-udp
+              containerPort: 8600
+              protocol: "UDP"
+          readinessProbe:
+            # NOTE(mitchellh): when our HTTP status endpoints support the
+            # proper status codes, we should switch to that. This is temporary.
+            exec:
+              command:
+                - "/bin/sh"
+                - "-ec"
+                - |
+                  curl http://127.0.0.1:8500/v1/status/leader \
+                  2>/dev/null | grep -E '".+"'
+            failureThreshold: 2
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 100m
+              memory: 100Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data-logging
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: topolvm-provisioner
