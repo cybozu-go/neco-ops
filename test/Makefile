@@ -121,7 +121,7 @@ $(ARGOCD):
 	chmod +x $@
 
 .PHONY: setup
-setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH)
+setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH) $(ARGOCD)
 	go install github.com/onsi/ginkgo/ginkgo@latest
 
 .PHONY: test-tools

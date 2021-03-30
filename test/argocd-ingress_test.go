@@ -118,7 +118,7 @@ func testArgoCDIngress() {
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		s = strings.Split(string(output), "\n")
-		fmt.Printf("output: %v\n", output)
+		fmt.Printf("output: %v\n", string(output))
 		Expect(s[0]).To(ContainSubstring(strconv.Itoa(http.StatusOK)))
 		Expect(s[1]).To(ContainSubstring("application/json"))
 
@@ -131,7 +131,7 @@ func testArgoCDIngress() {
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		s = strings.Split(string(output), "\n")
-		fmt.Printf("output: %v\n", output)
+		fmt.Printf("output: %v\n", string(output))
 		Expect(s[0]).To(ContainSubstring(strconv.Itoa(http.StatusOK)))
 		Expect(s[1]).To(ContainSubstring("application/grpc"))
 
@@ -144,7 +144,7 @@ func testArgoCDIngress() {
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output:%s", output)
 		s = strings.Split(string(output), "\n")
-		fmt.Printf("output: %v\n", output)
+		fmt.Printf("output: %v\n", string(output))
 		Expect(s[0]).To(ContainSubstring(strconv.Itoa(http.StatusOK)))
 		Expect(s[1]).To(ContainSubstring("application/grpc-web+proto"))
 	})

@@ -211,7 +211,9 @@ func testContour() {
 		}).Should(Succeed())
 
 		By("accessing with curl: https")
-		exec.Command("curl", "-sfL", "-o", "lets.crt", "https://letsencrypt.org/certs/fakelerootx1.pem")
+		Eventually(func() error {
+			return exec.Command("curl", "-sfL", "-o", "lets.crt", "https://letsencrypt.org/certs/fakelerootx1.pem", "-m", "5").Run()
+		}).Should(Succeed())
 		Eventually(func() error {
 			stdout, stderr, err := ExecInNetns(
 				"external",
