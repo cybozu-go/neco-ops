@@ -151,14 +151,19 @@ $ cd /tmp/loki/
 $ go get -u github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb
 $ tk init
 $ tk env add environments/loki --namespace=logging
+$ tk env add environments/loki-canary --namespace=logging
 $ jb install github.com/grafana/loki/production/ksonnet/loki
+$ jb install github.com/grafana/loki/production/ksonnet/loki-canary
 $ jb install github.com/jsonnet-libs/k8s-alpha/1.19
 $ echo "import 'github.com/jsonnet-libs/k8s-alpha/1.19/main.libsonnet'" > lib/k.libsonnet
 
 $ LOGGING_DIR=$GOPATH/src/github.com/cybozu-go/neco-apps/logging
 $ cp ${LOGGING_DIR}/base/loki/main.jsonnet /tmp/loki/environments/loki/main.jsonnet
+$ cp ${LOGGING_DIR}/base/loki-canary/main.jsonnet /tmp/loki/environments/loki-canary/main.jsonnet
 $ rm -rf ${LOGGING_DIR}/base/loki/upstream/*
+$ rm -rf ${LOGGING_DIR}/base/loki-canary/upstream/*
 $ tk export ${LOGGING_DIR}/base/loki/upstream/ /tmp/loki/environments/loki/ -t '!.*/consul(-sidekick)?'
+$ tk export ${LOGGING_DIR}/base/loki-canary/upstream/ /tmp/loki/environments/loki-canary/
 ```
 
 ### promtail

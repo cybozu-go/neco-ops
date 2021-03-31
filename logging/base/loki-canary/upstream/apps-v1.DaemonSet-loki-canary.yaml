@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: loki-canary
+  namespace: logging
+spec:
+  minReadySeconds: 10
+  selector:
+    matchLabels:
+      name: loki-canary
+  template:
+    metadata:
+      labels:
+        name: loki-canary
+    spec:
+      containers:
+      - args:
+        - -addr=query-frontend.logging.svc:3100
+        - -interval=100ms
+        - -labelname=instance
+        - -labelvalue=$(POD_NAME)
+        - -port=80
+        - -size=1024
+        - -wait=3m
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: quay.io/cybozu/loki-canary
+        imagePullPolicy: IfNotPresent
+        name: loki-canary
+        ports:
+        - containerPort: 80
+          name: http-metrics
+        resources:
+          requests:
+            cpu: 10m
+            memory: 20Mi
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+  updateStrategy:
+    type: RollingUpdate

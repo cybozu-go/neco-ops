@@ -1,0 +1,4 @@
+{
+    "apps-v1.DaemonSet-loki-canary.yaml": "environments/loki-canary/main.jsonnet",
+    "v1.Namespace-logging.yaml": "environments/loki-canary/main.jsonnet"
+}

@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: loki-canary
+  namespace: logging
+spec:
+  template:
+    spec:
+      tolerations:
+        - key: cke.cybozu.com/role
+          operator: Equal
+          value: storage
