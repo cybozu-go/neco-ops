@@ -30,7 +30,7 @@ spec:
         - -config.file=/etc/loki/config/config.yaml
         - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
         - -target=querier
-        image: quay.io/cybozu/loki:2.1.0.1
+        image: quay.io/cybozu/loki
         imagePullPolicy: IfNotPresent
         name: querier
         ports:

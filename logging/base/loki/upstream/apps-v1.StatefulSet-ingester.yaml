@@ -31,7 +31,7 @@ spec:
         - -ingester.max-transfer-retries=0
         - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
         - -target=ingester
-        image: quay.io/cybozu/loki:2.1.0.1
+        image: quay.io/cybozu/loki
         imagePullPolicy: IfNotPresent
         name: ingester
         ports:

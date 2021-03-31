@@ -31,7 +31,7 @@ spec:
         - -limits.per-user-override-config=/etc/loki/overrides/overrides.yaml
         - -log.level=debug
         - -target=query-frontend
-        image: quay.io/cybozu/loki:2.1.0.1
+        image: quay.io/cybozu/loki
         imagePullPolicy: IfNotPresent
         name: query-frontend
         ports:
