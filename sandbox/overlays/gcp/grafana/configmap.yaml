@@ -47,7 +47,7 @@ data:
     - name: loki
       type: loki
       access: proxy
-      url: http://logging-loki.logging.svc:3100
+      url: http://query-frontend.logging.svc:3100
       version: 1
       isDefault: false
       editable: false
