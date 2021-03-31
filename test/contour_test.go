@@ -204,8 +204,15 @@ func testContour() {
 
 		By("accessing with curl: http")
 		Eventually(func() error {
-			_, _, err := ExecInNetns("external", "curl", "--resolve", fqdnHTTP+":80:"+targetIP,
-				"http://"+fqdnHTTP+"/testhttpd", "-m", "5", "--fail")
+			_, _, err := ExecInNetns(
+				"external",
+				"curl",
+				"--resolve",
+				fqdnHTTP+":80:"+targetIP,
+				"http://"+fqdnHTTP+"/testhttpd",
+				"-m",
+				"5",
+				"--fail")
 			return err
 		}).Should(Succeed())
 
@@ -231,7 +238,12 @@ func testContour() {
 
 		By("redirecting to https")
 		Eventually(func() error {
-			stdout, _, err := ExecAt(boot0, "curl", "-I", "--resolve", fqdnHTTPS+":80:"+targetIP,
+			stdout, _, err := ExecInNetns(
+				"external",
+				"curl",
+				"-I",
+				"--resolve",
+				fqdnHTTPS+":80:"+targetIP,
 				"http://"+fqdnHTTPS+"/",
 				"-m", "5",
 				"--fail",
@@ -251,7 +263,12 @@ func testContour() {
 
 		By("permitting insecure access")
 		Eventually(func() error {
-			stdout, _, err := ExecAt(boot0, "curl", "-I", "--resolve", fqdnHTTPS+":80:"+targetIP,
+			stdout, _, err := ExecInNetns(
+				"external",
+				"curl",
+				"-I",
+				"--resolve",
+				fqdnHTTPS+":80:"+targetIP,
 				"http://"+fqdnHTTPS+"/insecure",
 				"-m", "5",
 				"--fail",
@@ -295,7 +312,12 @@ func testContour() {
 		}).Should(Succeed())
 
 		Eventually(func() error {
-			stdout, _, err := ExecAt(boot0, "curl", "-I", "--resolve", fqdnBastion+":80:"+bastionIP,
+			stdout, _, err := ExecInNetns(
+				"external",
+				"curl",
+				"-I",
+				"--resolve",
+				fqdnBastion+":80:"+bastionIP,
 				"http://"+fqdnBastion+"/testhttpd",
 				"-m", "5",
 				"--fail",
@@ -312,7 +334,10 @@ func testContour() {
 			return nil
 		}).Should(Succeed())
 
-		stdout, _, err := ExecAt(boot0, "curl", "-I", "--resolve", fqdnBastion+":80:"+targetIP,
+		stdout, _, err := ExecInNetns(
+			"external",
+			"curl",
+			"-I", "--resolve", fqdnBastion+":80:"+targetIP,
 			"http://"+fqdnBastion+"/testhttpd",
 			"-m", "5",
 			"--fail",

@@ -102,7 +102,7 @@ func testArgoCDIngress() {
 		output, err := exec.Command(
 			"curl", "-skL", "https://"+argocdFQDN,
 			"-o", "/dev/null",
-			"-w", `'%{http_code}\n%{content_type}'`,
+			"-w", "%{http_code}\n%{content_type}",
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		fmt.Printf("output: %v\n", string(output))
@@ -114,7 +114,7 @@ func testArgoCDIngress() {
 		output, err = exec.Command(
 			"curl", "-skL", "https://"+argocdFQDN+"/api/dex/.well-known/openid-configuration",
 			"-o", "/dev/null",
-			"-w", `'%{http_code}\n%{content_type}'`,
+			"-w", "%{http_code}\n%{content_type}",
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		s = strings.Split(string(output), "\n")
@@ -125,9 +125,9 @@ func testArgoCDIngress() {
 		By("requesting to argocd-server with gRPC")
 		output, err = exec.Command(
 			"curl", "-skL", "https://"+argocdFQDN+"/account.AccountService/Read",
-			"-H", "'Content-Type: application/grpc'",
+			"-H", "Content-Type: application/grpc",
 			"-o", "/dev/null",
-			"-w", `'%{http_code}\n%{content_type}'`,
+			"-w", "%{http_code}\n%{content_type}",
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output: %s", output)
 		s = strings.Split(string(output), "\n")
@@ -138,9 +138,9 @@ func testArgoCDIngress() {
 		By("requesting to argocd-server with gRPC-Web")
 		output, err = exec.Command(
 			"curl", "-skL", "https://"+argocdFQDN+"/application.ApplicationService/Read",
-			"-H", "'Content-Type: application/grpc-web+proto'",
+			"-H", "Content-Type: application/grpc-web+proto",
 			"-o", "/dev/null",
-			"-w", `'%{http_code}\n%{content_type}'`,
+			"-w", "%{http_code}\n%{content_type}",
 		).Output()
 		Expect(err).ShouldNot(HaveOccurred(), "output:%s", output)
 		s = strings.Split(string(output), "\n")
