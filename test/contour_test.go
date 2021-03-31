@@ -248,7 +248,7 @@ func testContour() {
 				"-m", "5",
 				"--fail",
 				"-o", "/dev/null",
-				"-w", "'%{http_code}'",
+				"-w", "%{http_code}",
 				"-s",
 				"--cacert", "lets.crt",
 			)
@@ -273,7 +273,7 @@ func testContour() {
 				"-m", "5",
 				"--fail",
 				"-o", "/dev/null",
-				"-w", "'%{http_code}'",
+				"-w", "%{http_code}",
 				"-s",
 			)
 			if err != nil {
@@ -322,7 +322,7 @@ func testContour() {
 				"-m", "5",
 				"--fail",
 				"-o", "/dev/null",
-				"-w", "'%{http_code}'",
+				"-w", "%{http_code}",
 				"-s",
 			)
 			if err != nil {
@@ -342,7 +342,7 @@ func testContour() {
 			"-m", "5",
 			"--fail",
 			"-o", "/dev/null",
-			"-w", "'%{http_code}'",
+			"-w", "%{http_code}",
 			"-s",
 		)
 		Expect(err).To(HaveOccurred())
