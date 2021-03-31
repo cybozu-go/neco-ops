@@ -13,7 +13,7 @@ import (
 
 func testLogging() {
 	It("should be successful", func() {
-		checkLog("should get pod logs", `'{namespace="logging", pod="logging-loki-0"}'`)
+		checkLog("should get pod logs", `'{namespace="logging"}'`) // get logs from all pods
 
 		ssNodeName := getNodeName("ss")
 		checkLog("should get journal logs by ss", fmt.Sprintf(`'{job="systemd-journal", instance="%s"}'`, ssNodeName))
@@ -30,7 +30,7 @@ func checkLog(title, query string) {
 	By(title, func() {
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(boot0,
-				"kubectl", "exec", "-n", "logging", "statefulset/logging-loki", "--", "logcli", "query", query, "-ojsonl")
+				"kubectl", "exec", "-n", "logging", "deployment/query-frontend", "--", "logcli", "query", query, "-ojsonl")
 			if err != nil {
 				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
