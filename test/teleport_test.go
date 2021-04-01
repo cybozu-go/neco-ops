@@ -28,6 +28,25 @@ type Node struct {
 	}
 }
 
+func prepareTeleport() {
+	It("should add proxy addr entry to /etc/hosts", func() {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "get", "service", "teleport-proxy",
+			"--output=jsonpath={.status.loadBalancer.ingress[0].ip}")
+		Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
+		addr := string(stdout)
+		// Save a backup before editing /etc/hosts
+		b, err := os.ReadFile("/etc/hosts")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(os.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
+		f, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		Expect(err).ShouldNot(HaveOccurred())
+		_, err = f.Write([]byte(addr + " teleport.gcp0.dev-ne.co\n"))
+		Expect(err).ShouldNot(HaveOccurred())
+		f.Close()
+	})
+}
+
+// This code block should be deleted after cke-localproxy is installed on boot servers
 func teleportNodeServiceTest() {
 	By("storing LoadBalancer IP address to etcd")
 	ExecSafeAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
@@ -41,24 +60,9 @@ func teleportNodeServiceTest() {
 }
 
 func teleportSSHConnectionTest() {
-	By("adding proxy addr entry to /etc/hosts")
-	stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "get", "service", "teleport-proxy",
-		"--output=jsonpath={.status.loadBalancer.ingress[0].ip}")
-	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
-	addr := string(stdout)
-	// Save a backup before editing /etc/hosts
-	b, err := os.ReadFile("/etc/hosts")
-	Expect(err).NotTo(HaveOccurred())
-	Expect(os.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
-	f, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	Expect(err).ShouldNot(HaveOccurred())
-	_, err = f.Write([]byte(addr + " teleport.gcp0.dev-ne.co\n"))
-	Expect(err).ShouldNot(HaveOccurred())
-	f.Close()
-
 	By("creating user")
 	ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "rm", "cybozu")
-	stdout, stderr, err = ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "add", "cybozu", "cybozu,root")
+	stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "add", "cybozu", "cybozu,root")
 	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 	tctlOutput := string(stdout)
 	fmt.Println("output:")
