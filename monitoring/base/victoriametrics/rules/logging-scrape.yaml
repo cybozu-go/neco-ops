@@ -1,0 +1,82 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: logging-loki
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [logging]
+  selector:
+    matchExpressions:
+    - key: name
+      operator: In
+      values:
+      - compactor
+      - distributor
+      - ingester
+      - querier
+      - query-frontend
+      - table-manager
+  podMetricsEndpoints:
+  - port: http-metrics
+    relabelConfigs:
+      - sourceLabels: [__meta_kubernetes_pod_label_name]
+        replacement: loki-$1
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: logging-loki-canary
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [logging]
+  selector:
+    matchLabels:
+      name: loki-canary
+  podMetricsEndpoints:
+  - port: http-metrics
+    relabelConfigs:
+      - replacement: loki-canary
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: logging-promtail
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [logging]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: promtail
+  podMetricsEndpoints:
+  - port: http-metrics
+    relabelConfigs:
+      - replacement: promtail
+        targetLabel: job
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: logging-memcached
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [logging]
+  selector:
+    matchExpressions:
+    - key: name
+      operator: In
+      values:
+      - memcached
+      - memcached-frontend
+      - memcached-index-queries
+  podMetricsEndpoints:
+  - port: http-metrics
+    relabelConfigs:
+      - sourceLabels: [__meta_kubernetes_pod_label_name]
+        replacement: logging-$1
+        targetLabel: job

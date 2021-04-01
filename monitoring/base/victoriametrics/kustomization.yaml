@@ -50,6 +50,7 @@ resources:
   - rules/kubernetes-scrape.yaml
   - rules/kubernetes-alertrule.yaml
   - rules/local-pv-provisioner-scrape.yaml
+  - rules/logging-scrape.yaml
   - rules/metallb-alertrule.yaml
   - rules/metallb-scrape.yaml
   - rules/monitoring-scrape.yaml
