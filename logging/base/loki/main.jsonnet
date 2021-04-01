@@ -51,7 +51,12 @@ loki {
 
       schema_config+: {
         configs: [
-          x {object_store: 's3'}
+          x {
+            object_store: 's3',
+            index+: {
+              prefix: 'index_'
+            },
+          }
           for x in super.configs
         ],
       },

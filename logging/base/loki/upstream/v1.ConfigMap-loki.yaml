@@ -88,7 +88,7 @@ data:
           - from: "2020-10-24"
             index:
                 period: 24h
-                prefix: logging_index_
+                prefix: index_
             object_store: s3
             schema: v11
             store: boltdb-shipper
