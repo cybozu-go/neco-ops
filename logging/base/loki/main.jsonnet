@@ -25,6 +25,8 @@ loki {
     replication_factor: 3,
 
     loki+: {
+      auth_enabled: false,
+
       ingester+: {
         lifecycler+: {
           ring+: {
