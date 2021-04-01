@@ -19,7 +19,6 @@ spec:
         - -interval=100ms
         - -labelname=instance
         - -labelvalue=$(POD_NAME)
-        - -port=80
         - -size=1024
         - -wait=3m
         env:
@@ -31,7 +30,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: quay.io/cybozu/loki-canary
+        image: quay.io/cybozu/loki
         imagePullPolicy: IfNotPresent
         name: loki-canary
         ports:

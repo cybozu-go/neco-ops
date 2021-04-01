@@ -31,4 +31,4 @@ images:
   - name: quay.io/cybozu/memcached-exporter
     newTag: 0.9.0.1
   - name: quay.io/cybozu/loki
-    newTag: 2.2.0.1
+    newTag: 2.2.0.2

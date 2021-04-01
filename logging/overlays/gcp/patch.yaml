@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distributor
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: distributor
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: query-frontend
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: query-frontend
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: compactor
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: compactor
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ingester
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: ingester
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: memcached
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: memcached
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: memcached-frontend
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: memcached
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: memcached-index-queries
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: memcached
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: querier
+  namespace: logging
+spec:
+  template:
+    spec:
+      containers:
+        - name: querier
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi

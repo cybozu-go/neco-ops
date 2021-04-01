@@ -8,6 +8,7 @@ patchesStrategicMerge:
 - cert-manager.yaml
 - external-dns.yaml
 - local-pv-provisioner.yaml
+- logging.yaml
 - metallb.yaml
 - monitoring.yaml
 - neco-admission.yaml

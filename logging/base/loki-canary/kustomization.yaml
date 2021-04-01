@@ -6,5 +6,5 @@ resources:
 patchesStrategicMerge:
   - patch.yaml
 images:
-  - name: quay.io/cybozu/loki-canary
-    newTag: 2.2.0.1
+  - name: quay.io/cybozu/loki
+    newTag: 2.2.0.2

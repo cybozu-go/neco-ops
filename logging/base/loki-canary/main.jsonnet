@@ -3,7 +3,6 @@ local loki_canary = import 'loki-canary/loki-canary.libsonnet';
 loki_canary {
   loki_canary_args+:: {
     addr: "query-frontend.logging.svc:3100",
-    port: 80,
     labelname: "instance",
     interval: "100ms",
     size: 1024,
@@ -14,6 +13,6 @@ loki_canary {
   },
 
   _images+:: {
-    loki_canary: 'quay.io/cybozu/loki-canary'
+    loki_canary: 'quay.io/cybozu/loki'
   },
 }
