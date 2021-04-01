@@ -102,6 +102,26 @@ update-kube-state-metrics:
 	rm -rf /tmp/kube-state-metrics
 	sed -i -E '/newName:.*kube-state-metrics$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' monitoring/base/kustomization.yaml
 
+.PHONY: update-logging-loki
+update-logging-loki:
+	$(call get-latest-tag,loki)
+	rm -rf /tmp/loki
+	mkdir /tmp/loki
+	cd /tmp/loki; \
+	tk init && \
+	tk env add environments/loki --namespace=logging && \
+	tk env add environments/loki-canary --namespace=logging && \
+	jb install github.com/grafana/loki/production/ksonnet/loki@$(call upstream-tag,$(latest_tag)) && \
+	jb install github.com/grafana/loki/production/ksonnet/loki-canary@$(call upstream-tag,$(latest_tag)) && \
+	jb install github.com/jsonnet-libs/k8s-alpha/1.19 && \
+	echo "import 'github.com/jsonnet-libs/k8s-alpha/1.19/main.libsonnet'" > lib/k.libsonnet
+
+	cp logging/base/loki/main.jsonnet /tmp/loki/environments/loki/main.jsonnet
+	cp logging/base/loki-canary/main.jsonnet /tmp/loki/environments/loki-canary/main.jsonnet
+	rm -rf logging/base/loki/upstream/* logging/base/loki-canary/upstream/*
+	tk export logging/base/loki/upstream/ /tmp/loki/environments/loki/ -t '!.*/consul(-sidekick)?'
+	tk export logging/base/loki-canary/upstream/ /tmp/loki/environments/loki-canary/
+
 .PHONY: update-machines-endpoints
 update-machines-endpoints:
 	$(call get-latest-tag,machines-endpoints)
@@ -227,3 +247,6 @@ setup:
 	# tanka
 	curl -o $$(go env GOPATH)/bin/tk -fsL https://github.com/grafana/tanka/releases/download/v$(TANKA_VERSION)/tk-linux-amd64
 	chmod +x $$(go env GOPATH)/bin/tk
+
+	# jb
+	go install github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb
