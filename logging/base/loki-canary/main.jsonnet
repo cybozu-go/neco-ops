@@ -2,9 +2,8 @@ local loki_canary = import 'loki-canary/loki-canary.libsonnet';
 
 loki_canary {
   loki_canary_args+:: {
-    addr: "query-frontend.logging.svc:3100",
+    addr: "querier.logging.svc:3100",
     labelname: "pod",
-    interval: "100ms",
     size: 1024,
     wait: "3m",
   },

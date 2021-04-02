@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
       - args:
-        - -addr=query-frontend.logging.svc:3100
-        - -interval=100ms
+        - -addr=querier.logging.svc:3100
         - -labelname=pod
         - -labelvalue=$(POD_NAME)
         - -size=1024
