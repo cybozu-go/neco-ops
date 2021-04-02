@@ -17,7 +17,7 @@ spec:
       - args:
         - -addr=query-frontend.logging.svc:3100
         - -interval=100ms
-        - -labelname=instance
+        - -labelname=pod
         - -labelvalue=$(POD_NAME)
         - -size=1024
         - -wait=3m
