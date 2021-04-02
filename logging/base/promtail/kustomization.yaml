@@ -3,7 +3,10 @@ kind: Kustomization
 namespace: logging
 resources:
   - upstream/promtail.yaml
-  - configmap.yaml
+configMapGenerator:
+  - name: loki-promtail
+    files:
+      - config/promtail.yaml
 patchesStrategicMerge:
   - patch.yaml
 images:
