@@ -60,6 +60,7 @@ data:
         ingestion_rate_mb: 10
         ingestion_rate_strategy: global
         max_cache_freshness_per_query: 10m
+        max_concurrent_tail_requests: 1000
         max_global_streams_per_user: 10000
         max_query_length: 12000h
         max_query_parallelism: 16

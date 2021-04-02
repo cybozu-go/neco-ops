@@ -4,7 +4,6 @@ loki {
   _config+:: {
     namespace: 'logging',
 
-    // S3 variables remove if not using aws
     storage_backend: 's3',
     s3_access_key: '${AWS_ACCESS_KEY_ID}',
     s3_secret_access_key: '${AWS_SECRET_ACCESS_KEY}',
@@ -59,6 +58,13 @@ loki {
           }
           for x in super.configs
         ],
+      },
+
+      limits_config+: {
+        # In default, its value is 10.
+        # loki-canary can not use tail API due to the limit.
+        # We are not sure what the appropriate value is.
+        max_concurrent_tail_requests: 1000
       },
     },
   },
