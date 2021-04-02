@@ -383,9 +383,11 @@ func doCheckKustomizedYaml(t *testing.T, checkFunc func(*testing.T, []byte)) {
 }
 
 type RelabelConfig struct {
-	Action      string `json:"action"`
-	TargetLabel string `json:"targetLabel"`
-	Replacement string `json:"replacement"`
+	Action       string   `json:"action"`
+	SourceLabels []string `json:"sourceLabels"`
+	Regex        string   `json:"regex"`
+	TargetLabel  string   `json:"targetLabel"`
+	Replacement  string   `json:"replacement"`
 }
 
 type resourceMeta struct {
@@ -398,6 +400,7 @@ type VMScrapeOrRule struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              struct {
+		Selector               metav1.LabelSelector `json:"selector"`
 		ServiceScrapeEndpoints []struct {
 			RelabelConfigs []RelabelConfig `json:"relabelConfigs"`
 		} `json:"endpoints"`
@@ -492,19 +495,23 @@ func testVMCustomResources(t *testing.T) {
 			} else if err != nil {
 				return fmt.Errorf("failed to read yaml: %v", err)
 			}
+			var metaType string
 			var r VMScrapeOrRule
 			yaml.Unmarshal(data, &r)
 			var relabelConfigs [][]RelabelConfig
 			switch r.Kind {
 			case "VMServiceScrape":
+				metaType = "service"
 				for _, ep := range r.Spec.ServiceScrapeEndpoints {
 					relabelConfigs = append(relabelConfigs, ep.RelabelConfigs)
 				}
 			case "VMPodScrape":
+				metaType = "pod"
 				for _, ep := range r.Spec.PodScrapeEndpoints {
 					relabelConfigs = append(relabelConfigs, ep.RelabelConfigs)
 				}
 			case "VMNodeScrape":
+				metaType = "node"
 				relabelConfigs = append(relabelConfigs, r.Spec.NodeScrapeRelabelConfigs)
 			case "VMProbe":
 			case "VMRule":
@@ -513,15 +520,30 @@ func testVMCustomResources(t *testing.T) {
 			}
 			crsInFiles = append(crsInFiles, r.Kind+"/"+r.Name)
 
+			metaLabelPrefix := "__meta_kubernetes_" + metaType + "_label_"
 			for i, rcs := range relabelConfigs {
 				found := false
 				for _, rc := range rcs {
 					if rc.Action == "" && rc.TargetLabel == "job" && rc.Replacement != "" && !strings.Contains(rc.Replacement, "/") {
-						found = true
+						if !strings.HasSuffix(rc.Replacement, "$1") {
+							found = true
+							continue
+						}
+
+						if rc.Regex != "" || len(rc.SourceLabels) != 1 || !strings.HasPrefix(rc.SourceLabels[0], metaLabelPrefix) || len(r.Spec.Selector.MatchLabels) != 0 {
+							continue
+						}
+						labelName := strings.TrimPrefix(rc.SourceLabels[0], metaLabelPrefix)
+						for _, me := range r.Spec.Selector.MatchExpressions {
+							if me.Key == labelName && me.Operator == metav1.LabelSelectorOpIn {
+								found = true
+								continue
+							}
+						}
 					}
 				}
 				if !found {
-					t.Errorf("%s %s endpoint %d should have a relabelConfig that set job label explicitly", r.Kind, r.Name, i)
+					t.Errorf("%s %s endpoint %d should have a relabelConfig that set job label correctly", r.Kind, r.Name, i)
 				}
 			}
 		}

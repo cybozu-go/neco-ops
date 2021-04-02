@@ -634,19 +634,23 @@ func testVMCommonClusterComponents(setType vmSetType) {
 				} else if err != nil {
 					return fmt.Errorf("failed to read yaml: %v", err)
 				}
+				var metaType string
 				var r VMScrapeOrRule
 				yaml.Unmarshal(data, &r)
 				var relabelConfigs [][]RelabelConfig
 				switch r.Kind {
 				case "VMServiceScrape":
+					metaType = "service"
 					for _, ep := range r.Spec.ServiceScrapeEndpoints {
 						relabelConfigs = append(relabelConfigs, ep.RelabelConfigs)
 					}
 				case "VMPodScrape":
+					metaType = "pod"
 					for _, ep := range r.Spec.PodScrapeEndpoints {
 						relabelConfigs = append(relabelConfigs, ep.RelabelConfigs)
 					}
 				case "VMNodeScrape":
+					metaType = "node"
 					relabelConfigs = append(relabelConfigs, r.Spec.NodeScrapeRelabelConfigs)
 				case "VMProbe":
 				default:
@@ -656,10 +660,33 @@ func testVMCommonClusterComponents(setType vmSetType) {
 					continue
 				}
 
+				metaLabelPrefix := "__meta_kubernetes_" + metaType + "_label_"
 				for _, rcs := range relabelConfigs {
 					for _, rc := range rcs {
 						if rc.Action == "" && rc.TargetLabel == "job" && rc.Replacement != "" && !strings.Contains(rc.Replacement, "/") {
-							jobNames = append(jobNames, rc.Replacement)
+							if !strings.HasSuffix(rc.Replacement, "$1") {
+								jobNames = append(jobNames, rc.Replacement)
+								continue
+							}
+
+							fmt.Printf("found job replacement %s\n", rc.Replacement)
+
+							if rc.Regex != "" || len(rc.SourceLabels) != 1 || !strings.HasPrefix(rc.SourceLabels[0], metaLabelPrefix) || len(r.Spec.Selector.MatchLabels) != 0 {
+								fmt.Printf("not match\n")
+								continue
+							}
+							labelName := strings.TrimPrefix(rc.SourceLabels[0], metaLabelPrefix)
+							fmt.Printf("labelName = %s\n", labelName)
+							jobNamePrefix := strings.TrimSuffix(rc.Replacement, "$1")
+							fmt.Printf("jobNamePrefix = %s\n", jobNamePrefix)
+							for _, me := range r.Spec.Selector.MatchExpressions {
+								if me.Key == labelName && me.Operator == metav1.LabelSelectorOpIn {
+									fmt.Printf("found matchExpression element\n")
+									for _, label := range me.Values {
+										jobNames = append(jobNames, jobNamePrefix+label)
+									}
+								}
+							}
 						}
 					}
 				}
