@@ -158,16 +158,30 @@ jobs:
       # https://support.circleci.com/hc/en-us/articles/115015426888-Clear-project-dependency-cache
       - run: echo $CACHE_VERSION > CACHE_VERSION
       - restore_cache:
+          key: team-management-download-{{ checksum "CACHE_VERSION" }}-{{ checksum "team-management/template/Makefile" }}
+      - restore_cache:
           key: test-download-{{ checksum "CACHE_VERSION" }}-{{ checksum "test/Makefile" }}
       - run:
-          name: Setup
+          name: Setup team-management tools
+          command: |
+            cd team-management/template
+            make setup SUDO=
+      - run:
+          name: Setup test tools
           command: |
             cd test
             make setup SUDO=
       - save_cache:
+          key: team-management-download-{{ checksum "CACHE_VERSION" }}-{{ checksum "team-management/template/Makefile" }}
+          paths:
+            - team-management/template/download
+      - save_cache:
           key: test-download-{{ checksum "CACHE_VERSION" }}-{{ checksum "test/Makefile" }}
           paths:
             - test/download
+      - run: |
+          cd team-management/template
+          make validation
       - run: |
           cd test
           make test
