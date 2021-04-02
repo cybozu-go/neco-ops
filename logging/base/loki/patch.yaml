@@ -34,6 +34,27 @@ spec:
     spec:
       containers:
         - name: table-manager
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket
+                  key: BUCKET_HOST
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket
+                  key: AWS_SECRET_ACCESS_KEY
           resources:
             limits: null
 ---
