@@ -4,6 +4,8 @@ metadata:
   name: vmagent-smallset
   namespace: monitoring
 spec:
+  extraArgs:
+    promscrape.maxScrapeSize: "33554432"
   serviceScrapeSelector:
     matchLabels:
       smallset: "true"

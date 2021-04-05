@@ -4,6 +4,8 @@ metadata:
   name: vmagent-largeset
   namespace: monitoring
 spec:
+  extraArgs:
+    promscrape.maxScrapeSize: "33554432"
   serviceScrapeSelector:
     matchExpressions:
       - key: managed-by
