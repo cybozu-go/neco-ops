@@ -24,6 +24,7 @@ stringData:
         severity: DEBUG
       storage:
         type: dir
+        sync: NORMAL
 ---
 apiVersion: v1
 kind: Secret
