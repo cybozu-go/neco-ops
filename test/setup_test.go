@@ -149,6 +149,29 @@ func testSetup() {
 		})
 	}
 
+	// Remove this if block, when https://github.com/cybozu-go/neco-apps/pull/1374 is released.
+	if doUpgrade {
+		It("should update teleport secrets", func() {
+			By("updating secrets for teleport")
+			stdout, stderr, err := ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
+				"get", "--print-value-only", "/neco/teleport/auth-token")
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+			teleportToken := strings.TrimSpace(string(stdout))
+			teleportTmpl := template.Must(template.New("").Parse(setupTeleportYAML))
+			buf := bytes.NewBuffer(nil)
+			err = teleportTmpl.Execute(buf, struct {
+				Token string
+			}{
+				Token: teleportToken,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err = ExecAtWithInput(boot0, buf.Bytes(), "kubectl", "apply", "-n", "teleport", "-f", "-")
+			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+
+			ExecSafeAt(boot0, "kubectl", "delete", "-n", "teleport", "pod", "teleport-auth-0")
+		})
+	}
+
 	It("should apply zerossl secrets", func() {
 		By("loading zerossl-secret-resource.json")
 		data, err := os.ReadFile("zerossl-secret-resource.json")
