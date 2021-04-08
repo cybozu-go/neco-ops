@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/cybozu-go/neco-apps.svg?style=svg)](https://circleci.com/gh/cybozu-go/neco-apps)
 
-Neco Apps
+Neco Apps test
 =========
 
 A collection of Kubernetes applications to make a vanilla Kubernetes useful for soft multi-tenancy environments.
