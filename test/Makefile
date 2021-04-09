@@ -24,6 +24,7 @@ KUSTOMIZE_VERSION := 3.7.0
 PROMTOOL_VERSION := 2.24.1
 TELEPORT_VERSION := 5.2.1
 KUBERNETES_VERSION := 1.19.7
+ARGOCD_VERSION := 1.8.3
 
 # Cache
 DOWNLOAD_DIR := $(abspath $(CURDIR)/download)
@@ -36,6 +37,7 @@ KUBECTL := $(BINDIR)/kubectl
 KUSTOMIZE := $(BINDIR)/kustomize
 PROMTOOL := $(BINDIR)/promtool
 TSH := $(BINDIR)/tsh
+ARGOCD := $(BINDIR)/argocd
 
 install.yaml: $(shell find ../argocd/base)
 	$(KUSTOMIZE) build ../argocd/base/ > install.yaml
@@ -113,8 +115,13 @@ $(TSH):
 	$(WGET) -O $(TELEPORT_DLPATH) https://get.gravitational.com/teleport-v$(TELEPORT_VERSION)-linux-amd64-bin.tar.gz
 	tar zxf $(TELEPORT_DLPATH) -C $(BINDIR) --strip-component=1 teleport/tsh
 
+$(ARGOCD):
+	$(MAKE) setup-download
+	$(WGET) -O $(BINDIR)/argocd https://github.com/argoproj/argo-cd/releases/download/v$(ARGOCD_VERSION)/argocd-linux-amd64
+	chmod +x $@
+
 .PHONY: setup
-setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH)
+setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH) $(ARGOCD)
 	go install github.com/onsi/ginkgo/ginkgo@latest
 
 .PHONY: test-tools

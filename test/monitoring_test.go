@@ -137,9 +137,11 @@ func testPushgateway() {
 
 	It("should be accessed from Bastion", func() {
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0,
-				"curl", "-s", "http://"+bastionPushgatewayFQDN+"/-/healthy", "-o", "/dev/null",
-			)
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", bastionPushgatewayFQDN+":80:"+ip, "-s", "http://"+bastionPushgatewayFQDN+"/-/healthy", "-o", "/dev/null")
 			if err != nil {
 				log.Warn("curl failed", map[string]interface{}{
 					"stdout": string(stdout),
@@ -226,7 +228,11 @@ func testGrafanaOperator() {
 	It("should have data sources and dashboards", func() {
 		By("getting admin stats from grafana")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", grafanaFQDN+"/api/admin/stats")
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", grafanaFQDN+":443:"+ip, "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", "https://"+grafanaFQDN+"/api/admin/stats", "-m", "5")
 			if err != nil {
 				return fmt.Errorf("unable to get admin stats, stderr: %s, err: %v", stderr, err)
 			}
@@ -249,7 +255,14 @@ func testGrafanaOperator() {
 
 		By("confirming all dashboards are successfully registered")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", grafanaFQDN+"/api/search?type=dash-db")
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", grafanaFQDN+":443:"+ip, "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", "https://"+grafanaFQDN+"/api/search?type=dash-db")
+			if err != nil {
+				return fmt.Errorf("unable to get admin stats, stderr: %s, err: %v", stderr, err)
+			}
 			if err != nil {
 				return fmt.Errorf("unable to get dashboards, stderr: %s, err: %v", stderr, err)
 			}

@@ -82,6 +82,7 @@ func prepareTest() {
 	Context("preparing grafana-operator", prepareGrafanaOperator)
 	Context("preparing sandbox grafana", prepareSandboxGrafanaIngress)
 	Context("preparing topolvm", prepareTopoLVM)
+	Context("preparing teleport", prepareTeleport)
 	Context("preparing customer-egress", prepareCustomerEgress)
 	Context("preparing sealed-secret", prepareSealedSecret)
 	Context("preparing network-policy", prepareNetworkPolicy) // this must be the last preparation.

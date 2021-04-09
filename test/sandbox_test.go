@@ -56,7 +56,11 @@ func testSandboxGrafana() {
 
 		By("getting admin stats from grafana")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "curl", "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", sandboxGrafanaFQDN+"/api/admin/stats")
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", sandboxGrafanaFQDN+":443:"+ip, "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", "https://"+sandboxGrafanaFQDN+"/api/admin/stats")
 			if err != nil {
 				return fmt.Errorf("unable to get admin stats, stderr: %s, err: %v", stderr, err)
 			}

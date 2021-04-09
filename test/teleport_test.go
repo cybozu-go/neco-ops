@@ -28,27 +28,26 @@ type Node struct {
 	}
 }
 
-func teleportNodeServiceTest() {
-	By("retrieving LoadBalancer IP address of teleport auth service")
-	var addr string
-	Eventually(func() error {
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "get", "service", "teleport-auth",
+func prepareTeleport() {
+	It("should add proxy addr entry to /etc/hosts", func() {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "get", "service", "teleport-proxy",
 			"--output=jsonpath={.status.loadBalancer.ingress[0].ip}")
-		if err != nil {
-			return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-		}
-		ret := strings.TrimSpace(string(stdout))
-		if len(ret) == 0 {
-			return errors.New("teleport auth IP address is empty")
-		}
-		addr = ret
-		return nil
-	}).Should(Succeed())
+		Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
+		addr := string(stdout)
+		// Save a backup before editing /etc/hosts
+		b, err := os.ReadFile("/etc/hosts")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(os.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
+		f, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		Expect(err).ShouldNot(HaveOccurred())
+		_, err = f.Write([]byte(addr + " teleport.gcp0.dev-ne.co\n"))
+		Expect(err).ShouldNot(HaveOccurred())
+		f.Close()
+	})
+}
 
-	By("storing LoadBalancer IP address to etcd")
-	ExecSafeAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
-		"put", "/neco/teleport/auth-servers", `[\"`+addr+`:3025\"]`)
-
+// This code block should be deleted after cke-localproxy is installed on boot servers
+func teleportNodeServiceTest() {
 	By("starting teleport node services on boot servers")
 	for _, h := range []string{boot0, boot1, boot2} {
 		ExecSafeAt(h, "sudo", "neco", "teleport", "config")
@@ -57,24 +56,9 @@ func teleportNodeServiceTest() {
 }
 
 func teleportSSHConnectionTest() {
-	By("adding proxy addr entry to /etc/hosts")
-	stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "get", "service", "teleport-proxy",
-		"--output=jsonpath={.status.loadBalancer.ingress[0].ip}")
-	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
-	addr := string(stdout)
-	// Save a backup before editing /etc/hosts
-	b, err := os.ReadFile("/etc/hosts")
-	Expect(err).NotTo(HaveOccurred())
-	Expect(os.WriteFile("./hosts", b, 0644)).NotTo(HaveOccurred())
-	f, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	Expect(err).ShouldNot(HaveOccurred())
-	_, err = f.Write([]byte(addr + " teleport.gcp0.dev-ne.co\n"))
-	Expect(err).ShouldNot(HaveOccurred())
-	f.Close()
-
 	By("creating user")
 	ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "rm", "cybozu")
-	stdout, stderr, err = ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "add", "cybozu", "cybozu,root")
+	stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "teleport", "exec", "teleport-auth-0", "tctl", "users", "add", "cybozu", "cybozu,root")
 	Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 	tctlOutput := string(stdout)
 	fmt.Println("output:")
@@ -190,7 +174,7 @@ func teleportSSHConnectionTest() {
 
 	By("clearing /etc/hosts")
 	// /etc/hosts cannot be modified via sed directly inside a container because that is a mount point
-	b, err = os.ReadFile("./hosts")
+	b, err := os.ReadFile("./hosts")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(os.WriteFile("/etc/hosts", b, 0644)).NotTo(HaveOccurred())
 	Expect(os.Remove("./hosts")).NotTo(HaveOccurred())

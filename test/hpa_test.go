@@ -66,7 +66,11 @@ func testHPA() {
 
 		By("checking the number of replicas increases")
 		Eventually(func() error {
-			_, stderr, err := ExecAtWithInput(boot0, []byte(metric), "curl", "-sf", "--data-binary", "@-", url)
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			_, stderr, err := ExecInNetnsWithInput("external", []byte(metric), "curl", "--resolve", bastionPushgatewayFQDN+":80:"+ip, "-sf", "--data-binary", "@-", url)
 			if err != nil {
 				return fmt.Errorf("failed to push a metrics to pushgateway: %s: %w", stderr, err)
 			}
@@ -91,7 +95,11 @@ func testHPA() {
 		metric := "test_hpa_external 23\n"
 		url := fmt.Sprintf("http://%s/metrics/job/some_job", bastionPushgatewayFQDN)
 		Eventually(func() error {
-			_, stderr, err := ExecAtWithInput(boot0, []byte(metric), "curl", "-sf", "--data-binary", "@-", url)
+			ip, err := getLoadBalancerIP("ingress-bastion", "envoy")
+			if err != nil {
+				return err
+			}
+			_, stderr, err := ExecInNetnsWithInput("external", []byte(metric), "curl", "--resolve", bastionPushgatewayFQDN+":80:"+ip, "-sf", "--data-binary", "@-", url, "-m", "5")
 			if err != nil {
 				return fmt.Errorf("failed to push a metrics to pushgateway: %s: %w", stderr, err)
 			}
