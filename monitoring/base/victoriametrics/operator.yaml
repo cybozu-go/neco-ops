@@ -46,31 +46,31 @@ spec:
         - name: VM_VMALERTDEFAULT_IMAGE
           value: quay.io/cybozu/victoriametrics-vmalert
         - name: VM_VMALERTDEFAULT_VERSION
-          value: "1.55.1.1"
+          value: "1.58.0.1"
         - name: VM_VMALERTDEFAULT_CONFIGRELOADIMAGE
           value: quay.io/cybozu/configmap-reload:0.5.0.1
         - name: VM_VMAGENTDEFAULT_IMAGE
           value: quay.io/cybozu/victoriametrics-vmagent
         - name: VM_VMAGENTDEFAULT_VERSION
-          value: "1.55.1.1"
+          value: "1.58.0.1"
         - name: VM_VMAGENTDEFAULT_CONFIGRELOADIMAGE
           value: quay.io/cybozu/prometheus-config-reloader:0.45.0.2
         - name: VM_VMSINGLEDEFAULT_IMAGE
           value: quay.io/cybozu/victoriametrics-vmsingle
         - name: VM_VMSINGLEDEFAULT_VERSION
-          value: "1.55.1.1"
+          value: "1.58.0.1"
         - name: VM_VMCLUSTERDEFAULT_VMSELECTDEFAULT_IMAGE
           value: quay.io/cybozu/victoriametrics-vmselect
         - name: VM_VMCLUSTERDEFAULT_VMSELECTDEFAULT_VERSION
-          value: "1.55.1.1"
+          value: "1.58.0.1"
         - name: VM_VMCLUSTERDEFAULT_VMSTORAGEDEFAULT_IMAGE
           value: quay.io/cybozu/victoriametrics-vmstorage
         - name: VM_VMCLUSTERDEFAULT_VMSTORAGEDEFAULT_VERSION
-          value: "1.55.1.1"
+          value: "1.58.0.1"
         - name: VM_VMCLUSTERDEFAULT_VMINSERTDEFAULT_IMAGE
           value: quay.io/cybozu/victoriametrics-vminsert
         - name: VM_VMCLUSTERDEFAULT_VMINSERTDEFAULT_VERSION
-          value: "1.55.1.1"
+          value: "1.58.0.1"
         - name: VM_VMALERTMANAGER_ALERTMANAGERDEFAULTBASEIMAGE
           value: quay.io/cybozu/alertmanager
         - name: VM_VMALERTMANAGER_ALERTMANAGERVERSION
