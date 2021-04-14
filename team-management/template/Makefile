@@ -8,9 +8,11 @@ JSONNET := $(BINDIR)/jsonnet
 JSONNETFMT := $(BINDIR)/jsonnetfmt
 YQ := $(BINDIR)/yq
 
-DOWNLOAD_DIR := $(abspath $(CURDIR)/download)
+DOWNLOAD_DIR := $(ROOT_DIR)/download
 JSONNET_DLPATH := $(DOWNLOAD_DIR)/jsonnet-v$(JSONNET_VERSION).tar.gz
 YQ_DLPATH := $(DOWNLOAD_DIR)/yq-v$(YQ_VERSION).tar.gz
+
+TEMP_DIR := /tmp/team-management
 
 WGET := wget --retry-connrefused --no-verbose
 WGET_PATH := $(shell which wget || echo wget-install)
@@ -20,32 +22,32 @@ all: team-management
 
 .PHONY: team-management
 team-management:
-	mv ../base/ept/elastic-serviceaccount.yaml /tmp/ept-elastic-serviceaccount.yaml
-	mv ../base/maneki/elastic-serviceaccount.yaml /tmp/maneki-elastic-serviceaccount.yaml
+	# Cleanup existing files
 	for i in $$(ls -d ../base/*/); do \
 		if ! echo $$i | grep -E '/(common|neco|neco-readonly|sandbox)/' > /dev/null; then \
 			rm -rf $$i; \
 		fi; \
 	done
-	mkdir -p ../base/ept
-	mkdir -p ../base/maneki
-	mv /tmp/ept-elastic-serviceaccount.yaml ../base/ept/elastic-serviceaccount.yaml
-	mv /tmp/maneki-elastic-serviceaccount.yaml ../base/maneki/elastic-serviceaccount.yaml
 
-	$(JSONNET) team-management.jsonnet > /tmp/team-management.json
-	for i in $$(cat /tmp/team-management.json | jq -r 'keys | .[]'); do \
+	# Generate manifests
+	mkdir -p $(TEMP_DIR)
+	$(JSONNET) team-management.jsonnet > $(TEMP_DIR)/team-management.json
+	for i in $$(cat $(TEMP_DIR)/team-management.json | jq -r 'keys | .[]'); do \
 		echo $$i; \
 		mkdir -p $(ROOT_DIR)/$$(dirname $$i); \
-		cat /tmp/team-management.json | $(YQ) eval ".[\"$$i\"] | .[0] headComment=\"$(AUTOGEN_COMMENT)\" | .[] | splitDoc" - --prettyPrint > $(ROOT_DIR)/$$i; \
+		cat $(TEMP_DIR)/team-management.json | $(YQ) eval ".[\"$$i\"] | .[0] headComment=\"$(AUTOGEN_COMMENT)\" | .[] | splitDoc" - --prettyPrint > $(ROOT_DIR)/$$i; \
 	done
+	rm -rf $(TEMP_DIR)
 
 .PHONY: format
 format:
+	mkdir -p $(TEMP_DIR)
 	for i in $$(find . -name '*.json'); do \
 		echo $$i; \
-		jq . $$i > /tmp/$$i; \
-		mv /tmp/$$i $$i; \
+		jq . $$i > $(TEMP_DIR)/$$i; \
+		mv $(TEMP_DIR)/$$i $$i; \
 	done
+	rm -rf $(TEMP_DIR)
 	for i in $$(find . -name '*.jsonnet'); do \
 		echo $$i; \
 		$(JSONNETFMT) -i $$i; \

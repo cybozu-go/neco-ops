@@ -5,4 +5,5 @@ commonLabels:
 kind: Kustomization
 resources:
   - app-gorush.yaml
+  - elastic-serviceaccount.yaml
   - project.yaml

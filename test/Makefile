@@ -27,7 +27,8 @@ KUBERNETES_VERSION := 1.19.7
 ARGOCD_VERSION := 1.8.3
 
 # Cache
-DOWNLOAD_DIR := $(abspath $(CURDIR)/download)
+ROOT_DIR := $(shell git rev-parse --show-toplevel)
+DOWNLOAD_DIR := $(ROOT_DIR)/download
 KUSTOMIZE_DLPATH := $(DOWNLOAD_DIR)/kustomize-v$(KUSTOMIZE_VERSION).tar.gz
 PROMTOOL_DLPATH := $(DOWNLOAD_DIR)/prometheus-v$(PROMTOOL_VERSION).tar.gz
 TELEPORT_DLPATH := $(DOWNLOAD_DIR)/teleport-v$(TELEPORT_VERSION).tar.gz

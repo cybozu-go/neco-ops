@@ -15,10 +15,10 @@
 /CACHE_VERSION
 
 # Ignore downloaded files
+/download
 /logging/bin
 /rook/bin
 /team-management/template/bin
-/team-management/template/download
 
 # Editors
 *~

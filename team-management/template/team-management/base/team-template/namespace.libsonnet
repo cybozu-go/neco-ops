@@ -4,6 +4,8 @@ function(team, namespace) [
     kind: 'Namespace',
     metadata: {
       name: namespace,
+      // This label may be unused.
+      // It is written here for backward compatibility.
       [if team == 'maneki' && namespace == 'maneki' then 'labels']: {
         'app.kubernetes.io/name': 'maneki',
       },
@@ -13,7 +15,7 @@ function(team, namespace) [
     apiVersion: 'rbac.authorization.k8s.io/v1',
     kind: 'RoleBinding',
     metadata: {
-      name: if team == 'maneki' && namespace == 'app-monitoring' then 'monitoring-role-binding' else team + '-role-binding',
+      name: team + '-role-binding',
       namespace: namespace,
     },
     roleRef: {

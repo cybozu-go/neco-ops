@@ -7,7 +7,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: monitoring-role-binding
+  name: maneki-role-binding
   namespace: app-monitoring
 roleRef:
   apiGroup: rbac.authorization.k8s.io
