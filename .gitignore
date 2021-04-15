@@ -11,9 +11,14 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Ignore CI files
+/CACHE_VERSION
+
 # Ignore downloaded files
+/download
 /logging/bin
 /rook/bin
+/team-management/template/bin
 
 # Editors
 *~

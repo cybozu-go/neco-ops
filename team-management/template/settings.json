@@ -1,0 +1,28 @@
+{
+  "cydec": [
+    "app-gorush"
+  ],
+  "ept": [
+    "app-ept-monitoring",
+    "app-ept-plantuml",
+    "app-ept-wiki"
+  ],
+  "garoon": [
+    "app-garoon-monitoring",
+    "app-garoon-static"
+  ],
+  "maneki": [
+    "app-comconv-earthlab",
+    "app-elasticsearch",
+    "app-forest-archive",
+    "app-forest-certs",
+    "app-kodama",
+    "app-maneki-static-cybozu-com",
+    "app-misc",
+    "app-monitoring",
+    "app-monitoring-elasticstack",
+    "app-oauth-redirector",
+    "app-octodns",
+    "maneki"
+  ]
+}

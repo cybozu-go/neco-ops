@@ -65,3 +65,36 @@ spec:
           annotations:
             summary: CKEEtcd has disappeared from Prometheus target discovery.
             runbook: Please consider to find root causes, and solve the problems
+
+        - alert: CKEEtcdBackupNotExecuted
+          expr: absent(cke_etcd_backup_last_executed_time) or count(cke_etcd_backup_last_executed_time) < 3
+          labels:
+            severity: error
+          for: 3h
+          annotations:
+            summary: Backup job for CKEEtcd is not executed.
+            runbook: TBD
+        - alert: CKEEtcdBackupNotExecuted
+          expr: time() - cke_etcd_backup_last_executed_time >= 3600
+          labels:
+            severity: error
+          for: 2h
+          annotations:
+            summary: Backup job for CKEEtcd is not executed.
+            runbook: TBD
+        - alert: CKEEtcdBackupNotSucceeded
+          expr: absent(cke_etcd_backup_last_succeeded_time) or count(cke_etcd_backup_last_succeeded_time) < 3
+          labels:
+            severity: error
+          for: 3h
+          annotations:
+            summary: Backup job for CKEEtcd is not succeeded.
+            runbook: TBD
+        - alert: CKEEtcdBackupNotSucceeded
+          expr: time() - cke_etcd_backup_last_succeeded_time >= 3600
+          labels:
+            severity: error
+          for: 2h
+          annotations:
+            summary: Backup job for CKEEtcd is not succeeded.
+            runbook: TBD

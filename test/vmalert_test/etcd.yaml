@@ -184,3 +184,116 @@ tests:
       - eval_time: 20m
         alertname: CKEEtcdMissing
         exp_alerts: []
+
+  - interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotExecuted
+        exp_alerts:
+          - exp_labels:
+              severity: error
+            exp_annotations:
+              summary: Backup job for CKEEtcd is not executed.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.1"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.2"}'
+        values: '0+1x10800'
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotExecuted
+        exp_alerts:
+          - exp_labels:
+              severity: error
+            exp_annotations:
+              summary: Backup job for CKEEtcd is not executed.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.1"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.2"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.3"}'
+        values: '0+1x10800'
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotExecuted
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.1"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.2"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_executed_time{instance="10.0.0.3"}'
+        values: '0+0x10800'
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotExecuted
+        exp_alerts:
+          - exp_labels:
+              severity: error
+              instance: 10.0.0.3
+            exp_annotations:
+              summary: Backup job for CKEEtcd is not executed.
+              runbook: TBD
+  - interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotSucceeded
+        exp_alerts:
+          - exp_labels:
+              severity: error
+            exp_annotations:
+              summary: Backup job for CKEEtcd is not succeeded.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.1"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.2"}'
+        values: '0+1x10800'
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotSucceeded
+        exp_alerts:
+          - exp_labels:
+              severity: error
+            exp_annotations:
+              summary: Backup job for CKEEtcd is not succeeded.
+              runbook: TBD
+  - interval: 1m
+    input_series:
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.1"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.2"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.3"}'
+        values: '0+1x10800'
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotSucceeded
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.1"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.2"}'
+        values: '0+1x10800'
+      - series: 'cke_etcd_backup_last_succeeded_time{instance="10.0.0.3"}'
+        values: '0+0x10800'
+    alert_rule_test:
+      - eval_time: 3h
+        alertname: CKEEtcdBackupNotSucceeded
+        exp_alerts:
+          - exp_labels:
+              severity: error
+              instance: 10.0.0.3
+            exp_annotations:
+              summary: Backup job for CKEEtcd is not succeeded.
+              runbook: TBD
