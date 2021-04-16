@@ -18,31 +18,49 @@ WGET := wget --retry-connrefused --no-verbose
 WGET_PATH := $(shell which wget || echo wget-install)
 
 .PHONY: all
-all: team-management teleport
+all: argocd-config neco-admission team-management teleport
+
+write-%:
+	mkdir -p $(TEMP_DIR)
+	$(JSONNET) $*.jsonnet > $(TEMP_DIR)/$*.json
+	set -e; for i in $$(cat $(TEMP_DIR)/$*.json | jq -r 'keys | .[]'); do \
+		echo $$i; \
+		mkdir -p $(ROOT_DIR)/$$(dirname $$i); \
+		cat $(TEMP_DIR)/$*.json | $(YQ) eval ".[\"$$i\"] | .[0] headComment=\"$(AUTOGEN_COMMENT)\" | .[] | splitDoc" - --prettyPrint > $(ROOT_DIR)/$$i; \
+	done
+	rm -rf $(TEMP_DIR)
+
+.PHONY: argocd-config
+argocd-config:
+	# Cleanup existing files
+	set -e; for i in osaka0 stage0 tokyo0; do \
+		rm -rf $(ROOT_DIR)/argocd-config/overlays/$$i/tenants; \
+	done
+
+	rm -rf $(ROOT_DIR)/argocd-config/overlays/osaka0/tenants/
+	rm -rf $(ROOT_DIR)/argocd-config/overlays/stage0/tenants/
+	rm -rf $(ROOT_DIR)/argocd-config/overlays/tokyo0/tenants/
+
+	$(MAKE) write-argocd-config
+
+.PHONY: neco-admission
+neco-admission: write-neco-admission
 
 .PHONY: team-management
 team-management:
 	# Cleanup existing files
-	for i in $$(ls -d ../base/*/); do \
+	set -e; for i in $$(ls -d ../base/*/); do \
 		if ! echo $$i | grep -E '/(common|neco|neco-readonly|sandbox)/' > /dev/null; then \
 			rm -rf $$i; \
 		fi; \
 	done
 
-	# Generate manifests
-	mkdir -p $(TEMP_DIR)
-	$(JSONNET) team-management.jsonnet > $(TEMP_DIR)/team-management.json
-	for i in $$(cat $(TEMP_DIR)/team-management.json | jq -r 'keys | .[]'); do \
-		echo $$i; \
-		mkdir -p $(ROOT_DIR)/$$(dirname $$i); \
-		cat $(TEMP_DIR)/team-management.json | $(YQ) eval ".[\"$$i\"] | .[0] headComment=\"$(AUTOGEN_COMMENT)\" | .[] | splitDoc" - --prettyPrint > $(ROOT_DIR)/$$i; \
-	done
-	rm -rf $(TEMP_DIR)
+	$(MAKE) write-team-management
 
 .PHONY: teleport
 teleport:
 	# Cleanup existing files
-	for i in $$(ls $(ROOT_DIR)/teleport/base/conf); do \
+	set -e; for i in $$(ls $(ROOT_DIR)/teleport/base/conf); do \
 		if ! echo $$i | grep -E '^(admin|neco-readonly)-role[.]yaml$$' > /dev/null; then \
 			rm $(ROOT_DIR)/teleport/base/conf/$$i; \
 		fi; \
@@ -50,30 +68,32 @@ teleport:
 	rm -rf $(ROOT_DIR)/teleport/base/nodes
 	rm -rf $(ROOT_DIR)/teleport/overlays/gcp/nodes
 
-	# Generate manifests
+	$(MAKE) write-teleport
+
+.PHONY: format-settings
+format-settings:
+	# jq ".x |= y" overwrites .x with y.
+	# jq "with_entries()" iterates over key-value pairs ({ .key:, .value: }) of an object.
+	# Thus, jq "with_entries(.values |= sort)" sorts all the arrays of an object members.
 	mkdir -p $(TEMP_DIR)
-	$(JSONNET) teleport.jsonnet > $(TEMP_DIR)/teleport.json
-	for i in $$(cat $(TEMP_DIR)/teleport.json | jq -r 'keys | .[]'); do \
-		echo $$i; \
-		mkdir -p $(ROOT_DIR)/$$(dirname $$i); \
-		cat $(TEMP_DIR)/teleport.json | $(YQ) eval ".[\"$$i\"] | .[0] headComment=\"$(AUTOGEN_COMMENT)\" | .[] | splitDoc" - --prettyPrint > $(ROOT_DIR)/$$i; \
-	done
+	$(YQ) eval 'sortKeys(..)' settings.json -j | jq '.namespaces |= with_entries(.value |= sort)' > $(TEMP_DIR)/settings.json
+	mv $(TEMP_DIR)/settings.json settings.json
 	rm -rf $(TEMP_DIR)
 
 .PHONY: format
-format:
+format: format-settings
 	mkdir -p $(TEMP_DIR)
-	for i in $$(find . -name '*.json'); do \
+	set -e; for i in $$(find . -name '*.json'); do \
 		echo $$i; \
 		jq . $$i > $(TEMP_DIR)/$$i; \
 		mv $(TEMP_DIR)/$$i $$i; \
 	done
 	rm -rf $(TEMP_DIR)
-	for i in $$(find . -name '*.jsonnet'); do \
+	set -e; for i in $$(find . -name '*.jsonnet'); do \
 		echo $$i; \
 		$(JSONNETFMT) -i $$i; \
 	done
-	for i in $$(find . -name '*.libsonnet'); do \
+	set -e; for i in $$(find . -name '*.libsonnet'); do \
 		echo $$i; \
 		$(JSONNETFMT) -i $$i; \
 	done

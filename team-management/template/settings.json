@@ -1,33 +1,74 @@
 {
-  "cydec": [
-    "app-gorush"
-  ],
-  "ept": [
-    "app-ept-monitoring",
-    "app-ept-plantuml",
-    "app-ept-wiki"
-  ],
-  "garoon": [
-    "app-garoon-monitoring",
-    "app-garoon-static"
-  ],
-  "maneki": [
-    "app-comconv-earthlab",
-    "app-elasticsearch",
-    "app-endpoint-discovery",
-    "app-es-cluster-allocator",
-    "app-forest-archive",
-    "app-forest-certs",
-    "app-kodama",
-    "app-maneki-static-cybozu-com",
-    "app-misc",
-    "app-monitoring",
-    "app-monitoring-elasticstack",
-    "app-oauth-redirector",
-    "app-octodns",
-    "maneki"
-  ],
-  "dbre": [
-    "app-cybozu-com-mysql"
-  ]
+  "apps": {
+    "cydec-apps": {
+      "destinations": {},
+      "repo": "https://github.com/cybozu-private/cydec-apps.git",
+      "team": "cydec"
+    },
+    "ept-apps": {
+      "destinations": {
+        "stage0": "main"
+      },
+      "repo": "https://github.com/cybozu-private/ept-apps.git",
+      "team": "ept"
+    },
+    "garoon-apps": {
+      "destinations": {
+        "stage0": "main"
+      },
+      "repo": "https://github.com/garoon-private/garoon-apps.git",
+      "team": "garoon"
+    },
+    "maneki-apps": {
+      "destinations": {
+        "osaka0": "release",
+        "stage0": "stage",
+        "tokyo0": "release"
+      },
+      "repo": "https://github.com/cybozu-private/maneki-apps.git",
+      "team": "maneki"
+    },
+    "tenant-apps": {
+      "destinations": {
+        "osaka0": "release",
+        "stage0": "main",
+        "tokyo0": "release"
+      },
+      "repo": "https://github.com/cybozu-private/neco-tenant-apps.git",
+      "team": ""
+    }
+  },
+  "namespaces": {
+    "cydec": [
+      "app-gorush"
+    ],
+    "dbre": [
+      "app-cybozu-com-mysql"
+    ],
+    "ept": [
+      "app-ept-monitoring",
+      "app-ept-plantuml",
+      "app-ept-wiki"
+    ],
+    "garoon": [
+      "app-garoon-monitoring",
+      "app-garoon-static"
+    ],
+    "maneki": [
+      "app-comconv-earthlab",
+      "app-elasticsearch",
+      "app-endpoint-discovery",
+      "app-es-cluster-allocator",
+      "app-forest-archive",
+      "app-forest-certs",
+      "app-kodama",
+      "app-maneki-static-cybozu-com",
+      "app-misc",
+      "app-monitoring",
+      "app-monitoring-elasticstack",
+      "app-oauth-redirector",
+      "app-octodns",
+      "maneki"
+    ]
+  }
 }

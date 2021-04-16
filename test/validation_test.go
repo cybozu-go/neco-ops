@@ -208,7 +208,7 @@ func testApplicationResources(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() && info.Name() != "overlays" {
+		if info.IsDir() && info.Name() != "overlays" && info.Name() != "tenants" {
 			overlayDirs[info.Name()] = path
 		}
 		return nil
