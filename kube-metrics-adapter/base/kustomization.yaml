@@ -10,4 +10,4 @@ patchesStrategicMerge:
 images:
 - name: registry.opensource.zalan.do/teapot/kube-metrics-adapter
   newName: quay.io/cybozu/kube-metrics-adapter
-  newTag: 0.1.10.1
+  newTag: 0.1.10.2

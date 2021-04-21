@@ -4,24 +4,27 @@ metadata:
   name: contour-leaderelection
   namespace: projectcontour
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - create
-  - get
-  - list
-  - watch
-  - update
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
-  - update
-  - patch
+  - apiGroups:
+      - ""
+      - coordination.k8s.io
+    resources:
+      - configmaps
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
