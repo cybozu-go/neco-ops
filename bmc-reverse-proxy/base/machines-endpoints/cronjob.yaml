@@ -12,7 +12,7 @@ spec:
         spec:
           containers:
             - name: machines-endpoints
-              image: quay.io/cybozu/machines-endpoints:0.4.6
+              image: quay.io/cybozu/machines-endpoints:0.4.9
               args:
                 - --bmc-configmap
               imagePullPolicy: IfNotPresent

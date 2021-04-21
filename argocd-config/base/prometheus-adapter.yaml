@@ -32,7 +32,7 @@ spec:
       values: |
         image:
           repository: quay.io/cybozu/prometheus-adapter
-          tag: 0.8.3.1
+          tag: 0.8.4.1
           pullPolicy: IfNotPresent
         
         # Url to access prometheus
