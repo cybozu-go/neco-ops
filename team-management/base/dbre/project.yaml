@@ -2,28 +2,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: tenant-app-of-apps
+  name: dbre
   namespace: argocd
 spec:
   destinations:
-    - namespace: argocd
+    - namespace: app-cybozu-com-mysql
       server: '*'
-  namespaceResourceWhitelist:
-    - group: argoproj.io
-      kind: Application
-  orphanedResources:
-    warn: false
-  sourceRepos:
-    - '*'
----
-apiVersion: argoproj.io/v1alpha1
-kind: AppProject
-metadata:
-  name: tenant-apps
-  namespace: argocd
-spec:
-  destinations:
-    - namespace: '*'
+    - namespace: sandbox
       server: '*'
   namespaceResourceBlacklist:
     - group: ""
@@ -36,14 +21,10 @@ spec:
     warn: false
   roles:
     - groups:
-        - cybozu-private:cydec
         - cybozu-private:dbre
-        - cybozu-private:ept
-        - cybozu-private:garoon
         - cybozu-private:maneki
-        - cybozu-private:neco
       name: admin
       policies:
-        - p, proj:tenant-apps:admin, applications, *, tenant-apps/*, allow
+        - p, proj:dbre:admin, applications, *, dbre/*, allow
   sourceRepos:
     - '*'

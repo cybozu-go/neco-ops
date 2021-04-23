@@ -39,8 +39,6 @@ spec:
         - --incluster
         - --xds-address=0.0.0.0
         - --xds-port=8001
-        - --envoy-service-http-port=8080
-        - --envoy-service-https-port=8443
         - --contour-cafile=/certs/ca.crt
         - --contour-cert-file=/certs/tls.crt
         - --contour-key-file=/certs/tls.key
@@ -92,9 +90,6 @@ spec:
               command: ["sleep", "5"]
       - image: quay.io/cybozu/contour-plus
         name: contour-plus
-        env:
-        - name: CP_DEFAULT_ISSUER_NAME
-          value: clouddns
       dnsPolicy: ClusterFirst
       serviceAccountName: contour
       volumes:
