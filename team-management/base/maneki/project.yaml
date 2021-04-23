@@ -8,6 +8,8 @@ spec:
   destinations:
     - namespace: app-comconv-earthlab
       server: '*'
+    - namespace: app-cybozu-com-mysql
+      server: '*'
     - namespace: app-elasticsearch
       server: '*'
     - namespace: app-endpoint-discovery

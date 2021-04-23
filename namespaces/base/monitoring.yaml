@@ -4,3 +4,5 @@ metadata:
   name: monitoring
   annotations:
     admission.cybozu.com/min-policy-order: "500"
+  labels:
+    pod-security.cybozu.com/policy: privileged

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,10 +17,15 @@ func testLogging() {
 		checkLog("should get pod logs", `'{namespace="logging"}'`) // get logs from all pods
 
 		ssNodeName := getNodeName("ss")
-		checkLog("should get journal logs by ss", fmt.Sprintf(`'{job="systemd-journal", instance="%s"}'`, ssNodeName))
+		checkLog("should get journal logs from ss", fmt.Sprintf(`'{job="systemd-journal", instance="%s"}'`, ssNodeName))
 
 		csNodeName := getNodeName("cs")
-		checkLog("should get journal logs by cs", fmt.Sprintf(`'{job="systemd-journal", instance="%s"}'`, csNodeName))
+		checkLog("should get journal logs from cs", fmt.Sprintf(`'{job="systemd-journal", instance="%s"}'`, csNodeName))
+
+		stdout, _, err := ExecAt(boot0, "hostname")
+		Expect(err).ShouldNot(HaveOccurred())
+		bootServerName := strings.TrimSpace(string(stdout))
+		checkLog("should get journal logs from boot", fmt.Sprintf(`'{job="systemd-journal", hostname="%s"}'`, bootServerName))
 
 		masterNodeName := getNodeName("master")
 		checkLog("should get audit logs from master", fmt.Sprintf(`'{job="kubernetes-apiservers", type="audit", instance="%s"}'`, masterNodeName))

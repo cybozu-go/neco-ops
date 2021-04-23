@@ -66,6 +66,9 @@ subjects:
     namespace: app-comconv-earthlab
   - kind: ServiceAccount
     name: elastic
+    namespace: app-cybozu-com-mysql
+  - kind: ServiceAccount
+    name: elastic
     namespace: app-elasticsearch
   - kind: ServiceAccount
     name: elastic

@@ -4,3 +4,5 @@ metadata:
   name: bmc-reverse-proxy
   annotations:
     admission.cybozu.com/min-policy-order: "500"
+  labels:
+    pod-security.cybozu.com/policy: privileged

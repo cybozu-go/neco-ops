@@ -6,3 +6,4 @@ metadata:
     cert-manager.io/disable-validation: "true"
     topolvm.cybozu.com/webhook: ignore
     admission.cybozu.com/pod: ignore
+    pod-security.cybozu.com/policy: privileged

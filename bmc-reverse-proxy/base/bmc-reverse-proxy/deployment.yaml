@@ -17,7 +17,7 @@ spec:
         app.kubernetes.io/name: bmc-reverse-proxy
     spec:
       containers:
-        - image: quay.io/cybozu/bmc-reverse-proxy:0.1.9
+        - image: quay.io/cybozu/bmc-reverse-proxy:0.1.12
           name: bmc-reverse-proxy
           volumeMounts:
           - name: secret-fs

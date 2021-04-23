@@ -26,5 +26,8 @@
     "app-oauth-redirector",
     "app-octodns",
     "maneki"
+  ],
+  "dbre": [
+    "app-cybozu-com-mysql"
   ]
 }

@@ -1,0 +1,274 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+    pod-security.cybozu.com/policy: privileged
+  name: psa-system
+---
+apiVersion: v1
+data:
+  controller_manager_config.yaml: |
+    apiVersion: controller-runtime.sigs.k8s.io/v1alpha1
+    kind: ControllerManagerConfig
+    health:
+      healthProbeBindAddress: :8081
+    metrics:
+      bindAddress: 127.0.0.1:8080
+    webhook:
+      port: 9443
+    leaderElection:
+      leaderElect: true
+      resourceName: a3c75b0a.cybozu.com
+kind: ConfigMap
+metadata:
+  name: psa-manager-config
+  namespace: psa-system
+---
+apiVersion: v1
+data:
+  config.yaml: |
+    - name: baseline
+      nonCoreVolumeTypes: true
+      allowPrivilegeEscalation: true
+      runAsRoot: true
+      rootGroups: true
+      seccomp: true
+    - name: restricted
+      forceRunAsNonRoot: true
+kind: ConfigMap
+metadata:
+  name: psa-pod-security-admission-config
+  namespace: psa-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: psa-webhook-service
+  namespace: psa-system
+spec:
+  ports:
+  - port: 443
+    targetPort: 9443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: psa-controller-manager
+  namespace: psa-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --cert-dir=/certs
+        - --config-path=/etc/pod-security-admission/config.yaml
+        command:
+        - /pod-security-admission
+        image: quay.io/cybozu/pod-security-admission:0.1.0
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sleep
+              - "5"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        - containerPort: 8080
+          name: metrics
+        - containerPort: 8081
+          name: health
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /certs
+          name: cert
+          readOnly: true
+        - mountPath: /etc/pod-security-admission
+          name: config
+      securityContext:
+        runAsNonRoot: true
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-server-cert
+      - configMap:
+          name: psa-pod-security-admission-config
+        name: config
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: psa-serving-cert
+  namespace: psa-system
+spec:
+  dnsNames:
+  - psa-webhook-service.psa-system.svc
+  - psa-webhook-service.psa-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: psa-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: psa-selfsigned-issuer
+  namespace: psa-system
+spec:
+  selfSigned: {}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: psa-system/psa-serving-cert
+  name: psa-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: psa-webhook-service
+      namespace: psa-system
+      path: /mutate-baseline
+  failurePolicy: Fail
+  name: baseline.mpod.kb.io
+  namespaceSelector:
+    matchExpressions:
+    - key: pod-security.cybozu.com/policy
+      operator: NotIn
+      values:
+      - privileged
+  reinvocationPolicy: IfNeeded
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: psa-webhook-service
+      namespace: psa-system
+      path: /mutate-restricted
+  failurePolicy: Fail
+  name: restricted.mpod.kb.io
+  namespaceSelector:
+    matchExpressions:
+    - key: pod-security.cybozu.com/policy
+      operator: In
+      values:
+      - restricted
+  reinvocationPolicy: IfNeeded
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: psa-system/psa-serving-cert
+  name: psa-validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: psa-webhook-service
+      namespace: psa-system
+      path: /validate-baseline
+  failurePolicy: Fail
+  name: baseline.vpod.kb.io
+  namespaceSelector:
+    matchExpressions:
+    - key: pod-security.cybozu.com/policy
+      operator: NotIn
+      values:
+      - privileged
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: psa-webhook-service
+      namespace: psa-system
+      path: /validate-restricted
+  failurePolicy: Fail
+  name: restricted.vpod.kb.io
+  namespaceSelector:
+    matchExpressions:
+    - key: pod-security.cybozu.com/policy
+      operator: In
+      values:
+      - restricted
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  sideEffects: None

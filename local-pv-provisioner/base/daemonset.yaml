@@ -21,10 +21,11 @@ spec:
     spec:
       containers:
         - name: local-pv-provisioner
-          image: quay.io/cybozu/local-pv-provisioner:0.2.1
+          image: quay.io/cybozu/local-pv-provisioner:0.2.3
           imagePullPolicy: IfNotPresent
           args:
             - --device-dir=/dev/crypt-disk/by-path
+            - --zap-stacktrace-level=panic
           env:
             - name: LP_NODE_NAME
               valueFrom:

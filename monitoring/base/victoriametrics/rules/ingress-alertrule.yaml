@@ -63,7 +63,7 @@ spec:
             runbook: Please consider to find root causes, and solve the problems
         - alert: InvalidHTTPProxyExist
           expr: |
-            contour_httpproxy_invalid_total
+            contour_httpproxy_invalid
             * on (namespace) group_left(label_team) kube_namespace_labels{label_team="neco"}
           labels:
             severity: error

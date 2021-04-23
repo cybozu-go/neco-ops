@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ./common
   - ./cydec
+  - ./dbre
   - ./ept
   - ./garoon
   - ./maneki
