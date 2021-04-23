@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: monitoring
-  annotations:
-    admission.cybozu.com/min-policy-order: "500"
+  name: psa-system
   labels:
+    team: neco
     pod-security.cybozu.com/policy: privileged

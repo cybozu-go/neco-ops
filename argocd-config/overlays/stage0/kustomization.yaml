@@ -25,6 +25,7 @@ patchesStrategicMerge:
 - namespaces.yaml
 - neco-admission.yaml
 - network-policy.yaml
+- pod-security-admission.yaml
 - pvc-autoresizer.yaml
 - rook.yaml
 - sandbox.yaml
