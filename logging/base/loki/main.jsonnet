@@ -14,7 +14,13 @@ loki {
     boltdb_shipper_shared_store: 's3',
 
     ingester_pvc_class: 'ceph-ssd-block',
+
     querier_pvc_class: 'ceph-ssd-block',
+    // current index size is ~500MiB per day.
+    // by default 10Gi, querier becames disk full if searchs are executed for 20 days.
+    // I assume 100Gi is sufficient, it allows us to run query for 200 days.
+    querier_pvc_size: '100Gi',
+
     compactor_pvc_class: 'ceph-ssd-block',
 
     commonArgs+: {

@@ -30,7 +30,7 @@ tests:
               summary: Ingress has disappeared from Prometheus target discovery.
   - interval: 1m
     input_series:
-      - series: 'contour_httpproxy_invalid_total{kubernetes_namespace="ingress-global",namespace="ours",vhost="xxx"}'
+      - series: 'contour_httpproxy_invalid{kubernetes_namespace="ingress-global",namespace="ours",vhost="xxx"}'
         values: '1+0x10'
       - series: 'kube_namespace_labels{namespace="ours",label_team="neco"}'
         values: '1+0x10'
@@ -49,7 +49,7 @@ tests:
               runbook: Please check the status of HTTPProxy.
   - interval: 1m
     input_series:
-      - series: 'contour_httpproxy_invalid_total{kubernetes_namespace="ingress-global",namespace="others",vhost="xxx"}'
+      - series: 'contour_httpproxy_invalid{kubernetes_namespace="ingress-global",namespace="others",vhost="xxx"}'
         values: '1+0x10'
       - series: 'kube_namespace_labels{namespace="ours",label_team="neco"}'
         values: '1+0x10'

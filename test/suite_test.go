@@ -115,4 +115,5 @@ func runTest() {
 	Context("moco", testMoco)
 	Context("sealed-secret", testSealedSecret)
 	Context("customer-egress", testCustomerEgress)
+	Context("pod-security-admission", testPodSecurityAdmission)
 }

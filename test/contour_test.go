@@ -27,7 +27,7 @@ var ingressNamespaces = []string{"ingress-global", "ingress-forest", "ingress-ba
 func prepareContour() {
 	It("should prepare resources in test-ingress namespace", func() {
 		By("preparing namespace")
-		createNamespaceIfNotExists("test-ingress")
+		createNamespaceIfNotExists("test-ingress", false)
 
 		By("creating pod and service")
 		_, stderr, err := ExecAtWithInput(boot0, contourDeployYAML, "kubectl", "apply", "-f", "-")

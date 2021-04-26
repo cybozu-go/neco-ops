@@ -32,7 +32,7 @@ spec:
       values: |
         image:
           repository: quay.io/cybozu/prometheus-adapter
-          tag: 0.8.3.1
+          tag: 0.8.4.1
           pullPolicy: IfNotPresent
         
         # Url to access prometheus
@@ -49,7 +49,59 @@ spec:
             memory: 128Mi
         
         rules:
-          default: true
+          default: false
+          custom:
+            - seriesQuery: '{__name__=~"^container_.*",container!="POD",namespace!="",pod!=""}'
+              seriesFilters: []
+              resources:
+                overrides:
+                  namespace:
+                    resource: namespace
+                  pod:
+                    resource: pod
+              name:
+                matches: ^container_(.*)_seconds_total$
+                as: ""
+              metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>,container!="POD"}[5m]))
+                by (<<.GroupBy>>)
+            - seriesQuery: '{__name__=~"^container_.*",container!="POD",namespace!="",pod!=""}'
+              seriesFilters:
+              - isNot: ^container_.*_seconds_total$
+              resources:
+                overrides:
+                  namespace:
+                    resource: namespace
+                  pod:
+                    resource: pod
+              name:
+                matches: ^container_(.*)_total$
+                as: ""
+              metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>,container!="POD"}[5m]))
+                by (<<.GroupBy>>)
+            - seriesQuery: '{__name__=~"^container_.*",container!="POD",namespace!="",pod!=""}'
+              seriesFilters:
+              - isNot: ^container_.*_total$
+              resources:
+                overrides:
+                  namespace:
+                    resource: namespace
+                  pod:
+                    resource: pod
+              name:
+                matches: ^container_(.*)$
+                as: ""
+              metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>,container!="POD"}) by (<<.GroupBy>>)
+
+            # this is used for e2e test...
+            - seriesQuery: '{namespace="sandbox",__name__=~"^test_hpa_.*"}'
+              seriesFilters: []
+              resources:
+                template: <<.Resource>>
+              name:
+                matches: ""
+                as: ""
+              metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+
           resource:
             cpu:
               containerQuery: sum(rate(container_cpu_usage_seconds_total{<<.LabelMatchers>>}[3m])) by (<<.GroupBy>>)
@@ -75,7 +127,7 @@ spec:
                   pod:
                     resource: pod
               containerLabel: container
-            window: 3m        
+            window: 3m
         
         podDisruptionBudget:
           # Specifies if PodDisruptionBudget should be enabled

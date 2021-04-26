@@ -22,7 +22,7 @@ spec:
         name: contour
       - args:
         - --ingress-class-name=global
-        env:
-        - name: CP_SERVICE_NAME
-          value: ingress-global/envoy
+        - --service-name=ingress-global/envoy
+        - --default-issuer-name=clouddns
+        - --zap-stacktrace-level=panic
         name: contour-plus

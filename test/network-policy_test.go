@@ -25,7 +25,7 @@ var networkPolicyYAML []byte
 func prepareNetworkPolicy() {
 	It("should prepare test pods in test-netpol namespace", func() {
 		By("preparing namespace")
-		createNamespaceIfNotExists("test-netpol")
+		createNamespaceIfNotExists("test-netpol", false)
 
 		By("deploying pods")
 		_, stderr, err := ExecAtWithInput(boot0, networkPolicyYAML, "kubectl", "apply", "-f", "-")

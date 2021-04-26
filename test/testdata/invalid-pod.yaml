@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: psa-test
+  namespace: default
+spec:
+  hostNetwork: true
+  containers:
+  - name: ubuntu
+    image: quay.io/cybozu/ubuntu:20.04
+    command: ["pause"]
