@@ -37,6 +37,7 @@ spec:
   roles:
     - groups:
         - cybozu-private:cydec
+        - cybozu-private:dbre
         - cybozu-private:ept
         - cybozu-private:garoon
         - cybozu-private:maneki

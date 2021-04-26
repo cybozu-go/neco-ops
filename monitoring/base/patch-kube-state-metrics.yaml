@@ -10,5 +10,5 @@ spec:
       containers:
       - name: kube-state-metrics
         args:
-        - --labels-metric-allow-list
+        - --metric-labels-allowlist
         - namespaces=[team],nodes=[cke.cybozu.com/rack,cke.cybozu.com/role,cke.cybozu.com/master]

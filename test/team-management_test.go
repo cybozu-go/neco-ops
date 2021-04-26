@@ -439,7 +439,9 @@ func testTeamManagement() {
 
 	It("should give authority of ephemeral containers to unprivileged team", func() {
 		By("creating test pod")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "run", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:20.04", "pause")
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "run", "-n", "maneki", "neco-ephemeral-test", "--image=quay.io/cybozu/ubuntu-debug:20.04",
+			`--overrides='{"kind":"Pod", "apiVersion":"v1", "spec": {"securityContext":{"runAsUser":1000, "runAsGroup":1000}}}'`,
+			"pause")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 
 		By("waiting the pod become ready")

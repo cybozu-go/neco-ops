@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: psa-pod-security-admission-config
+  namespace: psa-system
+data:
+  config.yaml: |
+    - name: baseline
+      nonCoreVolumeTypes: true
+      allowPrivilegeEscalation: true
+      rootGroups: true
+      seccomp: true
+      forceRunAsNonRoot: true
+    - name: restricted

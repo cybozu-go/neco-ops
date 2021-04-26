@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: psa-system
+  labels:
+    team: neco
+    pod-security.cybozu.com/policy: privileged

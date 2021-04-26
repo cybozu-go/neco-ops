@@ -169,6 +169,12 @@ update-prometheus-adapter:
 		argocd-config/base/prometheus-adapter.yaml
 	rm -rf /tmp/prometheus-adapter
 
+.PHONY: update-pod-security-admission
+update-pod-security-admission:
+	$(call get-latest-gh,cybozu-go/pod-security-admission)
+	curl -sfL -o pod-security-admission/base/upstream/install.yaml \
+		https://github.com/cybozu-go/pod-security-admission/releases/download/$(latest_gh)/install.yaml
+
 .PHONY: update-pvc-autoresizer
 update-pvc-autoresizer:
 	$(call get-latest-gh,topolvm/pvc-autoresizer)

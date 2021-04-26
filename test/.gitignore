@@ -6,6 +6,7 @@
 /lets.crt
 /neco-apps
 /squid.yml
+/vendor
 account.json
 argocd-password.txt
 current-secret.yaml

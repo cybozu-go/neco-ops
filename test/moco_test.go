@@ -17,7 +17,7 @@ var mocoYAML []byte
 func prepareMoco() {
 	It("should deploy mysqlcluster", func() {
 		By("creating mysqlcluster")
-		createNamespaceIfNotExists("test-moco")
+		createNamespaceIfNotExists("test-moco", false)
 		_, stderr, err := ExecAtWithInput(boot0, mocoYAML, "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 	})

@@ -74,7 +74,7 @@ func prepareNodes() {
 	})
 }
 
-func createNamespaceIfNotExists(ns string) {
+func createNamespaceIfNotExists(ns string, privileged bool) {
 	_, _, err := ExecAt(boot0, "kubectl", "get", "namespace", ns)
 	if err == nil {
 		return
@@ -88,6 +88,10 @@ func createNamespaceIfNotExists(ns string) {
 		}
 		return nil
 	}).Should(Succeed())
+	if privileged {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "label", "--overwrite", "namespace/"+ns, "pod-security.cybozu.com/policy=privileged")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+	}
 }
 
 // testSetup tests setup of Argo CD
@@ -99,7 +103,7 @@ func testSetup() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			By("creating namespace and secrets for external-dns")
-			createNamespaceIfNotExists("external-dns")
+			createNamespaceIfNotExists("external-dns", false)
 			_, _, err = ExecAt(boot0, "kubectl", "--namespace=external-dns", "get", "secret", "clouddns")
 			if err != nil {
 				_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "--namespace=external-dns",
@@ -108,7 +112,7 @@ func testSetup() {
 			}
 
 			By("creating namespace and secrets for cert-manager")
-			createNamespaceIfNotExists("cert-manager")
+			createNamespaceIfNotExists("cert-manager", true)
 			_, _, err = ExecAt(boot0, "kubectl", "--namespace=cert-manager", "get", "secret", "clouddns")
 			if err != nil {
 				_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "--namespace=cert-manager",
@@ -119,7 +123,7 @@ func testSetup() {
 
 		It("should prepare secrets", func() {
 			By("creating namespace and secrets for grafana")
-			createNamespaceIfNotExists("sandbox")
+			createNamespaceIfNotExists("sandbox", true)
 
 			By("creating namespace and secrets for teleport")
 			stdout, stderr, err := ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
@@ -134,9 +138,14 @@ func testSetup() {
 				Token: teleportToken,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			createNamespaceIfNotExists("teleport")
+			createNamespaceIfNotExists("teleport", false)
 			stdout, stderr, err = ExecAtWithInput(boot0, buf.Bytes(), "kubectl", "apply", "-n", "teleport", "-f", "-")
 			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
+		})
+	} else {
+		It("should set privileged label to sandbox namespace", func() {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "label", "--overwrite", "namespace/sandbox", "pod-security.cybozu.com/policy=privileged")
+			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		})
 	}
 
@@ -146,7 +155,7 @@ func testSetup() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		By("creating namespace and secrets for zerossl")
-		createNamespaceIfNotExists("cert-manager")
+		createNamespaceIfNotExists("cert-manager", true)
 		_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
 		Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
 	})
@@ -358,15 +367,6 @@ func applyAndWaitForApplications(commitID string) {
 				app.Status.Health.Status == HealthStatusHealthy &&
 				app.Operation == nil {
 				continue
-			}
-
-			// TODO: remove this after #1366 gets merged and released
-			if doUpgrade &&
-				app.Name == "team-management" &&
-				app.Status.Sync.Status == SyncStatusCodeOutOfSync &&
-				app.Status.Health.Status == HealthStatusHealthy {
-				// ignore errors because this deletion will fail after a few days.
-				ExecAt(boot0, "kubectl", "delete", "RoleBinding", "-n", "app-monitoring", "monitoring-role-binding")
 			}
 
 			// In upgrade test, syncing network-policy app may cause temporal network disruption.
@@ -612,7 +612,7 @@ func applyMutatingWebhooks() {
 
 func setupArgoCD() {
 	By("installing Argo CD")
-	createNamespaceIfNotExists("argocd")
+	createNamespaceIfNotExists("argocd", true)
 	data, err := os.ReadFile("install.yaml")
 	Expect(err).ShouldNot(HaveOccurred())
 	_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-n", "argocd", "-f", "-")

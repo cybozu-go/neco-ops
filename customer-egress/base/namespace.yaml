@@ -7,3 +7,4 @@ metadata:
     admission.cybozu.com/min-policy-order: "100"
   labels:
     team: neco
+    pod-security.cybozu.com/policy: privileged

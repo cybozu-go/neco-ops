@@ -40,14 +40,12 @@ spec:
         - --incluster
         - --xds-address=0.0.0.0
         - --xds-port=8001
-        - --envoy-service-http-port=80
-        - --envoy-service-https-port=443
         - --contour-cafile=/certs/ca.crt
         - --contour-cert-file=/certs/tls.crt
         - --contour-key-file=/certs/tls.key
         - --config-path=/config/contour.yaml
         command: ["contour"]
-        image: docker.io/projectcontour/contour:v1.11.0
+        image: docker.io/projectcontour/contour:v1.14.1
         imagePullPolicy: Always
         name: contour
         ports:
