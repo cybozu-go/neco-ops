@@ -4,6 +4,16 @@ metadata:
   name: teleport-auth
   namespace: teleport
 spec:
+  template:
+    spec:
+      containers:
+      - name: teleport-auth
+        livenessProbe:
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          timeoutSeconds: 10
+          failureThreshold: 3
   volumeClaimTemplates:
   - metadata:
       name: teleport-storage
