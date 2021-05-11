@@ -49,7 +49,7 @@ data:
     detect_broken_pconn on
     forwarded_for delete
     httpd_suppress_version_string on
-    shutdown_lifetime 10 seconds
+    shutdown_lifetime 2 seconds
     pid_filename   none
     logfile_rotate 0
     access_log     stdio:/dev/stdout
@@ -237,7 +237,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["sleep", "5"]
+                command: ["sh", "-c", "kill -TERM 1 && sleep 3"]
           volumeMounts:
             - mountPath: /var/spool/squid
               name: cache
