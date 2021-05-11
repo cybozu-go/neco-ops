@@ -24,6 +24,9 @@ stringData:
         severity: DEBUG
       storage:
         type: dir
+        # This setting is different from real clusters.
+        # On dctest, "sync=NORMAL" makes the teleport-auth's access to SQLite extremely slow, and dctest become flaky.
+        # sync: NORMAL
 ---
 apiVersion: v1
 kind: Secret
