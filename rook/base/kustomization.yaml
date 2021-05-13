@@ -3,6 +3,5 @@ kind: Kustomization
 resources:
   - common/clusterrole.yaml
   - common/resources.yaml
-  - common/psp.yaml
   - ceph-hdd
   - ceph-ssd
