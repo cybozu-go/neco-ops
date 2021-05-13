@@ -1,5 +1,6 @@
 currentNamespaceOnly: true
 enableDiscoveryDaemon: false
+pspEnable: false
 csi:
   enableCephfsDriver: false
   # The case of cephFS described in upstream is different and may be corrected.

@@ -408,25 +408,6 @@ rules:
     verbs: ["get"]
 ---
 # Source: rook-ceph/templates/clusterrole.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: 'psp:rook'
-  labels:
-    operator: rook
-    storage-backend: ceph
-    chart: "rook-ceph-0.0.1"
-rules:
-- apiGroups:
-  - policy
-  resources:
-  - podsecuritypolicies
-  resourceNames:
-  - 00-rook-ceph-operator
-  verbs:
-  - use
----
-# Source: rook-ceph/templates/clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:

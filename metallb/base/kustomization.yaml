@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
 - ./upstream/metallb.yaml
 patchesStrategicMerge:
-- ./pod-security-policy.yaml
 - ./deployment.yaml
 images:
 - name: metallb/speaker

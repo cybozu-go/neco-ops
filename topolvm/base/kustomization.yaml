@@ -7,7 +7,6 @@ resources:
 - upstream/base/mutatingwebhooks.yaml
 - upstream/base/node.yaml
 - upstream/base/provisioner.yaml
-- upstream/base/psp.yaml
 - upstream/base/scheduler.yaml
 - upstream/lvmd/lvmd.yaml
 - upstream/overlays/daemonset-scheduler/scheduler.yaml
