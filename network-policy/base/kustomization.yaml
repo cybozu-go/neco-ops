@@ -9,7 +9,6 @@ images:
     newTag: 3.17.1.1
 resources:
   - calico/upstream/calico-policy-only.yaml
-  - calico/podsecuritypolicy.yaml
   - calico/rbac.yaml
   - policies/bmc-reverse-proxy.yaml
   - policies/ingress.yaml

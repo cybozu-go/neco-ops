@@ -9,6 +9,7 @@ spec:
       - name: external-dns
         args:
         - --source=crd
+        - --source=service
         - --domain-filter=stage0.cybozu-ne.co
         - --provider=google
         - --google-project=cybozu-neco

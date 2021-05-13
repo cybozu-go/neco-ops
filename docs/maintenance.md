@@ -171,7 +171,7 @@ helm repo add grafana https://grafana.github.io/helm-charts
 helm search repo -l grafana | grep grafana/promtail
 # Choose the latest `CHART VERSION` match with target Loki's `APP VERSION` and set value like below.
 PROMTAIL_CHART_VERSION=X.Y.Z
-helm template logging --namespace=logging grafana/promtail --version=${PROMTAIL_CHART_VERSION} --set rbac.pspEnabled=true > ${LOGGING_DIR}/base/promtail/upstream/promtail.yaml
+helm template logging --namespace=logging grafana/promtail --version=${PROMTAIL_CHART_VERSION} > ${LOGGING_DIR}/base/promtail/upstream/promtail.yaml
 ```
 ### consul
 
@@ -387,7 +387,7 @@ Note: Check the number of yaml files.
 
 ```console
 $ cd $GOPATH/src/github.com/cybozu-go/neco-apps/rook/base
-$ for i in clusterrole psp resources; do
+$ for i in clusterrole resources; do
     ../bin/helm template upstream/chart -f values.yaml -s templates/${i}.yaml > common/${i}.yaml
   done
 $ for t in hdd ssd; do

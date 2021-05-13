@@ -1,11 +1,13 @@
 package test
 
 import (
+	"bytes"
 	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os/exec"
+	"text/template"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,12 +16,19 @@ import (
 )
 
 //go:embed testdata/metallb.yaml
-var metallbYAML []byte
+var metallbYAML string
 
 func prepareMetalLB() {
 	It("should deploy load balancer type service", func() {
 		By("creating deployments and service")
-		_, stderr, err := ExecAtWithInput(boot0, metallbYAML, "kubectl", "create", "-f", "-")
+		tmpl := template.Must(template.New("").Parse(metallbYAML))
+		type tmplParams struct {
+			TestID string
+		}
+		buf := new(bytes.Buffer)
+		err := tmpl.Execute(buf, tmplParams{testID})
+		Expect(err).NotTo(HaveOccurred())
+		_, stderr, err := ExecAtWithInput(boot0, buf.Bytes(), "kubectl", "create", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 	})
 }
@@ -119,5 +128,12 @@ func testMetalLB() {
 		Eventually(func() error {
 			return exec.Command("ip", "netns", "exec", "external", "curl", targetIP, "-m", "5").Run()
 		}).Should(Succeed())
+
+		By("resolve fqdn")
+		Eventually(func() error {
+			_, _, err := ExecAt(boot0, "nslookup", testID+".testhttpd.default.gcp0.dev-ne.co")
+			return err
+		}).Should(Succeed())
+
 	})
 }

@@ -6,7 +6,6 @@ resources:
   - machines-endpoints/role.yaml
   - machines-endpoints/rolebinding.yaml
   - machines-endpoints/serviceaccount.yaml
-  - machines-endpoints/pod-security-policy.yaml
   - kube-state-metrics/deployment.yaml
   - kube-state-metrics/cluster-role.yaml
   - kube-state-metrics/cluster-role-binding.yaml
