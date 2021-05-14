@@ -1,37 +1,4 @@
 ---
-# Source: promtail/templates/podsecuritypolicy.yaml
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: logging-promtail
-  labels:
-    helm.sh/chart: promtail-3.0.4
-    app.kubernetes.io/name: promtail
-    app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
-    app.kubernetes.io/managed-by: Helm
-spec:
-  allowPrivilegeEscalation: true
-  fsGroup:
-    rule: RunAsAny
-  hostIPC: false
-  hostNetwork: false
-  hostPID: false
-  privileged: true
-  readOnlyRootFilesystem: true
-  requiredDropCapabilities:
-  - ALL
-  runAsUser:
-    rule: RunAsAny
-  seLinux:
-    rule: RunAsAny
-  supplementalGroups:
-    rule: RunAsAny
-  volumes:
-  - secret
-  - hostPath
-  - downwardAPI
----
 # Source: promtail/templates/serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -62,7 +29,7 @@ stringData:
       http_listen_port: 3101
     
     client:
-      url: http://logging-loki:3100/loki/api/v1/push
+      url: http://loki-gateway/loki/api/v1/push
     
     positions:
       filename: /run/promtail/positions.yaml
@@ -382,46 +349,6 @@ roleRef:
   kind: ClusterRole
   name: logging-promtail
   apiGroup: rbac.authorization.k8s.io
----
-# Source: promtail/templates/role.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: logging-promtail-psp
-  labels:
-    helm.sh/chart: promtail-3.0.4
-    app.kubernetes.io/name: promtail
-    app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
-    app.kubernetes.io/managed-by: Helm
-rules:
-  - apiGroups:
-      - policy
-    resources:
-      - podsecuritypolicies
-    verbs:
-      - use
-    resourceNames:
-      - logging-promtail
----
-# Source: promtail/templates/rolebinding.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: logging-promtail-psp
-  labels:
-    helm.sh/chart: promtail-3.0.4
-    app.kubernetes.io/name: promtail
-    app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
-    app.kubernetes.io/managed-by: Helm
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: logging-promtail-psp
-subjects:
-  - kind: ServiceAccount
-    name: logging-promtail
 ---
 # Source: promtail/templates/daemonset.yaml
 apiVersion: apps/v1

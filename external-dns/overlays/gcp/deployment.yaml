@@ -9,6 +9,7 @@ spec:
       - name: external-dns
         args:
         - --source=crd
+        - --source=service
         - --domain-filter=gcp0.dev-ne.co
         - --provider=google
         - --google-project=neco-test
