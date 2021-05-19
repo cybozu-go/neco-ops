@@ -10,6 +10,8 @@ spec:
       server: '*'
     - namespace: app-garoon-static
       server: '*'
+    - namespace: dev-*
+      server: '*'
     - namespace: sandbox
       server: '*'
   namespaceResourceBlacklist:

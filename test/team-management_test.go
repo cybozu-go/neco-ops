@@ -52,6 +52,9 @@ var requiredResources = []string{
 	// MOCO
 	"mysqlclusters.moco.cybozu.com",
 
+	// Rook
+	"objectbucketclaims.objectbucket.io",
+
 	// VictoriaMetrics operator
 	"vmagents.operator.victoriametrics.com",
 	"vmalertmanagers.operator.victoriametrics.com",
@@ -65,7 +68,6 @@ var requiredResources = []string{
 	// Others
 	"dnsendpoints.externaldns.k8s.io",
 	"httpproxies.projectcontour.io",
-	"objectbucketclaims.objectbucket.io",
 }
 
 // viewableResources is a list of resources that Neco allows for tenant users to view or list.
@@ -115,6 +117,22 @@ var prohibitedResources = []string{
 	// This resource is not allowed to unprivileged users in upstream ClusterRole.
 	// We follow this decision for a while because it is under development.
 	"agents.agent.k8s.elastic.co",
+
+	// Rook
+	"cephblockpools.ceph.rook.io",
+	"cephclients.ceph.rook.io",
+	"cephclusters.ceph.rook.io",
+	"cephfilesystemmirrors.ceph.rook.io",
+	"cephfilesystems.ceph.rook.io",
+	"cephnfses.ceph.rook.io",
+	"cephobjectrealms.ceph.rook.io",
+	"cephobjectstores.ceph.rook.io",
+	"cephobjectstoreusers.ceph.rook.io",
+	"cephobjectzonegroups.ceph.rook.io",
+	"cephobjectzones.ceph.rook.io",
+	"cephrbdmirrors.ceph.rook.io",
+	"volumereplications.replication.storage.openshift.io",
+	"volumes.rook.io",
 }
 
 // viewableClusterResources is a list of cluster resources that Neco allows for tenant users
@@ -141,18 +159,7 @@ var prohibitedClusterResources = []string{
 	"kubecontrollersconfigurations.crd.projectcalico.org",
 
 	// Rook
-	"cephblockpools.ceph.rook.io",
-	"cephclients.ceph.rook.io",
-	"cephclusters.ceph.rook.io",
-	"cephfilesystems.ceph.rook.io",
-	"cephnfses.ceph.rook.io",
-	"cephobjectrealms.ceph.rook.io",
-	"cephobjectstores.ceph.rook.io",
-	"cephobjectstoreusers.ceph.rook.io",
-	"cephobjectzonegroups.ceph.rook.io",
-	"cephobjectzones.ceph.rook.io",
-	"cephrbdmirrors.ceph.rook.io",
-	"volumes.rook.io",
+	"volumereplicationclasses.replication.storage.openshift.io",
 
 	// VictoriaMetrics operator
 	"vmclusters.operator.victoriametrics.com",

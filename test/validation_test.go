@@ -140,6 +140,11 @@ func testAppProjectResources(t *testing.T) {
 
 			var namespaces []string
 			for _, dest := range proj.Spec.Destinations {
+				// The namespaces with dev- prefix is maneged by tenant teams via neco-tenant-apps.
+				// As dev-* is to enable Argo CD to deploy resources to such namespaces, ignore this.
+				if dest.Namespace == "dev-*" {
+					continue
+				}
 				namespaces = append(namespaces, dest.Namespace)
 			}
 			sort.Strings(namespaces)

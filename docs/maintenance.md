@@ -411,9 +411,6 @@ $ for t in hdd ssd; do
 
 Then check the diffs by `git diff`.
 
-TODO:  
-After https://github.com/rook/rook/pull/5573 is merged, we have to revise the above-mentioned process.
-
 Update manifest for Ceph toolbox.
 Assume `rook/rook` is updated in the above procedure.
 

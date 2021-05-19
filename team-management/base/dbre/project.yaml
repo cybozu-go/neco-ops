@@ -8,6 +8,8 @@ spec:
   destinations:
     - namespace: app-cybozu-com-mysql
       server: '*'
+    - namespace: dev-*
+      server: '*'
     - namespace: sandbox
       server: '*'
   namespaceResourceBlacklist:

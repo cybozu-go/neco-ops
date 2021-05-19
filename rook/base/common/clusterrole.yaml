@@ -81,6 +81,7 @@ rules:
   - batch
   resources:
   - jobs
+  - cronjobs
   verbs:
   - get
   - list
@@ -143,6 +144,12 @@ rules:
   - delete
   - get
   - update
+- apiGroups:
+  - k8s.cni.cncf.io
+  resources:
+  - network-attachment-definitions
+  verbs:
+  - get
 ---
 # Source: rook-ceph/templates/clusterrole.yaml
 # Aspects of ceph-mgr that require cluster-wide access
@@ -405,6 +412,18 @@ rules:
     verbs: ["update", "patch"]
   - apiGroups: [""]
     resources: ["configmaps"]
+    verbs: ["get"]
+  - apiGroups: ["replication.storage.openshift.io"]
+    resources: ["volumereplications", "volumereplicationclasses"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["replication.storage.openshift.io"]
+    resources: ["volumereplications/finalizers"]
+    verbs: ["update"]
+  - apiGroups: ["replication.storage.openshift.io"]
+    resources: ["volumereplications/status"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: ["replication.storage.openshift.io"]
+    resources: ["volumereplicationclasses/status"]
     verbs: ["get"]
 ---
 # Source: rook-ceph/templates/clusterrole.yaml

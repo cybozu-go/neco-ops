@@ -46,6 +46,8 @@ spec:
       server: '*'
     - namespace: app-octodns
       server: '*'
+    - namespace: dev-*
+      server: '*'
     - namespace: maneki
       server: '*'
     - namespace: sandbox

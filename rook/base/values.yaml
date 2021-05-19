@@ -9,7 +9,7 @@ csi:
   provisionerPriorityClassName: ""
 image:
   repository: quay.io/cybozu/rook
-  tag: 1.5.7.2
+  tag: 1.6.2.1
   pullPolicy: IfNotPresent
 resources:
   limits:

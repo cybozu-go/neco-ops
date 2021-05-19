@@ -38,12 +38,6 @@ rules:
   - update
   - delete
 - apiGroups:
-  - k8s.cni.cncf.io
-  resources:
-  - network-attachment-definitions
-  verbs:
-  - get
-- apiGroups:
   - monitoring.coreos.com
   resources:
   - servicemonitors
@@ -54,6 +48,12 @@ rules:
   - watch
   - create
   - update
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  verbs:
   - delete
 ---
 kind: Role
@@ -86,6 +86,8 @@ rules:
   - get
   - list
   - watch
+  - create
+  - update
   - delete
 - apiGroups:
   - batch

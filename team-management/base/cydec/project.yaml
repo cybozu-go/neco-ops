@@ -8,6 +8,8 @@ spec:
   destinations:
     - namespace: app-gorush
       server: '*'
+    - namespace: dev-*
+      server: '*'
     - namespace: sandbox
       server: '*'
   namespaceResourceBlacklist:

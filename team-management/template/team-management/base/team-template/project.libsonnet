@@ -15,6 +15,10 @@ function(team, namespaces) [
           namespace: 'sandbox',
           server: '*',
         },
+        {
+          namespace: 'dev-*',
+          server: '*',
+        },
       ] + std.map(function(x) {
         namespace: x,
         server: '*',
