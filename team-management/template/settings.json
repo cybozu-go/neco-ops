@@ -7,7 +7,9 @@
     },
     "elasticsearch-apps": {
       "destinations": {
-        "stage0": "master"
+        "osaka0": "release",
+        "stage0": "master",
+        "tokyo0": "release"
       },
       "repo": "https://github.com/cybozu-private/elasticsearch-apps.git",
       "team": "maneki"
@@ -21,7 +23,9 @@
     },
     "garoon-apps": {
       "destinations": {
-        "stage0": "main"
+        "osaka0": "stable",
+        "stage0": "main",
+        "tokyo0": "stable"
       },
       "repo": "https://github.com/garoon-private/garoon-apps.git",
       "team": "garoon"
