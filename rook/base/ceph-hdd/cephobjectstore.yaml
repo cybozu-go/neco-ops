@@ -8,10 +8,12 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   metadataPool:
+    deviceClass: "ssd"
     failureDomain: zone
     replicated:
       size: 3
   dataPool:
+    deviceClass: "hdd"
     failureDomain: zone
     replicated:
       size: 3
