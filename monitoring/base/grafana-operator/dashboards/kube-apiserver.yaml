@@ -781,7 +781,7 @@ spec:
                 "steppedLine": false,
                 "targets": [
                     {
-                        "expr": "rate(process_cpu_seconds_total{job=\"kubernetes-apiservers\",instance=~\"$instance\"}[5m]) / on(instance) machine_cpu_cores",
+                        "expr": "rate(process_cpu_seconds_total{job=\"kubernetes-apiservers\",instance=~\"$instance\"}[5m])",
                         "format": "time_series",
                         "interval": "",
                         "intervalFactor": 2,
