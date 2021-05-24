@@ -22,7 +22,7 @@ spec:
         "editable": true,
         "gnetId": null,
         "graphTooltip": 0,
-        "id": null,
+        "id": 24,
         "links": [],
         "panels": [
             {
@@ -30,7 +30,15 @@ spec:
                 "bars": false,
                 "dashLength": 10,
                 "dashes": false,
+                "datasource": null,
                 "description": "Top 10 nodes that use a lot of memory",
+                "fieldConfig": {
+                    "defaults": {
+                        "custom": {},
+                        "links": []
+                    },
+                    "overrides": []
+                },
                 "fill": 0,
                 "fillGradient": 0,
                 "gridPos": {
@@ -39,6 +47,7 @@ spec:
                     "x": 0,
                     "y": 0
                 },
+                "hiddenSeries": false,
                 "id": 2,
                 "interval": "",
                 "legend": {
@@ -55,10 +64,10 @@ spec:
                 "linewidth": 1,
                 "nullPointMode": "null",
                 "options": {
-                    "dataLinks": []
+                    "alertThreshold": true
                 },
                 "percentage": false,
-                "pluginVersion": "6.3.6",
+                "pluginVersion": "7.4.1",
                 "pointradius": 2,
                 "points": false,
                 "renderer": "flot",
@@ -119,7 +128,15 @@ spec:
                 "bars": false,
                 "dashLength": 10,
                 "dashes": false,
+                "datasource": null,
                 "description": "Worst 10 nodes with low idle time",
+                "fieldConfig": {
+                    "defaults": {
+                        "custom": {},
+                        "links": []
+                    },
+                    "overrides": []
+                },
                 "fill": 0,
                 "fillGradient": 0,
                 "gridPos": {
@@ -128,6 +145,7 @@ spec:
                     "x": 5,
                     "y": 0
                 },
+                "hiddenSeries": false,
                 "id": 3,
                 "interval": "",
                 "legend": {
@@ -144,10 +162,10 @@ spec:
                 "linewidth": 1,
                 "nullPointMode": "null",
                 "options": {
-                    "dataLinks": []
+                    "alertThreshold": true
                 },
                 "percentage": false,
-                "pluginVersion": "6.3.6",
+                "pluginVersion": "7.4.1",
                 "pointradius": 2,
                 "points": false,
                 "renderer": "flot",
@@ -208,7 +226,15 @@ spec:
                 "bars": false,
                 "dashLength": 10,
                 "dashes": false,
+                "datasource": null,
                 "description": "Top 10 nodes that use a lot of disk IO",
+                "fieldConfig": {
+                    "defaults": {
+                        "custom": {},
+                        "links": []
+                    },
+                    "overrides": []
+                },
                 "fill": 0,
                 "fillGradient": 0,
                 "gridPos": {
@@ -217,6 +243,7 @@ spec:
                     "x": 10,
                     "y": 0
                 },
+                "hiddenSeries": false,
                 "id": 4,
                 "interval": "",
                 "legend": {
@@ -233,10 +260,10 @@ spec:
                 "linewidth": 1,
                 "nullPointMode": "null",
                 "options": {
-                    "dataLinks": []
+                    "alertThreshold": true
                 },
                 "percentage": false,
-                "pluginVersion": "6.3.6",
+                "pluginVersion": "7.4.1",
                 "pointradius": 2,
                 "points": false,
                 "renderer": "flot",
@@ -294,7 +321,33 @@ spec:
             },
             {
                 "cacheTimeout": null,
+                "datasource": null,
                 "description": "Nodes: Kernel versions",
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "thresholds"
+                        },
+                        "custom": {},
+                        "mappings": [],
+                        "max": 100,
+                        "min": 0,
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": null
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 200
+                                }
+                            ]
+                        }
+                    },
+                    "overrides": []
+                },
                 "gridPos": {
                     "h": 11,
                     "w": 4,
@@ -305,31 +358,18 @@ spec:
                 "links": [],
                 "options": {
                     "displayMode": "basic",
-                    "fieldOptions": {
+                    "orientation": "horizontal",
+                    "reduceOptions": {
                         "calcs": [
                             "mean"
                         ],
-                        "defaults": {
-                            "mappings": [],
-                            "max": 100,
-                            "min": 0,
-                            "thresholds": [
-                                {
-                                    "color": "green",
-                                    "value": null
-                                },
-                                {
-                                    "color": "red",
-                                    "value": 200
-                                }
-                            ]
-                        },
-                        "override": {},
+                        "fields": "",
                         "values": false
                     },
-                    "orientation": "horizontal"
+                    "showUnfilled": true,
+                    "text": {}
                 },
-                "pluginVersion": "6.3.6",
+                "pluginVersion": "7.4.1",
                 "targets": [
                     {
                         "expr": "sum by (release)(node_uname_info)",
@@ -347,6 +387,14 @@ spec:
                 "bars": false,
                 "dashLength": 10,
                 "dashes": false,
+                "datasource": null,
+                "fieldConfig": {
+                    "defaults": {
+                        "custom": {},
+                        "links": []
+                    },
+                    "overrides": []
+                },
                 "fill": 0,
                 "fillGradient": 0,
                 "gridPos": {
@@ -355,6 +403,7 @@ spec:
                     "x": 0,
                     "y": 11
                 },
+                "hiddenSeries": false,
                 "id": 9,
                 "legend": {
                     "avg": false,
@@ -370,9 +419,10 @@ spec:
                 "linewidth": 1,
                 "nullPointMode": "null",
                 "options": {
-                    "dataLinks": []
+                    "alertThreshold": true
                 },
                 "percentage": false,
+                "pluginVersion": "7.4.1",
                 "pointradius": 2,
                 "points": false,
                 "renderer": "flot",
@@ -433,6 +483,14 @@ spec:
                 "bars": false,
                 "dashLength": 10,
                 "dashes": false,
+                "datasource": null,
+                "fieldConfig": {
+                    "defaults": {
+                        "custom": {},
+                        "links": []
+                    },
+                    "overrides": []
+                },
                 "fill": 0,
                 "fillGradient": 0,
                 "gridPos": {
@@ -441,6 +499,7 @@ spec:
                     "x": 5,
                     "y": 11
                 },
+                "hiddenSeries": false,
                 "id": 10,
                 "legend": {
                     "avg": false,
@@ -456,9 +515,10 @@ spec:
                 "linewidth": 1,
                 "nullPointMode": "null",
                 "options": {
-                    "dataLinks": []
+                    "alertThreshold": true
                 },
                 "percentage": false,
+                "pluginVersion": "7.4.1",
                 "pointradius": 2,
                 "points": false,
                 "renderer": "flot",
@@ -519,6 +579,14 @@ spec:
                 "bars": false,
                 "dashLength": 10,
                 "dashes": false,
+                "datasource": null,
+                "fieldConfig": {
+                    "defaults": {
+                        "custom": {},
+                        "links": []
+                    },
+                    "overrides": []
+                },
                 "fill": 0,
                 "fillGradient": 0,
                 "gridPos": {
@@ -527,6 +595,7 @@ spec:
                     "x": 10,
                     "y": 11
                 },
+                "hiddenSeries": false,
                 "id": 7,
                 "legend": {
                     "alignAsTable": false,
@@ -543,9 +612,10 @@ spec:
                 "linewidth": 1,
                 "nullPointMode": "null",
                 "options": {
-                    "dataLinks": []
+                    "alertThreshold": true
                 },
                 "percentage": false,
+                "pluginVersion": "7.4.1",
                 "pointradius": 2,
                 "points": false,
                 "renderer": "flot",
@@ -600,10 +670,109 @@ spec:
                     "align": false,
                     "alignLevel": null
                 }
+            },
+            {
+                "aliasColors": {},
+                "bars": false,
+                "dashLength": 10,
+                "dashes": false,
+                "datasource": null,
+                "fieldConfig": {
+                    "defaults": {
+                        "custom": {}
+                    },
+                    "overrides": []
+                },
+                "fill": 1,
+                "fillGradient": 0,
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 22
+                },
+                "hiddenSeries": false,
+                "id": 12,
+                "legend": {
+                    "avg": false,
+                    "current": false,
+                    "max": false,
+                    "min": false,
+                    "show": true,
+                    "total": false,
+                    "values": false
+                },
+                "lines": true,
+                "linewidth": 1,
+                "nullPointMode": "null",
+                "options": {
+                    "alertThreshold": true
+                },
+                "percentage": false,
+                "pluginVersion": "7.4.1",
+                "pointradius": 2,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "spaceLength": 10,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                    {
+                        "expr": "deriv(time() - node_boot_time_seconds{}) < bool 0.1",
+                        "interval": "",
+                        "legendFormat": "",
+                        "refId": "A"
+                    }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeRegions": [],
+                "timeShift": null,
+                "title": "Node Reboot Time",
+                "tooltip": {
+                    "shared": true,
+                    "sort": 0,
+                    "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                    "buckets": null,
+                    "mode": "time",
+                    "name": null,
+                    "show": true,
+                    "values": []
+                },
+                "yaxes": [
+                    {
+                        "$$hashKey": "object:232",
+                        "decimals": null,
+                        "format": "none",
+                        "label": "",
+                        "logBase": 1,
+                        "max": null,
+                        "min": null,
+                        "show": true
+                    },
+                    {
+                        "$$hashKey": "object:233",
+                        "decimals": null,
+                        "format": "short",
+                        "label": null,
+                        "logBase": 1,
+                        "max": null,
+                        "min": null,
+                        "show": true
+                    }
+                ],
+                "yaxis": {
+                    "align": false,
+                    "alignLevel": null
+                }
             }
         ],
         "refresh": false,
-        "schemaVersion": 19,
+        "schemaVersion": 27,
         "style": "dark",
         "tags": [
             "node"
@@ -632,5 +801,5 @@ spec:
         "timezone": "",
         "title": "All Nodes",
         "uid": "BYo43O2Zz",
-        "version": 15
+        "version": 2
     }
