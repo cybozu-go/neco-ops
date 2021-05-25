@@ -9,6 +9,7 @@ How to maintain neco-apps
 - [external-dns](#external-dns)
 - [kube-metrics-adapter](#kube-metrics-adapter)
 - [ingress (Contour & Envoy)](#ingress-contour--envoy)
+- [local-pv-provisioner](#local-pv-provisioner)
 - [logging](#logging)
   - [loki, loki-canary](#loki-loki-canary)
   - [promtail](#promtail)
@@ -30,7 +31,6 @@ How to maintain neco-apps
 - [prometheus-adapter](#prometheus-adapter)
 - [pvc-autoresizer](#pvc-autoresizer)
 - [rook](#rook)
-- [local-pv-provisioner](#local-pv-provisioner)
   - [ceph](#ceph)
 - [sealed-secrets](#sealed-secrets)
 - [teleport](#teleport)
@@ -154,6 +154,15 @@ Note that:
   - If the manifest needs modification:
     - If the manifest is for a cluster-wide resource, put a modified version in the `common` directory.
     - If the manifest is for a namespaced resource, put a template in the `template` directory and apply patches.
+
+## local-pv-provisioner
+
+Update image tags as follows,
+
+```console
+$ make update-local-pv-provisioner
+$ git diff
+```
 
 ## logging
 ### loki, loki-canary
@@ -364,7 +373,8 @@ $ git diff
 
 ## rook
 
-*Do not upgrade Rook and Ceph at the same time!*
+*Caution:* Rook and Ceph require two phase update.
+First phase, update Rook solely. Second phase, update Ceph and Rook image based on new Ceph image.
 
 Read [this document](https://github.com/rook/rook/blob/master/Documentation/ceph-upgrade.md) before. Note that you should choose the appropriate release version.
 
@@ -421,18 +431,9 @@ $ cp $GOPATH/src/github.com/rook/rook/cluster/examples/kubernetes/ceph/toolbox.y
 
 Update rook/**/kustomization.yaml if necessary.
 
-## local-pv-provisioner
-
-Update image tags as follows,
-
-```console
-$ make update-local-pv-provisioner
-$ git diff
-```
-
 ### ceph
 
-*Do not upgrade Rook and Ceph at the same time!*
+*Read Rook Caution!*
 
 Read [this document](https://github.com/rook/rook/blob/master/Documentation/ceph-upgrade.md) first.
 

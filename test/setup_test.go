@@ -369,24 +369,6 @@ func applyAndWaitForApplications(commitID string) {
 				continue
 			}
 
-			// TODO: remove this after #1430 gets merged and released
-			if doUpgrade &&
-				app.Name == "team-management" &&
-				app.Status.Sync.Status == SyncStatusCodeOutOfSync &&
-				app.Status.Health.Status == HealthStatusHealthy {
-				// ignore errors because this deletion will fail after a few days.
-				ExecAt(boot0, "kubectl", "delete", "PodSecurityPolicy", "elastic-user")
-				ExecAt(boot0, "kubectl", "delete", "ClusterRole", "psp:elastic-user")
-				ExecAt(boot0, "kubectl", "delete", "ClusterRoleBinding", "default:psp:elastic-user")
-			}
-			if doUpgrade &&
-				app.Name == "customer-egress" &&
-				app.Status.Sync.Status == SyncStatusCodeSynced &&
-				app.Status.Health.Status == HealthStatusDegraded {
-				// ignore errors because this deletion will fail after a few days.
-				ExecAt(boot0, "kubectl", "delete", "deploy", "-n=customer-egress", "squid")
-			}
-
 			// In upgrade test, syncing network-policy app may cause temporal network disruption.
 			// It leads to ArgoCD's improper behavior. In spite of the network-policy app becomes Synced/Healthy, the operation does not end.
 			// So terminate the unexpected operation manually in upgrade test.

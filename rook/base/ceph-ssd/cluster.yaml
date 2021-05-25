@@ -57,7 +57,7 @@ spec:
               app: rook-ceph-mon
           topologyKey: topology.kubernetes.io/zone
   cephVersion:
-    image: quay.io/cybozu/ceph:15.2.8.1
+    image: quay.io/cybozu/ceph:16.2.4.1
   dashboard:
     ssl: true
   priorityClassNames:
