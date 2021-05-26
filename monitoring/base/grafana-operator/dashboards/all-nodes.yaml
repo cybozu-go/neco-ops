@@ -719,7 +719,7 @@ spec:
                 "steppedLine": false,
                 "targets": [
                     {
-                        "expr": "deriv(time() - node_boot_time_seconds{}) < bool 0.1",
+                        "expr": "changes(node_boot_time_seconds{}[15m:]) > 0",
                         "interval": "",
                         "legendFormat": "",
                         "refId": "A"
@@ -729,7 +729,7 @@ spec:
                 "timeFrom": null,
                 "timeRegions": [],
                 "timeShift": null,
-                "title": "Node Reboot Time",
+                "title": "Node Reboot Count",
                 "tooltip": {
                     "shared": true,
                     "sort": 0,
@@ -751,7 +751,7 @@ spec:
                         "label": "",
                         "logBase": 1,
                         "max": null,
-                        "min": null,
+                        "min": "0",
                         "show": true
                     },
                     {
