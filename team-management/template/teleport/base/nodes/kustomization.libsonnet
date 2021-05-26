@@ -8,7 +8,7 @@ function(teams) [{
   images: [
     {
       name: 'quay.io/cybozu/teleport-node',
-      newTag: '6.0.1.1',
+      newTag: '6.2.0.1',
     },
   ],
 }]

@@ -455,9 +455,8 @@ $ git diff
 
 ## teleport
 
-There is no official kubernetes manifests actively maintained for teleport.
-So, check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github,
-and [Helm chart](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport).
+The teleport manifests in neco-apps is created from scratch.
+Please check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github, the update of the upstream [Helm chart](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport) and backport it.
 
 ```console
 $ git clone https://github.com/gravitational/teleport
@@ -465,7 +464,14 @@ $ cd teleport
 $ git diff vx.y.z...vX.Y.Z examples/chart/teleport
 ```
 
-- Update `newTag` in `teleport/base/kustomizaton.yaml`.
+- Update `newTag` in `team-management/template/teleport/base/kustomization.libsonnet` and regenerate files.
+- Updating teleport-node can also be done in this way. (Update `team-management/template/teleport/base/nodes/kustomization.libsonnet`)
+
+```console
+$ cd ./team-management/template
+$ make setup
+$ make teleport
+```
 - Update `TELEPORT_VERSION` in `test/Makefile`.
 
 ## topolvm
