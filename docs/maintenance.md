@@ -455,9 +455,8 @@ $ git diff
 
 ## teleport
 
-There is no official kubernetes manifests actively maintained for teleport.
-So, check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github,
-and [Helm chart](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport).
+The teleport manifests in neco-apps is created from scratch.
+Please check changes in [CHANGELOG.md](https://github.com/gravitational/teleport/blob/master/CHANGELOG.md) on github, the update of the upstream [Helm chart](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport) and backport it.
 
 ```console
 $ git clone https://github.com/gravitational/teleport
