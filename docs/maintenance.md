@@ -465,6 +465,7 @@ $ git diff vx.y.z...vX.Y.Z examples/chart/teleport
 ```
 
 - Update `newTag` in `team-management/template/teleport/base/kustomization.libsonnet` and regenerate files.
+- Updating teleport-node can also be done in this way. (Update `team-management/template/teleport/base/nodes/kustomization.libsonnet`)
 
 ```console
 $ cd ./team-management/template
