@@ -464,7 +464,13 @@ $ cd teleport
 $ git diff vx.y.z...vX.Y.Z examples/chart/teleport
 ```
 
-- Update `newTag` in `teleport/base/kustomizaton.yaml`.
+- Update `newTag` in `team-management/template/teleport/base/kustomization.libsonnet` and regenerate files.
+
+```console
+$ cd ./team-management/template
+$ make setup
+$ make teleport
+```
 - Update `TELEPORT_VERSION` in `test/Makefile`.
 
 ## topolvm
