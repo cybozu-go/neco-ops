@@ -10,6 +10,11 @@ ArgoCDApplicationValidator:
         - tenant-app-of-apps
       repository: https://github.com/cybozu-private/cydec-apps.git
     - projects:
+        - dbre
+        - maneki
+        - tenant-app-of-apps
+      repository: https://github.com/cybozu-private/dbre-apps
+    - projects:
         - maneki
         - tenant-app-of-apps
       repository: https://github.com/cybozu-private/elasticsearch-apps.git
