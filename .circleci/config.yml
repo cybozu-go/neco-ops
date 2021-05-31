@@ -342,16 +342,16 @@ workflows:
           filters:
             branches:
               ignore: ["stage", "release", /^op-(stage|release)-.*/]
-#      - upgrade-stage:
-#          requires: ["test"]
-#          filters:
-#            branches:
-#              ignore: ["stage", "release", /^op-(stage|release)-.*/]
-#      - upgrade-release:
-#          requires: ["test"]
-#          filters:
-#            branches:
-#              ignore: ["release", /^op-(stage|release)-.*/]
+      - upgrade-stage:
+          requires: ["test"]
+          filters:
+            branches:
+              ignore: ["stage", "release", /^op-(stage|release)-.*/]
+      - upgrade-release:
+          requires: ["test"]
+          filters:
+            branches:
+              ignore: ["release", /^op-(stage|release)-.*/]
       - create-pull-request-stage:
           filters:
             branches:
@@ -359,8 +359,8 @@ workflows:
                 - main
           requires:
             - bootstrap
-#            - upgrade-stage
-#            - upgrade-release
+            - upgrade-stage
+            - upgrade-release
 
   # Test with the specified neco branch.
   manual-dctest-with-neco-feature-branch:
