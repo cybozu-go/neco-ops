@@ -51,6 +51,7 @@ var requiredResources = []string{
 
 	// MOCO
 	"mysqlclusters.moco.cybozu.com",
+	"backuppolicies.moco.cybozu.com",
 
 	// Rook
 	"objectbucketclaims.objectbucket.io",
