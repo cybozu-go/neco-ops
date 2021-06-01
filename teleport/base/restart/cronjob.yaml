@@ -21,3 +21,6 @@ spec:
                 TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token);
                 curl -isSk -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/strategic-merge-patch+json" https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_PORT_443_TCP_PORT}/apis/apps/v1/namespaces/teleport/deployments/teleport-proxy/ -X PATCH --data '{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubrnetes.io/restartedAt":"'"$(date +%Y-%m-%dT%T%z)"'"}}}}}'
           restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000

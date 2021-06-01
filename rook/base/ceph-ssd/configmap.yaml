@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: ceph-ssd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+data:
+  config: |
+    [mon]
+    bluefs_buffered_io = false
+    
+    [osd]
+    bluefs_buffered_io = false
