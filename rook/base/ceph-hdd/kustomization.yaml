@@ -6,6 +6,7 @@ resources:
   - cephblockpool.yaml
   - cephobjectstore.yaml
   - cluster.yaml
+  - configmap.yaml
   - deployment.yaml
   - role.yaml
   - rolebinding.yaml

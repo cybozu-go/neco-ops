@@ -5,6 +5,7 @@ resources:
   - clusterrolebinding
   - cephblockpool.yaml
   - cluster.yaml
+  - configmap.yaml
   - deployment.yaml
   - role.yaml
   - rolebinding.yaml
