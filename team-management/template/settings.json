@@ -88,5 +88,8 @@
       "app-octodns",
       "maneki"
     ]
+  },
+  "repos": {
+    "https://github.com/garoon-private/static-deployment.git": "garoon"
   }
 }

@@ -21,21 +21,17 @@ function(settings) [{
             'default',
           ],
         },
-        {
-          repository: 'https://github.com/garoon-private/static-deployment.git',
-          projects: [
-            'garoon',
-            'maneki',
-            'tenant-app-of-apps',
-          ],
-        },
       ] + std.map(function(x) {
         repository: utility.get_app(settings, x).repo,
         projects: if x == 'tenant-apps' then [
           'tenant-apps',
           'tenant-app-of-apps',
         ] else std.set([utility.get_app(settings, x).team, 'maneki', 'tenant-app-of-apps']),
-      }, utility.get_apps(settings)),
+      }, utility.get_apps(settings)) +
+      std.map(function(x) {
+        repository: x,
+        projects: std.set([utility.get_repo(settings, x), 'maneki', 'tenant-app-of-apps']),
+      }, utility.get_repos(settings)),
       function(x) x.repository
     ),
   },

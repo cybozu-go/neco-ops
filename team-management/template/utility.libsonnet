@@ -61,4 +61,12 @@
   // get_app retrieves a tenant app settings.
   get_app(settings, name)::
     settings.apps[name],
+
+  // get_repos retrieves the array of tenant repos.
+  get_repos(settings)::
+    std.objectFields(settings.repos),
+
+  // get_repo retrieves a tenant repository settings.
+  get_repo(settings, name)::
+    settings.repos[name],
 }
