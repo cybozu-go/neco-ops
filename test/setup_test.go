@@ -149,17 +149,6 @@ func testSetup() {
 		})
 	}
 
-	It("should apply zerossl secrets", func() {
-		By("loading zerossl-secret-resource.json")
-		data, err := os.ReadFile("zerossl-secret-resource.json")
-		Expect(err).ShouldNot(HaveOccurred())
-
-		By("creating namespace and secrets for zerossl")
-		createNamespaceIfNotExists("cert-manager", true)
-		_, stderr, err := ExecAtWithInput(boot0, data, "kubectl", "apply", "-f", "-")
-		Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
-	})
-
 	It("should checkout neco-apps repository@"+commitID, func() {
 		ExecSafeAt(boot0, "rm", "-rf", "neco-apps")
 

@@ -52,6 +52,7 @@ commands:
           command: |
             echo $GCLOUD_SERVICE_ACCOUNT > account.json
             gcloud auth activate-service-account --key-file=account.json
+      # Remove this when the SelfSigned PR is reflected in the release branch
       - run:
           name: Store ZeroSSL EAB Secret
           command: |
