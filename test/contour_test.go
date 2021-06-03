@@ -221,7 +221,7 @@ func testContour() {
 			stdout, stderr, err := ExecInNetns(
 				"external",
 				"curl",
-				"-v",
+				"-kv",
 				"--resolve",
 				fqdnHTTPS+":443:"+targetIP,
 				"https://"+fqdnHTTPS+"/",
@@ -241,7 +241,7 @@ func testContour() {
 			stdout, _, err := ExecInNetns(
 				"external",
 				"curl",
-				"-I",
+				"-kI",
 				"--resolve",
 				fqdnHTTPS+":80:"+targetIP,
 				"http://"+fqdnHTTPS+"/",
