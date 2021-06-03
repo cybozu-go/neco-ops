@@ -49,12 +49,6 @@ neco-apps test runs `kubectl create secrets .... --from-file=account.json` to re
 To run `external-dns` test, put your account.json of the Google Cloud service account which has a role `roles/dns.admin`.
 See details of the role at https://cloud.google.com/iam/docs/understanding-roles#dns-roles
 
-`./zerossl-secret-resource.json`
-----------------
-
-`clouddns` `ClusterIssuer` in gcp0 uses ZeroSSL. It requires authenticated credentials in JSON file.
-neco-apps test runs `kubectl apply -f - < zerossl-secret-resource.json` to register `Secret` for ClusterIssuer.
-
 Using `argocd`
 --------------
 
