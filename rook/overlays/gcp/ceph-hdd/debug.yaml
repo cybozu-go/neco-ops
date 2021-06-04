@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: ceph-hdd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+data:
+  config: |
+    [client]
+    rgw enable ops log = true
+    debug rgw = 20/20
