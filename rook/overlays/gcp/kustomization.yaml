@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../base
+  - ../../poc/ceph-poc
 patchesJson6902:
 - target:
     group: ceph.rook.io
@@ -10,6 +11,12 @@ patchesJson6902:
     name: ceph-hdd
     namespace: ceph-hdd
   patch: |-
+    - op: replace
+      path: /spec/resources/osd/requests/cpu
+      value: 300m
+    - op: replace
+      path: /spec/resources/crashcollector/requests/cpu
+      value: 300m
     - op: replace
       path: /spec/mon/volumeClaimTemplate/spec/resources/requests/storage
       value: 3Gi
@@ -24,6 +31,12 @@ patchesJson6902:
     namespace: ceph-ssd
   patch: |-
     - op: replace
+      path: /spec/resources/osd/requests/cpu
+      value: 300m
+    - op: replace
+      path: /spec/resources/crashcollector/requests/cpu
+      value: 300m
+    - op: replace
       path: /spec/mon/volumeClaimTemplate/spec/resources/requests/storage
       value: 3Gi
     - op: replace
@@ -31,6 +44,34 @@ patchesJson6902:
       value: 5
     - op: replace
       path: /spec/storage/storageClassDeviceSets/0/volumeClaimTemplates/0/spec/resources/requests/storage
+      value: 5Gi
+- target:
+    group: ceph.rook.io
+    version: v1
+    kind: CephCluster
+    name: ceph-poc
+    namespace: ceph-poc
+  patch: |-
+    - op: replace
+      path: /spec/resources/osd/requests/cpu
+      value: 300m
+    - op: replace
+      path: /spec/resources/crashcollector/requests/cpu
+      value: 300m
+    - op: replace
+      path: /spec/mon/volumeClaimTemplate/spec/resources/requests/storage
+      value: 3Gi
+    - op: replace
+      path: /spec/storage/storageClassDeviceSets/0/count
+      value: 3
+    - op: replace
+      path: /spec/storage/storageClassDeviceSets/0/volumeClaimTemplates/0/spec/resources/requests/storage
+      value: 5Gi
+    - op: replace
+      path: /spec/storage/storageClassDeviceSets/1/count
+      value: 3
+    - op: replace
+      path: /spec/storage/storageClassDeviceSets/1/volumeClaimTemplates/0/spec/resources/requests/storage
       value: 5Gi
 - target:
     group: apps

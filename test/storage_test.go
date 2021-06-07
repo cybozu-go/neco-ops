@@ -62,7 +62,7 @@ func prepareRookCeph() {
 
 	It("should create a POD for testRookRBD", func() {
 		tmpl := template.Must(template.New("").Parse(storageRBDYAML))
-		for _, storageClassName := range []string{"ceph-hdd-block", "ceph-ssd-block"} {
+		for _, storageClassName := range []string{"ceph-hdd-block", "ceph-ssd-block", "ceph-poc-block"} {
 			buf := new(bytes.Buffer)
 			err := tmpl.Execute(buf, storageClassName)
 			Expect(err).NotTo(HaveOccurred())
@@ -74,7 +74,7 @@ func prepareRookCeph() {
 }
 
 func testRookOperator() {
-	nss := []string{"ceph-hdd", "ceph-ssd"}
+	nss := []string{"ceph-hdd", "ceph-ssd", "ceph-poc"}
 	for _, ns := range nss {
 		By("checking rook-ceph-operator Deployment for "+ns, func() {
 			Eventually(func() error {
@@ -138,7 +138,7 @@ func testRookOperator() {
 }
 
 func testClusterStable() {
-	nss := []string{"ceph-hdd", "ceph-ssd"}
+	nss := []string{"ceph-hdd", "ceph-ssd", "ceph-poc"}
 	for _, ns := range nss {
 		By("checking stability of rook/ceph cluster "+ns, func() {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace="+ns,
@@ -161,19 +161,27 @@ func testClusterStable() {
 			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s", stdout)
 
 			stdout, stderr, err = ExecAt(boot0, "kubectl", "--namespace="+ns,
-				"get", "cephcluster", ns, "-o", "jsonpath='{.spec.storage.storageClassDeviceSets[0].count}'")
+				"get", "cephcluster", ns, "-o", "jsonpath='{.spec.storage.storageClassDeviceSets[*].count}'")
 			Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
-			num_osd_expected, err := strconv.Atoi(strings.TrimSpace(string(stdout)))
-			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s", stdout)
+			num_osd_list := strings.Fields(string(stdout))
+			num_osd_expected := 0
+			for _, num_osd := range num_osd_list {
+				num, err := strconv.Atoi(strings.TrimSpace(string(num_osd)))
+				Expect(err).ShouldNot(HaveOccurred(), "stdout=%s", stdout)
+				num_osd_expected += num
+			}
 
 			num_rgw_expected := 0
-			if ns == "ceph-hdd" {
+			if ns == "ceph-hdd" || ns == "ceph-poc" {
 				stdout, stderr, err := ExecAt(boot0, "kubectl", "--namespace="+ns,
-					"get", "cephobjectstore", ns+"-object-store", "-o", "jsonpath='{.spec.gateway.instances}'")
+					"get", "cephobjectstore", "-o", "jsonpath='{.items[*].spec.gateway.instances}'")
 				Expect(err).ShouldNot(HaveOccurred(), "stderr=%s", stderr)
-				n, err := strconv.Atoi(strings.TrimSpace(string(stdout)))
-				Expect(err).ShouldNot(HaveOccurred(), "stdout=%s", stdout)
-				num_rgw_expected = n
+				nums := strings.Fields(string(stdout))
+				for _, num := range nums {
+					n, err := strconv.Atoi(num)
+					Expect(err).ShouldNot(HaveOccurred(), "stdout=%s", stdout)
+					num_rgw_expected += n
+				}
 			}
 
 			By("checking deployments versions are equal to the requiring")
@@ -264,6 +272,7 @@ func testClusterStable() {
 func testMONPodsSpreadAll() {
 	testMONPodsSpread("ceph-hdd", "ceph-hdd")
 	testMONPodsSpread("ceph-ssd", "ceph-ssd")
+	testMONPodsSpread("ceph-poc", "ceph-poc")
 }
 
 func testMONPodsSpread(cephClusterName, cephClusterNamespace string) {
@@ -391,6 +400,7 @@ func testRookRGW() {
 func testRookRBDAll() {
 	testRookRBD("ceph-hdd-block")
 	testRookRBD("ceph-ssd-block")
+	testRookRBD("ceph-poc-block")
 }
 
 func testRookRBD(storageClassName string) {

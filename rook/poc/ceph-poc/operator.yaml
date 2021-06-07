@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+spec:
+  template:
+    spec:
+      containers:
+      - name: rook-ceph-operator
+        volumeMounts:
+        - mountPath: /var/lib/rook
+          name: rook-config
+        - mountPath: /etc/ceph
+          name: default-config-dir
+      volumes:
+      - emptyDir: {}
+        name: rook-config
+      - emptyDir: {}
+        name: default-config-dir

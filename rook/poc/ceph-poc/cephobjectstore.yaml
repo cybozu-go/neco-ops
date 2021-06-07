@@ -1,0 +1,81 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: ceph-poc-object-store-ssd-index
+  namespace: ceph-poc
+  annotations:
+    # CephObjectStore depends CephCluster, so that it should be created after CephCluster
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  metadataPool:
+    deviceClass: "ssd"
+    failureDomain: zone
+    replicated:
+      size: 3
+  dataPool:
+    deviceClass: "hdd"
+    failureDomain: zone
+    replicated:
+      size: 3
+  preservePoolsOnDelete: true
+  gateway:
+    port: 80
+    instances: 1
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1024Mi"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-poc-bucket-ssd-index
+  annotations:
+    # StorageClass is referred by Rook, so that it should be created before Rook
+    argocd.argoproj.io/sync-wave: "-1"
+provisioner: ceph-poc.ceph.rook.io/bucket
+parameters:
+  objectStoreName: ceph-poc-object-store-ssd-index
+  objectStoreNamespace: ceph-poc
+reclaimPolicy: Delete
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: ceph-poc-object-store-hdd-index
+  namespace: ceph-poc
+  annotations:
+    # CephObjectStore depends CephCluster, so that it should be created after CephCluster
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  metadataPool:
+    deviceClass: "hdd"
+    failureDomain: zone
+    replicated:
+      size: 3
+  dataPool:
+    deviceClass: "hdd"
+    failureDomain: zone
+    replicated:
+      size: 3
+  preservePoolsOnDelete: true
+  gateway:
+    port: 80
+    instances: 1
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1024Mi"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-poc-bucket-hdd-index
+  annotations:
+    # StorageClass is referred by Rook, so that it should be created before Rook
+    argocd.argoproj.io/sync-wave: "-1"
+provisioner: ceph-poc.ceph.rook.io/bucket
+parameters:
+  objectStoreName: ceph-poc-object-store-hdd-index
+  objectStoreNamespace: ceph-poc
+reclaimPolicy: Delete
