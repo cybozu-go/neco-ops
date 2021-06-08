@@ -12,4 +12,3 @@ argocd-password.txt
 current-secret.yaml
 expected-secret-*.yaml
 install.yaml
-zerossl-secret-resource.json

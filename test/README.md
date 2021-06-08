@@ -6,9 +6,8 @@ dctest
 
 1. Set `NECO_DIR` environment variable to point the directory for `github.com/cybozu-go/neco`
 2. Place `account.json` file for GCP Cloud DNS in this directory.
-3. Place `zerossl-secret-resource.json` file for ZeroSSL in this directory.
-4. Push the current feature branch to GitHub.
-5. Prepare dctest environment using `github.com/cybozu-go/neco/dctest`.
+3. Push the current feature branch to GitHub.
+4. Prepare dctest environment using `github.com/cybozu-go/neco/dctest`.
 
     ```console
     # In this case, menu-ss.yml should be used.
@@ -18,14 +17,14 @@ dctest
     make -C ${NECO_DIR}/dctest test SUITE=bootstrap
     ```
 
-6. Run following commands to setup tools.
+5. Run following commands to setup tools.
 
     ```console
     cd test
     make setup
     ```
 
-7. Run either one of the following.
+6. Run either one of the following.
 
     1. Setup all applications without tests.
 

@@ -21,8 +21,7 @@ cd \$HOME/go/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME
 git checkout -qf ${CIRCLE_SHA1}
 
 cd test
-# Remove zerossl-secret-resource.json when the SelfSigned PR is reflected in the release branch
-cp /home/cybozu/account.json /home/cybozu/zerossl-secret-resource.json ./
+cp /home/cybozu/account.json ./
 curl -sfL -o lets.crt https://letsencrypt.org/certs/fakelerootx1.pem
 make setup
 make $TARGET COMMIT_ID=${CIRCLE_SHA1} BASE_BRANCH=${BASE_BRANCH} SUITE=prepare
@@ -31,8 +30,7 @@ EOF
 chmod +x run.sh
 
 # Clean old CI files
-# Remove zerossl-secret-resource.json when the SelfSigned PR is reflected in the release branch
-$GCLOUD compute scp --zone=${ZONE} run.sh account.json zerossl-secret-resource.json cybozu@${INSTANCE_NAME}:
+$GCLOUD compute scp --zone=${ZONE} run.sh account.json cybozu@${INSTANCE_NAME}:
 $GCLOUD compute ssh --zone=${ZONE} cybozu@${INSTANCE_NAME} --command="sudo -H /home/cybozu/run.sh"
 STATUSCODE=$?
 mkdir -p ~/test-results/junit/

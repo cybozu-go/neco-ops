@@ -1,0 +1,152 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: ceph-poc
+  namespace: ceph-poc
+spec:
+  dataDirHostPath: /var/lib/rook
+  resources:
+    mgr:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+    mon:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+    osd:
+      requests:
+        cpu: "500m"
+        memory: "2Gi"
+    prepareosd:
+      requests:
+        cpu: "500m"
+        memory: "50Mi"
+    crashcollector:
+      requests:
+        cpu: "500m"
+        memory: "60Mi"
+    ## please set `requests` parameters on the following modules after enabling it.
+    # logcollector:
+    #   requests:
+    #     cpu: "500m"
+    #     memory: "1Gi"
+    # cleanup:
+    #   requests:
+    #     cpu: "500m"
+    #     memory: "1Gi"
+  mon:
+    count: 3
+    volumeClaimTemplate:
+      spec:
+        storageClassName: topolvm-provisioner
+        resources:
+          requests:
+            storage: 10Gi
+  mgr:
+    modules:
+      - name: pg_autoscaler
+        enabled: true
+  placement:
+    mon:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app: rook-ceph-mon
+          topologyKey: topology.kubernetes.io/zone
+  cephVersion:
+    image: quay.io/cybozu/ceph:16.2.4.1
+  dashboard:
+    ssl: true
+  priorityClassNames:
+    osd: node-bound
+  storage:
+    storageClassDeviceSets:
+      - name: hdd
+        count: 18
+        tuneDeviceClass: true
+        volumeClaimTemplates:
+          - metadata:
+              name: data
+              annotations:
+                crushDeviceClass: hdd
+            spec:
+              resources:
+                requests:
+                  # Local-storage provisioner allocates whole disk capacity, in spite of the storage request specified.
+                  storage: 5Gi
+              # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
+              storageClassName: local-storage
+              volumeMode: Block
+              accessModes:
+                - ReadWriteOnce
+        placement:
+          tolerations:
+            - key: cke.cybozu.com/role
+              operator: Equal
+              value: storage
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare
+      - name: ssd
+        count: 6
+        ## send bug report https://github.com/rook/rook/issues/6789
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+        volumeClaimTemplates:
+          - metadata:
+              name: data
+              annotations:
+                crushDeviceClass: ssd
+            spec:
+              resources:
+                requests:
+                  storage: 1Ti
+              # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
+              storageClassName: topolvm-provisioner
+              volumeMode: Block
+              accessModes:
+                - ReadWriteOnce
+        placement:
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - rook-ceph-osd
+                      - rook-ceph-osd-prepare
