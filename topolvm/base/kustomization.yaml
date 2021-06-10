@@ -12,6 +12,7 @@ resources:
 - upstream/overlays/daemonset-scheduler/scheduler.yaml
 - pdb.yaml
 - priorityclass.yaml
+- ext4.yaml
 
 patchesStrategicMerge:
 - crd.yaml
