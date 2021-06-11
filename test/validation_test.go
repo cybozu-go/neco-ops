@@ -211,6 +211,7 @@ func testApplicationResources(t *testing.T) {
 		"prometheus-adapter":     "7",
 		"pvc-autoresizer":        "7",
 		"network-policy":         "8",
+		"hnc":                    "8",
 	}
 
 	targetRevisions := map[string]string{
