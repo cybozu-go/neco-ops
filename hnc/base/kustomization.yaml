@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - upstream/hnc-manager.yaml
+images:
+  - name: gcr.io/k8s-staging-multitenancy/hnc-manager
+    newName: quay.io/cybozu/hnc
+    newTag: 0.8.0
