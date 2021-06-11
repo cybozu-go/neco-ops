@@ -24,8 +24,10 @@ spec:
             summary: "{{ $labels.instance }}, {{ $labels.job }} of etcd DB space uses more than 90%"
             runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
         - alert: LogicalDatabaseUsageIncreaseRapidly
-          expr: delta(etcd_mvcc_db_total_size_in_use_in_bytes[1h]) > 30000000
-          for: 1m
+          # the latter half of this rule is to avoid false positives during k8s master switching
+          expr: delta(etcd_mvcc_db_total_size_in_use_in_bytes[1h]) > 30*1000*1000
+            and etcd_mvcc_db_total_size_in_use_in_bytes offset 1h > 0
+          for: 15m
           labels:
             severity: warning
           annotations:

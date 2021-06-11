@@ -43,12 +43,13 @@ tests:
             exp_annotations:
               summary: "10.0.0.1:2379, etcd of etcd DB space uses more than 90%"
               runbook: "Please consider manual compaction and defrag. https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md"
-  - interval: 30m
+
+  - interval: 1m
     input_series:
       - series: 'etcd_mvcc_db_total_size_in_use_in_bytes{instance="10.0.0.1:2379", job="etcd"}'
-        values: '0+15000001x2'
+        values: '1+0x60 30000002+0x16'
     alert_rule_test:
-      - eval_time: 60m
+      - eval_time: 76m
         alertname: LogicalDatabaseUsageIncreaseRapidly
         exp_alerts:
           - exp_labels:
@@ -58,6 +59,23 @@ tests:
             exp_annotations:
               summary: "10.0.0.1:2379, etcd of etcd DB space increases 30MB/h"
               runbook: "Please consider to find root causes, and solve the problems"
+  - interval: 1m
+    input_series:
+      - series: 'etcd_mvcc_db_total_size_in_use_in_bytes{instance="10.0.0.1:2379", job="etcd"}'
+        values: '30000002+0x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: LogicalDatabaseUsageIncreaseRapidly
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'etcd_mvcc_db_total_size_in_use_in_bytes{instance="10.0.0.1:2379", job="etcd"}'
+        values: '1+0x60 30000002+0x14 30000000+0x2'
+    alert_rule_test:
+      - eval_time: 76m
+        alertname: LogicalDatabaseUsageIncreaseRapidly
+        exp_alerts: []
+
   - interval: 1m
     input_series:
       - series: 'up{job="bootserver-etcd",instance="10.0.0.1"}'
