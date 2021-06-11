@@ -6,3 +6,4 @@ metadata:
     app.kubernetes.io/name: topolvm-system
     topolvm.cybozu.com/webhook: ignore
     pod-security.cybozu.com/policy: privileged
+    hnc.x-k8s.io/excluded-namespace: true

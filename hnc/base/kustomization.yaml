@@ -6,3 +6,10 @@ images:
   - name: gcr.io/k8s-staging-multitenancy/hnc-manager
     newName: quay.io/cybozu/hnc
     newTag: 0.8.0
+patchesStrategicMerge:
+  - |-
+    $patch: delete
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: hnc-system

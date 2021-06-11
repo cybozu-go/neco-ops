@@ -9,3 +9,4 @@ metadata:
     topolvm.cybozu.com/webhook: ignore
     admission.cybozu.com/pod: ignore
     pod-security.cybozu.com/policy: privileged
+    hnc.x-k8s.io/excluded-namespace: true

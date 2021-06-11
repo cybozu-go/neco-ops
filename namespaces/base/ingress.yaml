@@ -4,6 +4,8 @@ metadata:
   name: ingress-global
   annotations:
     admission.cybozu.com/min-policy-order: "900"
+  labels:
+    hnc.x-k8s.io/excluded-namespace: true
 ---
 apiVersion: v1
 kind: Namespace
@@ -11,6 +13,8 @@ metadata:
   name: ingress-bastion
   annotations:
     admission.cybozu.com/min-policy-order: "900"
+  labels:
+    hnc.x-k8s.io/excluded-namespace: true
 ---
 apiVersion: v1
 kind: Namespace
@@ -18,3 +22,5 @@ metadata:
   name: ingress-forest
   annotations:
     admission.cybozu.com/min-policy-order: "900"
+  labels:
+    hnc.x-k8s.io/excluded-namespace: true

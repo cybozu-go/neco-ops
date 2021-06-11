@@ -4,6 +4,7 @@ metadata:
   name: ceph-hdd
   labels:
     pod-security.cybozu.com/policy: privileged
+    hnc.x-k8s.io/excluded-namespace: true
 ---
 apiVersion: v1
 kind: Namespace
@@ -11,3 +12,4 @@ metadata:
   name: ceph-ssd
   labels:
     pod-security.cybozu.com/policy: privileged
+    hnc.x-k8s.io/excluded-namespace: true
