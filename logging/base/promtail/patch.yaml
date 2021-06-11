@@ -29,6 +29,9 @@ spec:
         - hostPath:
             path: /run/log/journal
           name: journal
+        - hostPath:
+            path: /var/log/promtail
+          name: run
       tolerations:
         - key: cke.cybozu.com/role
           operator: Equal
