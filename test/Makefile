@@ -25,6 +25,7 @@ PROMTOOL_VERSION := 2.27.1
 TELEPORT_VERSION := 6.2.0
 KUBERNETES_VERSION := 1.20.7
 ARGOCD_VERSION := 2.0.3
+HNC_VERSION := v0.8.0
 
 # Cache
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
@@ -39,6 +40,7 @@ KUSTOMIZE := $(BINDIR)/kustomize
 PROMTOOL := $(BINDIR)/promtool
 TSH := $(BINDIR)/tsh
 ARGOCD := $(BINDIR)/argocd
+HNC := $(BINDIR)/kubectl-hns
 
 install.yaml: $(shell find ../argocd/base)
 	$(KUSTOMIZE) build ../argocd/base/ > install.yaml
@@ -121,8 +123,14 @@ $(ARGOCD):
 	$(WGET) -O $(BINDIR)/argocd https://github.com/argoproj/argo-cd/releases/download/v$(ARGOCD_VERSION)/argocd-linux-amd64
 	chmod +x $@
 
+$(HNC):
+	$(MAKE) setup-download
+	$(WGET) -O $(BINDIR)/kubectl-hns https://github.com/kubernetes-sigs/multi-tenancy/releases/download/hnc-${HNC_VERSION}/kubectl-hns_linux_amd64
+	chmod +x $@
+
+
 .PHONY: setup
-setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH) $(ARGOCD)
+setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH) $(ARGOCD) $(HNC)
 	go install github.com/onsi/ginkgo/ginkgo@latest
 
 .PHONY: test-tools

@@ -53,6 +53,10 @@ var requiredResources = []string{
 	"grafanadatasources.integreatly.org",
 	"grafanas.integreatly.org",
 
+	// HNC
+	"hierarchyconfigurations.hnc.x-k8s.io",
+	"subnamespaceanchors.hnc.x-k8s.io",
+
 	// MOCO
 	"mysqlclusters.moco.cybozu.com",
 	"backuppolicies.moco.cybozu.com",
@@ -115,6 +119,14 @@ var prohibitedResources = []string{
 	// Contour
 	// This resource is classified as prohibitedResources, but that is not intentionally done by Neco team.
 	"extensionservices.projectcontour.io",
+
+	// ECK
+	// This resource is not allowed to unprivileged users in upstream ClusterRole.
+	// We follow this decision for a while because it is under development.
+	"agents.agent.k8s.elastic.co",
+
+	// HNC
+	"hncconfigurations.hnc.x-k8s.io",
 
 	// Rook
 	"cephblockpools.ceph.rook.io",
