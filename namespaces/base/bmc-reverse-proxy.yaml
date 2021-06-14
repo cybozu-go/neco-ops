@@ -6,4 +6,4 @@ metadata:
     admission.cybozu.com/min-policy-order: "500"
   labels:
     pod-security.cybozu.com/policy: privileged
-    hnc.x-k8s.io/excluded-namespace: true
+    hnc.x-k8s.io/excluded-namespace: "true"

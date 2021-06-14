@@ -5,7 +5,7 @@ metadata:
   annotations:
     admission.cybozu.com/min-policy-order: "900"
   labels:
-    hnc.x-k8s.io/excluded-namespace: true
+    hnc.x-k8s.io/excluded-namespace: "true"
 ---
 apiVersion: v1
 kind: Namespace
@@ -14,7 +14,7 @@ metadata:
   annotations:
     admission.cybozu.com/min-policy-order: "900"
   labels:
-    hnc.x-k8s.io/excluded-namespace: true
+    hnc.x-k8s.io/excluded-namespace: "true"
 ---
 apiVersion: v1
 kind: Namespace
@@ -23,4 +23,4 @@ metadata:
   annotations:
     admission.cybozu.com/min-policy-order: "900"
   labels:
-    hnc.x-k8s.io/excluded-namespace: true
+    hnc.x-k8s.io/excluded-namespace: "true"

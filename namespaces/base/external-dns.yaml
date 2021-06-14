@@ -4,4 +4,4 @@ metadata:
   name: external-dns
   labels:
     cert-manager.io/disable-validation: "true"
-    hnc.x-k8s.io/excluded-namespace: true
+    hnc.x-k8s.io/excluded-namespace: "true"

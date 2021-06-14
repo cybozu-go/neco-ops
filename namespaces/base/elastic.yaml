@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   name: elastic-system
   labels:
-    hnc.x-k8s.io/excluded-namespace: true
+    hnc.x-k8s.io/excluded-namespace: "true"
