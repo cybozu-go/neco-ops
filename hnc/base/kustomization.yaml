@@ -7,9 +7,5 @@ images:
     newName: quay.io/cybozu/hnc
     newTag: 0.8.0
 patchesStrategicMerge:
-  - |-
-    $patch: delete
-    apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: hnc-system
+  - crd.yaml
+  - hnc-system.yaml
