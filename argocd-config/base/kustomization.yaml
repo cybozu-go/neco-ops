@@ -9,6 +9,7 @@ resources:
 - customer-egress.yaml
 - elastic.yaml
 - external-dns.yaml
+- hnc.yaml
 - ingress.yaml
 - kube-metrics-adapter.yaml
 - local-pv-provisioner.yaml
