@@ -21,3 +21,19 @@ spec:
     automated:
       prune: true
       selfHeal: true
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: hncconfigurations.hnc.x-k8s.io
+      jsonPointers:
+        - /spec/preserveUnknownFields
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: hierarchyconfigurations.hnc.x-k8s.io
+      jsonPointers:
+        - /spec/preserveUnknownFields
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: subnamespaceanchors.hnc.x-k8s.io
+      jsonPointers:
+        - /spec/preserveUnknownFields
