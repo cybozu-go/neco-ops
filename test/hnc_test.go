@@ -10,7 +10,7 @@ import (
 
 var (
 	HNCTestNamespaces    = []string{"hnc-test-1", "hnc-test-2", "hnc-test-3"}
-	HNCTestSubnamespaces = []string{"hnc-test-1-sub1", "hnc-test-1-sub2"}
+	HNCTestSubnamespaces = []string{"dev-foo1", "dev-foo2"}
 )
 
 func prepareHNC() {
@@ -59,7 +59,7 @@ metadata:
 	By("creating subnamespace with subnamespaceanchor")
 	stdout, stderr, err := ExecAtWithInput(boot0,
 		[]byte(fmt.Sprintf(subnamespaceAnchorYAMLtemplate,
-			HNCTestSubnamespaces[0], "hnc-test-1")),
+			HNCTestSubnamespaces[0], HNCTestNamespaces[0])),
 		"kubectl", "apply", "--as-group=tenant", "--as=tenant", "-f", "-")
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
@@ -72,7 +72,7 @@ metadata:
 		return nil
 	}).Should(Succeed())
 	Eventually(func() error {
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", "hnc-test-1", HNCTestSubnamespaces[0], "-o", "jsonpath='{.status.status}'")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", HNCTestNamespaces[0], HNCTestSubnamespaces[0], "-o", "jsonpath='{.status.status}'")
 		if err != nil {
 			return fmt.Errorf("Failed to get subnamespaceanchor of %s, stdout: %s, stderr: %s", HNCTestSubnamespaces[0], stdout, stderr)
 		}
@@ -85,7 +85,7 @@ metadata:
 	By("creating subnamespace with kubectl-hns")
 	stdout, stderr, err = ExecAt(boot0,
 		"kubectl", "hns", "--as-group=tenant", "--as=tenant",
-		"create", HNCTestSubnamespaces[1], "-n", "hnc-test-1")
+		"create", HNCTestSubnamespaces[1], "-n", HNCTestNamespaces[0])
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 	By("checking subnamespace is OK")
@@ -97,7 +97,7 @@ metadata:
 		return nil
 	}).Should(Succeed())
 	Eventually(func() error {
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", "hnc-test-1", HNCTestSubnamespaces[1], "-o", "jsonpath='{.status.status}'")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", HNCTestNamespaces[0], HNCTestSubnamespaces[1], "-o", "jsonpath='{.status.status}'")
 		if err != nil {
 			return fmt.Errorf("Failed to get subnamespaceanchor of %s, stdout: %s, stderr: %s", HNCTestSubnamespaces[1], stdout, stderr)
 		}
@@ -165,8 +165,12 @@ func checkPropagation() {
 	}
 }
 
-func deleteSubnamespaceAnchor() {
-	// TODO
+func deleteSubnamespace() {
+	By("deleting subnamespaceanchor")
+	stdout, stderr, err := ExecAt(boot0,
+		"kubectl", "delete", "--as-group=tenant", "--as=tenant",
+		"subnamespaceanchors.hnc.x-k8s.io", HNCTestSubnamespaces[1], "-n", HNCTestNamespaces[0])
+	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 }
 
 func testHNC() {
@@ -174,6 +178,6 @@ func testHNC() {
 		By("creating subnamespaces", createSubnamespaces)
 		By("creating child namespace", createChildNamespaces)
 		By("checking propagation of role binding", checkPropagation)
-		By("deleting subnamespaceanchor", deleteSubnamespaceAnchor)
+		By("deleting subnamespace", deleteSubnamespace)
 	})
 }
