@@ -7,8 +7,9 @@ How to maintain neco-apps
 - [customer-egress (Squid and unbound)](#customer-egress-squid-and-unbound)
 - [elastic (ECK)](#elastic-eck)
 - [external-dns](#external-dns)
-- [kube-metrics-adapter](#kube-metrics-adapter)
+- [hnc](#hnc)
 - [ingress (Contour & Envoy)](#ingress-contour--envoy)
+- [kube-metrics-adapter](#kube-metrics-adapter)
 - [local-pv-provisioner](#local-pv-provisioner)
 - [logging](#logging)
   - [loki, loki-canary](#loki-loki-canary)
@@ -106,17 +107,18 @@ $ make update-external-dns
 $ git diff
 ```
 
-## kube-metrics-adapter
+## hnc
 
-Check [releases](https://github.com/zalando-incubator/kube-metrics-adapter/releases).
-
-Update the manifests as follows:
+Update the image tag and manifest as follows:
 
 ```console
-$ make setup   # install/updaet Helm; if a newer Helm is required, update HELM_VERSION in Makefile first
-$ make update-kube-metrics-adapter
-$ git diff kube-metrics-adapter
+$ make update-hnc
+$ git diff
 ```
+
+Note that HNC v0.8.0 was released under [kubernetes-sigs/multi-tenancy](https://github.com/kubernetes-sigs/multi-tenancy) but v0.9.0 may be released under [kubernetes-sigs/hierarchical-namespaces](https://github.com/kubernetes-sigs/hierarchical-namespaces).
+Changes to Makefile may be required.
+
 
 ## ingress (Contour & Envoy)
 
@@ -156,6 +158,18 @@ Note that:
   - If the manifest needs modification:
     - If the manifest is for a cluster-wide resource, put a modified version in the `common` directory.
     - If the manifest is for a namespaced resource, put a template in the `template` directory and apply patches.
+
+## kube-metrics-adapter
+
+Check [releases](https://github.com/zalando-incubator/kube-metrics-adapter/releases).
+
+Update the manifests as follows:
+
+```console
+$ make setup   # for the first time to install Helm
+$ make update-kube-metrics-adapter
+$ git diff kube-metrics-adapter
+```
 
 ## local-pv-provisioner
 

@@ -90,6 +90,14 @@ update-heartbeat:
 	$(call get-latest-tag,heartbeat)
 	sed -i -E '/name:.*heartbeat$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' monitoring/base/kustomization.yaml
 
+.PHONY: update-hnc
+update-hnc:
+	$(call get-latest-tag,hnc)
+	$(call get-latest-gh,kubernetes-sigs/multi-tenancy)
+	sed -i -E 's/newTag=.*$$/newTag=$(latest_tag)/' hnc/base/kustomization.yaml
+	curl -sfL -o hnc/base/upstream/hnc-manager.yaml \
+		https://github.com/kubernetes-sigs/multi-tenancy/releases/download/$(latest_gh)/hnc-manager.yaml
+
 .PHONY: update-kube-metrics-adapter
 update-kube-metrics-adapter:
 	$(call get-latest-tag,kube-metrics-adapter)
