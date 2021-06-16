@@ -9,3 +9,4 @@ images:
 patchesStrategicMerge:
   - crd.yaml
   - hnc-system.yaml
+  - deployment.yaml

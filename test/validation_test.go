@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	k8sYaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -713,14 +714,88 @@ func testVMCustomResources(t *testing.T) {
 	}
 }
 
+// HNC v0.8.0 excludes the namespaces passed as an argument so that the namespaces can not create subnamespaces.
+func testExcludeNamespace(t *testing.T) {
+	t.Parallel()
+
+	hncBaseDir := filepath.Join(manifestDir, "hnc/base")
+	kustomizeResult, err := exec.Command("bin/kustomize", "build", hncBaseDir).Output()
+	if err != nil {
+		t.Fatalf("failed to kustomize build: %v", err)
+	}
+
+	reader := k8sYaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(kustomizeResult)))
+	actualExcludedNamespaces := make(map[string]interface{})
+	for {
+		data, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			t.Fatalf("failed to read yaml: %v", err)
+		}
+
+		var r resourceMeta
+		yaml.Unmarshal(data, &r)
+		if r.Kind == "Deployment" {
+			fmt.Println("Deployment found")
+			var d appsv1.Deployment
+			yaml.Unmarshal(data, &d)
+			for _, c := range d.Spec.Template.Spec.Containers {
+				if c.Name != "manager" {
+					continue
+				}
+				for _, a := range c.Args {
+					if strings.Contains(a, "--excluded-namespace") {
+						actualExcludedNamespaces[strings.Split(a, "=")[1]] = nil
+					}
+				}
+			}
+		}
+	}
+	// HNC v0.8.0 is expected to exclude at least "kube-system", "kube-public", and "kube-node-lease". So, no excluded namespaces imply this test is not working.
+	if len(actualExcludedNamespaces) == 0 {
+		t.Error("no --excluded-namespace was found in hnc")
+	}
+
+	expectedExcludedNamespaces := []string{}
+	doCheckKustomizedYaml(t, func(t *testing.T, data []byte) {
+		var meta struct {
+			metav1.TypeMeta   `json:",inline"`
+			metav1.ObjectMeta `json:"metadata,omitempty"`
+		}
+		err := yaml.Unmarshal(data, &meta)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if meta.Kind != "Namespace" {
+			return
+		}
+		v, ok := meta.Labels["hnc.x-k8s.io/excluded-namespace"]
+		if !ok {
+			return
+		}
+		if v != "true" {
+			return
+		}
+
+		expectedExcludedNamespaces = append(expectedExcludedNamespaces, meta.Name)
+	})
+	for _, v := range expectedExcludedNamespaces {
+		if _, ok := actualExcludedNamespaces[v]; !ok {
+			t.Errorf("Namespae %v is not actually excluded", v)
+		}
+	}
+}
+
 func TestValidation(t *testing.T) {
 	if os.Getenv("SSH_PRIVKEY") != "" {
 		t.Skip("SSH_PRIVKEY envvar is defined as running e2e test")
 	}
 
-	t.Run("AppProjectNamespaces", testAppProjectResources)
-	t.Run("ApplicationTargetRevision", testApplicationResources)
-	t.Run("CRDStatus", testCRDStatus)
-	t.Run("NamespaceLabels", testNamespaceResources)
-	t.Run("VictoriaMetricsCustomResources", testVMCustomResources)
+	// t.Run("AppProjectNamespaces", testAppProjectResources)
+	// t.Run("ApplicationTargetRevision", testApplicationResources)
+	// t.Run("CRDStatus", testCRDStatus)
+	// t.Run("NamespaceLabels", testNamespaceResources)
+	t.Run("ExcludeNamespace", testExcludeNamespace)
+	// t.Run("VictoriaMetricsCustomResources", testVMCustomResources)
 }
