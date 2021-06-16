@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	HNCTestNamespaces    = []string{"hnc-test-1", "hnc-test-2", "hnc-test-3"}
-	HNCTestSubnamespaces = []string{"dev-foo1", "dev-foo2"}
+	HNCTestParentNamespace = "hnc-test-1"
+	HNCTestChildNamespaces = []string{"hnc-test-2", "hnc-test-3"}
+	HNCTestSubnamespaces   = []string{"dev-foo1", "dev-foo2"}
 )
 
 func prepareHNC() {
@@ -31,19 +32,19 @@ subjects:
 `
 
 	It("should create namespace", func() {
-		for _, namespace := range HNCTestNamespaces {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "create", "namespace", HNCTestParentNamespace)
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+		for _, namespace := range HNCTestChildNamespaces {
 			stdout, stderr, err := ExecAt(boot0, "kubectl", "create", "namespace", namespace)
 			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		}
 	})
 
-	It("should deploy service account and rolebinding", func() {
-		for _, namespace := range HNCTestNamespaces {
-			stdout, stderr, err := ExecAtWithInput(boot0,
-				[]byte(fmt.Sprintf(roleBindingYAMLTemplate, namespace)),
-				"kubectl", "apply", "-f", "-")
-			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		}
+	It("should deploy rolebinding", func() {
+		stdout, stderr, err := ExecAtWithInput(boot0,
+			[]byte(fmt.Sprintf(roleBindingYAMLTemplate, HNCTestParentNamespace)),
+			"kubectl", "apply", "-f", "-")
+		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 	})
 }
 
@@ -59,7 +60,7 @@ metadata:
 	By("creating subnamespace with subnamespaceanchor")
 	stdout, stderr, err := ExecAtWithInput(boot0,
 		[]byte(fmt.Sprintf(subnamespaceAnchorYAMLtemplate,
-			HNCTestSubnamespaces[0], HNCTestNamespaces[0])),
+			HNCTestSubnamespaces[0], HNCTestParentNamespace)),
 		"kubectl", "apply", "--as-group=tenant", "--as=tenant", "-f", "-")
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
@@ -72,7 +73,7 @@ metadata:
 		return nil
 	}).Should(Succeed())
 	Eventually(func() error {
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", HNCTestNamespaces[0], HNCTestSubnamespaces[0], "-o", "jsonpath='{.status.status}'")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", HNCTestParentNamespace, HNCTestSubnamespaces[0], "-o", "jsonpath='{.status.status}'")
 		if err != nil {
 			return fmt.Errorf("Failed to get subnamespaceanchor of %s, stdout: %s, stderr: %s", HNCTestSubnamespaces[0], stdout, stderr)
 		}
@@ -85,7 +86,7 @@ metadata:
 	By("creating subnamespace with kubectl-hns")
 	stdout, stderr, err = ExecAt(boot0,
 		"kubectl", "hns", "--as-group=tenant", "--as=tenant",
-		"create", HNCTestSubnamespaces[1], "-n", HNCTestNamespaces[0])
+		"create", HNCTestSubnamespaces[1], "-n", HNCTestParentNamespace)
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 	By("checking subnamespace is OK")
@@ -97,7 +98,7 @@ metadata:
 		return nil
 	}).Should(Succeed())
 	Eventually(func() error {
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", HNCTestNamespaces[0], HNCTestSubnamespaces[1], "-o", "jsonpath='{.status.status}'")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "subnamespaceanchors.hnc.x-k8s.io", "-n", HNCTestParentNamespace, HNCTestSubnamespaces[1], "-o", "jsonpath='{.status.status}'")
 		if err != nil {
 			return fmt.Errorf("Failed to get subnamespaceanchor of %s, stdout: %s, stderr: %s", HNCTestSubnamespaces[1], stdout, stderr)
 		}
@@ -122,23 +123,23 @@ spec:
 	By("moving namespace with HierarchyConfiguration")
 	stdout, stderr, err := ExecAtWithInput(boot0,
 		[]byte(fmt.Sprintf(hierarchyConfigurationYAMLTemplate,
-			HNCTestNamespaces[1], HNCTestNamespaces[0])),
+			HNCTestChildNamespaces[0], HNCTestParentNamespace)),
 		"kubectl", "apply", "--as-group=tenant", "--as=tenant", "-f", "-")
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 	By("moving namespace with kubectl-hns")
 	stdout, stderr, err = ExecAt(boot0,
 		"kubectl", "hns", "--as-group=tenant", "--as=tenant",
-		"set", HNCTestNamespaces[2], "--parent", HNCTestNamespaces[0])
+		"set", HNCTestChildNamespaces[1], "--parent", HNCTestParentNamespace)
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 	By("checking status of these namespaces")
 	stdout, stderr, err = ExecAt(boot0,
 		"kubectl", "get", "hierarchyconfigurations.hnc.x-k8s.io", "hierarchy",
-		"-n", HNCTestNamespaces[0], "-o", "jsonpath='{.status.children}'")
+		"-n", HNCTestParentNamespace, "-o", "jsonpath='{.status.children}'")
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 	Eventually(func() error {
-		for _, namespace := range HNCTestNamespaces[1:] {
+		for _, namespace := range HNCTestChildNamespaces {
 			if strings.Contains(string(stdout), namespace) {
 				return fmt.Errorf("Failed to move %s, stdout: %s, stderr: %s", namespace, stdout, stderr)
 			}
@@ -157,7 +158,7 @@ func checkPropagation() {
 	}
 
 	By("checking the existance of role binding in child namespaces")
-	for _, namespace := range HNCTestNamespaces[1:] {
+	for _, namespace := range HNCTestChildNamespaces {
 		stdout, stderr, err := ExecAt(boot0,
 			"kubectl", "get", "--as-group=tenant", "--as=tenant",
 			"rolebindings", "tenant-role-binding", "-n", namespace)
@@ -169,7 +170,7 @@ func deleteSubnamespace() {
 	By("deleting subnamespaceanchor")
 	stdout, stderr, err := ExecAt(boot0,
 		"kubectl", "delete", "--as-group=tenant", "--as=tenant",
-		"subnamespaceanchors.hnc.x-k8s.io", HNCTestSubnamespaces[1], "-n", HNCTestNamespaces[0])
+		"subnamespaceanchors.hnc.x-k8s.io", HNCTestSubnamespaces[1], "-n", HNCTestParentNamespace)
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 }
 
