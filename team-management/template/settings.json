@@ -86,7 +86,8 @@
       "app-monitoring-elasticstack",
       "app-oauth-redirector",
       "app-octodns",
-      "maneki"
+      "maneki",
+      "maneki-dev"
     ]
   }
 }

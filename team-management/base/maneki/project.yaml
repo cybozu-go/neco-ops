@@ -50,6 +50,8 @@ spec:
       server: '*'
     - namespace: maneki
       server: '*'
+    - namespace: maneki-dev
+      server: '*'
     - namespace: sandbox
       server: '*'
   namespaceResourceBlacklist:

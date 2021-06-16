@@ -18,5 +18,6 @@ resources:
   - app-oauth-redirector.yaml
   - app-octodns.yaml
   - elastic-serviceaccount.yaml
+  - maneki-dev.yaml
   - maneki.yaml
   - project.yaml

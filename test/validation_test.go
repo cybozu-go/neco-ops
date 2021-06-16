@@ -792,10 +792,10 @@ func TestValidation(t *testing.T) {
 		t.Skip("SSH_PRIVKEY envvar is defined as running e2e test")
 	}
 
-	// t.Run("AppProjectNamespaces", testAppProjectResources)
-	// t.Run("ApplicationTargetRevision", testApplicationResources)
-	// t.Run("CRDStatus", testCRDStatus)
-	// t.Run("NamespaceLabels", testNamespaceResources)
+	t.Run("AppProjectNamespaces", testAppProjectResources)
+	t.Run("ApplicationTargetRevision", testApplicationResources)
+	t.Run("CRDStatus", testCRDStatus)
+	t.Run("NamespaceLabels", testNamespaceResources)
 	t.Run("ExcludeNamespace", testExcludeNamespace)
-	// t.Run("VictoriaMetricsCustomResources", testVMCustomResources)
+	t.Run("VictoriaMetricsCustomResources", testVMCustomResources)
 }
