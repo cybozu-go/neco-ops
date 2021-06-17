@@ -9,7 +9,6 @@ rules:
   - hnc.x-k8s.io
   resources:
   - hierarchyconfigurations
-  - hncconfigurations
   - subnamespaceanchors
   verbs:
   - get
