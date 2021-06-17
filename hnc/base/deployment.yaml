@@ -15,6 +15,7 @@ spec:
         - --apiserver-qps-throttle=50
         - --enable-internal-cert-management
         - --cert-restart-on-secret-refresh
+        # neco team namespaces
         - --excluded-namespace=argocd
         - --excluded-namespace=bmc-reverse-proxy
         - --excluded-namespace=ceph-hdd
@@ -43,3 +44,26 @@ spec:
         - --excluded-namespace=registry
         - --excluded-namespace=teleport
         - --excluded-namespace=topolvm-system
+        # tenant team namespaces
+        - --excluded-namespace=app-comconv-earthlab
+        - --excluded-namespace=app-cybozu-com-mysql
+        - --excluded-namespace=app-elasticsearch
+        - --excluded-namespace=app-endpoint-discovery
+        - --excluded-namespace=app-ept-monitoring
+        - --excluded-namespace=app-ept-plantuml
+        - --excluded-namespace=app-ept-wiki
+        - --excluded-namespace=app-es-cluster-allocator
+        - --excluded-namespace=app-forest-archive
+        - --excluded-namespace=app-forest-certs
+        - --excluded-namespace=app-garoon-monitoring
+        - --excluded-namespace=app-garoon-static
+        - --excluded-namespace=app-gorush
+        - --excluded-namespace=app-kodama
+        - --excluded-namespace=app-maneki-static-cybozu-com
+        - --excluded-namespace=app-misc
+        - --excluded-namespace=app-monitoring
+        - --excluded-namespace=app-monitoring-elasticstack
+        - --excluded-namespace=app-oauth-redirector
+        - --excluded-namespace=app-octodns
+        - --excluded-namespace=maneki
+        - --excluded-namespace=maneki-dev

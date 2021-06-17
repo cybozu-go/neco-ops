@@ -737,7 +737,6 @@ func testExcludeNamespace(t *testing.T) {
 		var r resourceMeta
 		yaml.Unmarshal(data, &r)
 		if r.Kind == "Deployment" {
-			fmt.Println("Deployment found")
 			var d appsv1.Deployment
 			yaml.Unmarshal(data, &d)
 			for _, c := range d.Spec.Template.Spec.Containers {

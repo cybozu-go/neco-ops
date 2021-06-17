@@ -6,8 +6,9 @@ function(team, namespace) [
       name: namespace,
       // This label may be unused.
       // It is written here for backward compatibility.
-      [if team == 'maneki' && namespace == 'maneki' then 'labels']: {
-        'app.kubernetes.io/name': 'maneki',
+      labels: {
+        [if team == 'maneki' && namespace == 'maneki' then 'app.kubernetes.io/name']: 'maneki',
+        'hnc.x-k8s.io/excluded-namespace': 'true',
       },
     },
   },
