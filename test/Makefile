@@ -40,7 +40,6 @@ KUSTOMIZE := $(BINDIR)/kustomize
 PROMTOOL := $(BINDIR)/promtool
 TSH := $(BINDIR)/tsh
 ARGOCD := $(BINDIR)/argocd
-HNC := $(BINDIR)/kubectl-hns
 
 install.yaml: $(shell find ../argocd/base)
 	$(KUSTOMIZE) build ../argocd/base/ > install.yaml
@@ -123,14 +122,8 @@ $(ARGOCD):
 	$(WGET) -O $(BINDIR)/argocd https://github.com/argoproj/argo-cd/releases/download/v$(ARGOCD_VERSION)/argocd-linux-amd64
 	chmod +x $@
 
-$(HNC):
-	$(MAKE) setup-download
-	$(WGET) -O $(BINDIR)/kubectl-hns https://github.com/kubernetes-sigs/multi-tenancy/releases/download/hnc-${HNC_VERSION}/kubectl-hns_linux_amd64
-	chmod +x $@
-
-
 .PHONY: setup
-setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH) $(ARGOCD) $(HNC)
+setup: $(KUBECTL) $(KUSTOMIZE) $(PROMTOOL) $(TSH) $(ARGOCD)
 	go install github.com/onsi/ginkgo/ginkgo@latest
 
 .PHONY: test-tools
