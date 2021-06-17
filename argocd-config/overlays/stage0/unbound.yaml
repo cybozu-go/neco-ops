@@ -1,8 +1,0 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: unbound
-  namespace: argocd
-spec:
-  source:
-    targetRevision: stage

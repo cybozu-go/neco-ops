@@ -29,4 +29,3 @@ resources:
 - team-management.yaml
 - teleport.yaml
 - topolvm.yaml
-- unbound.yaml
