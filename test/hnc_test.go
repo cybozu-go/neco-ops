@@ -105,12 +105,17 @@ metadata:
 
 func checkPropagation() {
 	By("checking the existance of role binding in subnamespaces")
-	for _, namespace := range HNCTestSubnamespaces {
-		stdout, stderr, err := ExecAt(boot0,
-			"kubectl", "get", "--as-group=tenant", "--as=tenant",
-			"rolebindings", "tenant-role-binding", "-n", namespace)
-		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-	}
+	Eventually(func() error {
+		for _, namespace := range HNCTestSubnamespaces {
+			stdout, stderr, err := ExecAt(boot0,
+				"kubectl", "get", "--as-group=tenant", "--as=tenant",
+				"rolebindings", "tenant-role-binding", "-n", namespace)
+			if err != nil {
+				return fmt.Errorf("failed to get the propageted role binding. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+		}
+		return nil
+	}).Should(Succeed())
 }
 
 func deleteSubnamespace() {
