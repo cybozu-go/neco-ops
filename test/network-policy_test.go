@@ -196,6 +196,7 @@ func testNetworkPolicy() {
 		nodeList := new(corev1.NodeList)
 		var nodeIP string
 		var apiServerIP string
+		var apiServerPort string
 
 		By("getting httpd pod list")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pods", "-n", "test-netpol", "-o=json")
@@ -225,8 +226,15 @@ func testNetworkPolicy() {
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 		u, err := url.Parse(string(stdout))
 		Expect(err).NotTo(HaveOccurred(), "server: %s", stdout)
-		apiServerIP = strings.Split(u.Host, ":")[0]
+		splitHost := strings.Split(u.Host, ":")
+		apiServerIP = splitHost[0]
 		Expect(apiServerIP).NotTo(BeEmpty(), "server: %s", stdout)
+		if len(splitHost) >= 2 {
+			apiServerPort = splitHost[1]
+		} else {
+			Expect(u.Scheme).To(Equal("https"), "server: %s", stdout)
+			apiServerPort = "443"
+		}
 
 		By("resolving hostname inside cluster by cluster-dns")
 		Eventually(func() error {
@@ -260,7 +268,7 @@ func testNetworkPolicy() {
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
 		By("accessing API server port of control plane node")
-		stdout, stderr, err = ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "exec", "-i", "ubuntu", "--", "timeout", "3s", "telnet", apiServerIP, "6443", "-e", "X")
+		stdout, stderr, err = ExecAtWithInput(boot0, []byte("Xclose"), "kubectl", "exec", "-i", "ubuntu", "--", "timeout", "3s", "telnet", apiServerIP, apiServerPort, "-e", "X")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 
 		By("getting vmagent-smallset pod name")
