@@ -10,3 +10,4 @@ patchesStrategicMerge:
   - crd.yaml
   - hnc-system.yaml
   - deployment.yaml
+  - clusterrole.yaml
