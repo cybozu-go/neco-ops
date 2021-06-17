@@ -5,10 +5,10 @@ kind: ServiceAccount
 metadata:
   name: logging-promtail
   labels:
-    helm.sh/chart: promtail-3.0.4
+    helm.sh/chart: promtail-3.5.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/version: "2.2.1"
     app.kubernetes.io/managed-by: Helm
 ---
 # Source: promtail/templates/secret.yaml
@@ -17,10 +17,10 @@ kind: Secret
 metadata:
   name: logging-promtail
   labels:
-    helm.sh/chart: promtail-3.0.4
+    helm.sh/chart: promtail-3.5.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/version: "2.2.1"
     app.kubernetes.io/managed-by: Helm
 stringData:
   promtail.yaml: |
@@ -30,6 +30,7 @@ stringData:
     
     client:
       url: http://loki-gateway/loki/api/v1/push
+      
     
     positions:
       filename: /run/promtail/positions.yaml
@@ -84,6 +85,15 @@ stringData:
             separator: /
             source_labels:
             - __meta_kubernetes_pod_uid
+            - __meta_kubernetes_pod_container_name
+            target_label: __path__
+          - action: replace
+            regex: true/(.*)
+            replacement: /var/log/pods/*$1/*.log
+            separator: /
+            source_labels:
+            - __meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash
+            - __meta_kubernetes_pod_annotation_kubernetes_io_config_hash
             - __meta_kubernetes_pod_container_name
             target_label: __path__
       
@@ -141,6 +151,15 @@ stringData:
             - __meta_kubernetes_pod_uid
             - __meta_kubernetes_pod_container_name
             target_label: __path__
+          - action: replace
+            regex: true/(.*)
+            replacement: /var/log/pods/*$1/*.log
+            separator: /
+            source_labels:
+            - __meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash
+            - __meta_kubernetes_pod_annotation_kubernetes_io_config_hash
+            - __meta_kubernetes_pod_container_name
+            target_label: __path__
       
       # Pods with direct controllers, such as StatefulSet
       - job_name: kubernetes-pods-direct-controllers
@@ -192,6 +211,15 @@ stringData:
             separator: /
             source_labels:
             - __meta_kubernetes_pod_uid
+            - __meta_kubernetes_pod_container_name
+            target_label: __path__
+          - action: replace
+            regex: true/(.*)
+            replacement: /var/log/pods/*$1/*.log
+            separator: /
+            source_labels:
+            - __meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash
+            - __meta_kubernetes_pod_annotation_kubernetes_io_config_hash
             - __meta_kubernetes_pod_container_name
             target_label: __path__
       
@@ -246,6 +274,15 @@ stringData:
             separator: /
             source_labels:
             - __meta_kubernetes_pod_uid
+            - __meta_kubernetes_pod_container_name
+            target_label: __path__
+          - action: replace
+            regex: true/(.*)
+            replacement: /var/log/pods/*$1/*.log
+            separator: /
+            source_labels:
+            - __meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash
+            - __meta_kubernetes_pod_annotation_kubernetes_io_config_hash
             - __meta_kubernetes_pod_container_name
             target_label: __path__
       # All remaining pods not yet covered
@@ -304,6 +341,15 @@ stringData:
             - __meta_kubernetes_pod_uid
             - __meta_kubernetes_pod_container_name
             target_label: __path__
+          - action: replace
+            regex: true/(.*)
+            replacement: /var/log/pods/*$1/*.log
+            separator: /
+            source_labels:
+            - __meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash
+            - __meta_kubernetes_pod_annotation_kubernetes_io_config_hash
+            - __meta_kubernetes_pod_container_name
+            target_label: __path__
 ---
 # Source: promtail/templates/clusterrole.yaml
 kind: ClusterRole
@@ -311,10 +357,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: logging-promtail
   labels:
-    helm.sh/chart: promtail-3.0.4
+    helm.sh/chart: promtail-3.5.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/version: "2.2.1"
     app.kubernetes.io/managed-by: Helm
 rules:
   - apiGroups:
@@ -336,10 +382,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: logging-promtail
   labels:
-    helm.sh/chart: promtail-3.0.4
+    helm.sh/chart: promtail-3.5.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/version: "2.2.1"
     app.kubernetes.io/managed-by: Helm
 subjects:
   - kind: ServiceAccount
@@ -356,10 +402,10 @@ kind: DaemonSet
 metadata:
   name: logging-promtail
   labels:
-    helm.sh/chart: promtail-3.0.4
+    helm.sh/chart: promtail-3.5.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: logging
-    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/version: "2.2.1"
     app.kubernetes.io/managed-by: Helm
 spec:
   selector:
@@ -374,7 +420,7 @@ spec:
         app.kubernetes.io/name: promtail
         app.kubernetes.io/instance: logging
       annotations:
-        checksum/config: 92635a845403a3130f103b83ba9a989db3147c7e6634109d6da0aad19755fa1b
+        checksum/config: ce0cce8038b6dc40b05c3ec61cff34b8135b8264185d40b849ad9a3b748a8144
     spec:
       serviceAccountName: logging-promtail
       securityContext:
@@ -382,7 +428,7 @@ spec:
         runAsUser: 0
       containers:
         - name: promtail
-          image: "docker.io/grafana/promtail:2.1.0"
+          image: "docker.io/grafana/promtail:2.2.1"
           imagePullPolicy: IfNotPresent
           args:
             - "-config.file=/etc/promtail/promtail.yaml"

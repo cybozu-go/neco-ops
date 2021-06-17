@@ -15,4 +15,4 @@ images:
   - name: quay.io/cybozu/contour-plus
     newTag: 0.6.2
   - name: quay.io/cybozu/envoy
-    newTag: 1.18.3.1
+    newTag: 1.18.3.3

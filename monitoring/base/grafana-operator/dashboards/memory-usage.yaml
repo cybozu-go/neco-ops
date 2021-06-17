@@ -4,7 +4,7 @@ metadata:
   name: memory-usage
 spec:
   name: memory-usage.json
-  json: >
+  json: |
     {
       "annotations": {
         "list": [

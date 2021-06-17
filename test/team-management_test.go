@@ -36,10 +36,14 @@ var requiredResources = []string{
 	"certificaterequests.cert-manager.io",
 	"certificates.cert-manager.io",
 	"issuers.cert-manager.io",
+	"challenges.acme.cert-manager.io",
+	"orders.acme.cert-manager.io",
 
 	// ECK
+	"agents.agent.k8s.elastic.co",
 	"apmservers.apm.k8s.elastic.co",
 	"beats.beat.k8s.elastic.co",
+	"elasticmapsservers.maps.k8s.elastic.co",
 	"elasticsearches.elasticsearch.k8s.elastic.co",
 	"enterprisesearches.enterprisesearch.k8s.elastic.co",
 	"kibanas.kibana.k8s.elastic.co",
@@ -88,9 +92,7 @@ var viewableResources = []string{
 	"hostendpoints.crd.projectcalico.org",
 
 	// Cert-manager
-	"challenges.acme.cert-manager.io",
 	"clusterissuers.cert-manager.io",
-	"orders.acme.cert-manager.io",
 
 	// Coil
 	"egresses.coil.cybozu.com",
@@ -113,11 +115,6 @@ var prohibitedResources = []string{
 	// Contour
 	// This resource is classified as prohibitedResources, but that is not intentionally done by Neco team.
 	"extensionservices.projectcontour.io",
-
-	// ECK
-	// This resource is not allowed to unprivileged users in upstream ClusterRole.
-	// We follow this decision for a while because it is under development.
-	"agents.agent.k8s.elastic.co",
 
 	// Rook
 	"cephblockpools.ceph.rook.io",

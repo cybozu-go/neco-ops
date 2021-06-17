@@ -4,7 +4,7 @@ metadata:
   name: neco-admission
 spec:
   name: neco-admission.json
-  json: >
+  json: |
     {
         "annotations": {
             "list": [

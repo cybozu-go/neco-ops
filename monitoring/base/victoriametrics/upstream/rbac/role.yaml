@@ -283,6 +283,7 @@ rules:
   resources:
     - nodes
     - nodes/proxy
+    - nodes/metrics
     - services
     - endpoints
     - pods
@@ -305,6 +306,7 @@ rules:
     - watch
 - nonResourceURLs:
     - "/metrics"
+    - "/metrics/resources"
   verbs:
     - get
     - watch
@@ -389,3 +391,11 @@ rules:
     - list
     - get
     - watch
+- apiGroups:
+    - route.openshift.io
+    - image.openshift.io
+  resources:
+    - routers/metrics
+    - registry/metrics
+  verbs:
+    - get

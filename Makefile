@@ -1,8 +1,8 @@
 # Makefile to update manifests
 
-ECK_VERSION = 1.5.0
-HELM_VERSION = 3.5.2
-TANKA_VERSION = 0.15.0
+HELM_VERSION = 3.6.0
+TANKA_VERSION = 0.15.1
+JSONNET_LIBS_K8S_ALPHA_VERSION = 1.20
 
 .PHONY: all
 all:
@@ -14,6 +14,7 @@ update-argocd:
 	curl -sLf -o argocd/base/upstream/install.yaml \
 		https://raw.githubusercontent.com/argoproj/argo-cd/$(call upstream-tag,$(latest_tag))/manifests/install.yaml
 	sed -i -E '/name:.*argocd$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' argocd/base/kustomization.yaml
+	sed -i -e 's/ARGOCD_VERSION *:=.*/ARGOCD_VERSION := $(subst v,,$(call upstream-tag,$(latest_tag)))/' test/Makefile
 	$(call get-latest-tag,dex)
 	sed -i -E '/name:.*dex$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' argocd/base/kustomization.yaml
 	$(call get-latest-tag,redis)
@@ -53,7 +54,8 @@ update-customer-egress:
 
 .PHONY: update-eck
 update-eck:
-	curl -sLf -o elastic/base/upstream/all-in-one.yaml https://download.elastic.co/downloads/eck/$(ECK_VERSION)/all-in-one.yaml
+	$(call get-latest-gh,elastic/cloud-on-k8s)
+	curl -sLf -o elastic/base/upstream/all-in-one.yaml https://download.elastic.co/downloads/eck/$(latest_gh)/all-in-one.yaml
 
 .PHONY: update-external-dns
 update-external-dns:
@@ -128,14 +130,32 @@ update-logging-loki:
 	tk env add environments/loki-canary --namespace=logging && \
 	jb install github.com/grafana/loki/production/ksonnet/loki@$(call upstream-tag,$(latest_tag)) && \
 	jb install github.com/grafana/loki/production/ksonnet/loki-canary@$(call upstream-tag,$(latest_tag)) && \
-	jb install github.com/jsonnet-libs/k8s-alpha/1.19 && \
-	echo "import 'github.com/jsonnet-libs/k8s-alpha/1.19/main.libsonnet'" > lib/k.libsonnet
+	jb install github.com/jsonnet-libs/k8s-alpha/$(JSONNET_LIBS_K8S_ALPHA_VERSION) && \
+	echo "import 'github.com/jsonnet-libs/k8s-alpha/$(JSONNET_LIBS_K8S_ALPHA_VERSION)/main.libsonnet'" > lib/k.libsonnet
 
 	cp logging/base/loki/main.jsonnet /tmp/loki/environments/loki/main.jsonnet
 	cp logging/base/loki-canary/main.jsonnet /tmp/loki/environments/loki-canary/main.jsonnet
 	rm -rf logging/base/loki/upstream/* logging/base/loki-canary/upstream/*
-	tk export logging/base/loki/upstream/ /tmp/loki/environments/loki/ -t '!.*/consul(-sidekick)?'
-	tk export logging/base/loki-canary/upstream/ /tmp/loki/environments/loki-canary/
+	cd /tmp/loki && \
+	tk export $(shell pwd)/logging/base/loki/upstream/ environments/loki/ -t '!.*/consul(-sidekick)?' && \
+	tk export $(shell pwd)/logging/base/loki-canary/upstream/ environments/loki-canary/
+
+	sed -i -E '/name:.*loki$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' logging/base/loki*/kustomization.yaml
+
+	$(call get-latest-tag,memcached)
+	sed -i -E '/name:.*memcached$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' logging/base/loki/kustomization.yaml
+	$(call get-latest-tag,memcached-exporter)
+	sed -i -E '/name:.*memcached-exporter$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' logging/base/loki/kustomization.yaml
+
+.PHONY: update-logging-promtail
+update-logging-promtail:
+	$(call get-latest-tag,promtail)
+	sed -i -E '/name:.*promtail$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' logging/base/promtail/kustomization.yaml
+
+.PHONY: update-logging-consul
+update-logging-consul:
+	$(call get-latest-tag,consul)
+	sed -i -E '/name:.*consul$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' logging/base/consul/kustomization.yaml
 
 .PHONY: update-machines-endpoints
 update-machines-endpoints:
@@ -180,6 +200,11 @@ update-pod-security-admission:
 	$(call get-latest-gh,cybozu-go/pod-security-admission)
 	curl -sfL -o pod-security-admission/base/upstream/install.yaml \
 		https://github.com/cybozu-go/pod-security-admission/releases/download/$(latest_gh)/install.yaml
+
+.PHONY: update-pushgateway
+update-pushgateway:
+	$(call get-latest-tag,pushgateway)
+	sed -i -E '/name:.*pushgateway$$/!b;n;s/newTag:.*$$/newTag: $(latest_tag)/' monitoring/base/kustomization.yaml
 
 .PHONY: update-pvc-autoresizer
 update-pvc-autoresizer:

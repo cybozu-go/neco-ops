@@ -7,7 +7,7 @@ spec:
   datasources:
     - inputName: "DS_PROMETHEUS"
       datasourceName: "vmcluster-largeset"
-  json: >
+  json: |
     {
         "__inputs": [
             {

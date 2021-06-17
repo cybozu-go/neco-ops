@@ -18,7 +18,8 @@ How to maintain neco-apps
 - [metallb](#metallb)
 - [moco](#moco)
 - [monitoring](#monitoring)
-  - [pushgateway, promtool](#pushgateway-promtool)
+  - [pushgateway](#pushgateway)
+  - [promtool](#promtool)
   - [kube-state-metrics](#kube-state-metrics)
   - [grafana-operator](#grafana-operator)
   - [Grafana](#grafana)
@@ -111,7 +112,7 @@ Check [releases](https://github.com/zalando-incubator/kube-metrics-adapter/relea
 Update the manifests as follows:
 
 ```console
-$ make setup   # for the first time to install Helm
+$ make setup   # install/updaet Helm; if a newer Helm is required, update HELM_VERSION in Makefile first
 $ make update-kube-metrics-adapter
 $ git diff kube-metrics-adapter
 ```
@@ -165,45 +166,86 @@ $ git diff
 ```
 
 ## logging
+
 ### loki, loki-canary
 
 Check [loki releases](https://github.com/grafana/loki/releases).
 
-Check [k8s-alpha](https://github.com/jsonnet-libs/k8s-alpha/) jsonnet library, rewrite the version in Makefile corresponding to using kubernetes version.
-If supported version is missing, use latest version instead.
+Check [k8s-alpha](https://github.com/jsonnet-libs/k8s-alpha/) jsonnet library to find the appropriate value for `JSONNET_LIBS_K8S_ALPHA_VERSION` in Makefile.
+If the library supports the currently used Kubernetes version, i.e. if the repository contains a directory with the name of the current Kubernetes version, then use that version as the value.
+If not, use the latest Kubernetes version that the library supports.
+In both cases, update `JSONNET_LIBS_K8S_ALPHA_VERSION` in Makefile if necessary.
 
 Update the manifests as follows:
 
 ```console
-$ make setup   # for the first time to install tanka and jb.
+$ make setup   # install/update Tanka and jsonnet-builder; if a newer Tanka is required, update TANKA_VERSION in Makefile first
 $ make update-logging-loki
 $ git diff logging
 ```
 
 ### promtail
 
+Promtail is an agent for Loki.
+It is published in Loki repository.
+Check [loki releases](https://github.com/grafana/loki/releases) for the changes of Promtail.
+
 There is no official kubernetes manifests for promtail.
-So, check changes in release notes on github and helm charts like bellow.
+Generate manifests from the Helm charts and check the changes as follows.
 
 ```
 LOGGING_DIR=$GOPATH/src/github.com/cybozu-go/neco-apps/logging
 helm repo add grafana https://grafana.github.io/helm-charts
 helm search repo -l grafana | grep grafana/promtail
-# Choose the latest `CHART VERSION` match with target Loki's `APP VERSION` and set value like below.
+# Example output with a header line:
+#   NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+#   grafana/promtail                3.5.1           2.2.1           Promtail is an agent which ships the contents o...
+#   grafana/promtail                3.5.0           2.2.0           Promtail is an agent which ships the contents o...
+
+# Choose the latest `CHART VERSION` which matches the target Loki's `APP VERSION` and set the value like below.
 PROMTAIL_CHART_VERSION=X.Y.Z
 helm template logging --namespace=logging grafana/promtail --version=${PROMTAIL_CHART_VERSION} > ${LOGGING_DIR}/base/promtail/upstream/promtail.yaml
+cd ${LOGGING_DIR}
+git diff
 ```
+
+Check the difference between the existing manifest and the new manifest, and update the kustomization patch.
+
+In upstream, loki and promtail settings are stored in secret resource. The configuration is now written in configmap, so decode the secret and compare the settings.
+
+```console
+$ yq eval '.stringData."promtail.yaml" | select(.)' logging/base/promtail/upstream/promtail.yaml > /tmp/promtail.yaml
+$ diff -u logging/base/promtail/config/promtail.yaml /tmp/promtail.yaml
+
+# diff of .client.url is intentional
+```
+
+Update the image tag as follows.
+
+```console
+$ make update-logging-promtail
+$ git diff
+```
+
 ### consul
+
+Generate manifests from the Helm charts and check the changes as follows.
 
 ```
 LOGGING_DIR=$GOPATH/src/github.com/cybozu-go/neco-apps/logging
 helm repo add hashicorp https://helm.releases.hashicorp.com
 helm search repo hashicorp/consul
 helm template logging --namespace=logging hashicorp/consul -f ${LOGGING_DIR}/base/consul/values.yaml > ${LOGGING_DIR}/base/consul/upstream/consul.yaml
+cd ${LOGGING_DIR}
+git diff
 ```
 
-Check the difference between the existing manifest and the new manifest, and update the kustomization patch.
-In upstream, loki and promtail settings are stored in secret resource. The configuration is now written in configmap, so decode base64 and compare the settings.
+Update the image tag as follows.
+
+```console
+$ make update-logging-consul
+$ git diff
+```
 
 ## machines-endpoints
 
@@ -239,20 +281,29 @@ $ git diff
 
 ## monitoring
 
-### pushgateway, promtool
+### pushgateway
 
+Check [releases](https://github.com/prometheus/pushgateway/releases) for changes.
+
+Update the image tag as follows.
+
+```console
+$ make update-pushgateway
+$ git diff
+```
+
+If you find that the tests for Pushgateway fail due to the stale manifests, then update the manifests.
 There is no official kubernetes manifests for pushgateway.
-So, check changes in release notes on github and helm charts like bellow.
+We generate manifests from the Helm charts for reference as follows, and create/update simplified manifests in `monitoring/base/pushgateway`.
 
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm search repo -l prometheus-community
-helm template prom prometheus-community/prometheus --version=11.5.0 > prom-2.18.1.yaml
-helm template prom prometheus-community/prometheus --version=11.16.7 > prom-2.21.0.yaml
-diff prom-2.18.1.yaml prom-2.21.0.yaml
+# use the latest version
+helm template prom prometheus-community/prometheus --version=x.y.z > prom.yaml
 ```
 
-Then edit `monitoring/base/kustomization.yaml` to update the image tags.
+### promtool
 
 Update `PROMTOOL_VERSION` in `test/Makefile`.
 
@@ -284,7 +335,7 @@ This make target also updates grafana_plugins_init.
 
 Run the following command.
 
-```yaml
+```console
 $ make update-grafana
 ```
 
@@ -476,7 +527,7 @@ $ make teleport
 
 ## topolvm
 
-Check [releases](https://github.com/cybozu-go/topolvm/releases) for changes.
+Check [releases](https://github.com/topolvm/topolvm/releases) for changes.
 
 Update the manifest as follows:
 

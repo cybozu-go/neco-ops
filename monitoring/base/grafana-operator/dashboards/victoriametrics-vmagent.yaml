@@ -10,7 +10,7 @@ metadata:
   name: victoriametrics-vmagent
 spec:
   name: victoriametrics-vmagent.json
-  json: >
+  json: |
     {
       "__inputs": [],
       "__requires": [

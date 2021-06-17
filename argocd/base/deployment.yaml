@@ -86,7 +86,7 @@ spec:
       - name: copyutil
         image: quay.io/cybozu/argocd
         imagePullPolicy: IfNotPresent
-        command: [cp, /usr/local/argocd/bin/argocd-util, /shared]
+        command: [cp, /usr/local/argocd/bin/argocd, /shared/argocd-dex]
         volumeMounts:
         - mountPath: /shared
           name: static-files
@@ -94,7 +94,7 @@ spec:
       - name: dex
         image: quay.io/cybozu/dex
         imagePullPolicy: IfNotPresent
-        command: [/shared/argocd-util, rundex]
+        command: [/shared/argocd-dex, rundex]
         env:
         - name: NO_PROXY
           value: 10.0.0.0/8

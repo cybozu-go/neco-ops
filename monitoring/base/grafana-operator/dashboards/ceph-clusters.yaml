@@ -5,7 +5,7 @@ metadata:
 spec:
   name: ceph-clusters.json
   # based on https://grafana.com/grafana/dashboards/2842
-  json: >
+  json: |
     {
     "annotations": {
         "list": [

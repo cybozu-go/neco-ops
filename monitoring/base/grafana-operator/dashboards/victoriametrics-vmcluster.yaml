@@ -10,7 +10,7 @@ metadata:
   name: victoriametrics-vmcluster
 spec:
   name: victoriametrics-vmcluster.json
-  json: >
+  json: |
     {
       "__inputs": [],
       "__requires": [

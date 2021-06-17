@@ -5,4 +5,4 @@ resources:
   - upstream/consul.yaml
 images:
   - name: quay.io/cybozu/consul
-    newTag: 1.9.4.1
+    newTag: 1.9.5.1

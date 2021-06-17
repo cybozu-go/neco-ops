@@ -349,6 +349,14 @@ func applyAndWaitForApplications(commitID string) {
 
 	By("waiting initialization")
 	checkAllAppsSynced := func() error {
+		// This block should be removed after https://github.com/cybozu-go/neco-apps/pull/1536 is applied.
+		if doUpgrade {
+			stdout, stderr, err := ExecAt(boot0, "argocd", "relogin", "--password", loadArgoCDPassword())
+			if err != nil {
+				return fmt.Errorf("stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+			}
+		}
+
 		for _, target := range appList {
 			appStdout, stderr, err := ExecAt(boot0, "argocd", "app", "get", "-o", "json", target.name)
 			if err != nil {
@@ -511,7 +519,6 @@ func setupArgoCD() {
 	Expect(err).ShouldNot(HaveOccurred(), "faied to apply install.yaml. stderr=%s", stderr)
 
 	By("waiting Argo CD comes up")
-	// admin password is same as pod name
 	var podList corev1.PodList
 	Eventually(func() error {
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "pods", "-n", "argocd",
@@ -532,7 +539,28 @@ func setupArgoCD() {
 		return nil
 	}).Should(Succeed())
 
-	saveArgoCDPassword(podList.Items[0].Name)
+	By("getting Argo CD admin password from Secret")
+	var password string
+	Eventually(func() error {
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "secret", "-n", "argocd", "argocd-initial-admin-secret", "-o", "json")
+		if err != nil {
+			return fmt.Errorf("unable to get argocd Secret. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+		}
+		secret := new(corev1.Secret)
+		err = json.Unmarshal(stdout, secret)
+		if err != nil {
+			return err
+		}
+
+		p, ok := secret.Data["password"]
+		if !ok {
+			return errors.New("password not found in argocd Secret")
+		}
+		password = string(p)
+		return nil
+	}).Should(Succeed())
+	saveArgoCDPassword(password)
+	ExecSafeAt(boot0, "kubectl", "delete", "secret", "-n", "argocd", "argocd-initial-admin-secret")
 
 	By("getting node address")
 	var nodeList corev1.NodeList

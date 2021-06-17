@@ -3,10 +3,10 @@ kind: Kustomization
 images:
   - name: docker.io/calico/node
     newName: quay.io/cybozu/calico
-    newTag: 3.17.1.1
+    newTag: 3.19.0.1
   - name: docker.io/calico/typha
     newName: quay.io/cybozu/calico
-    newTag: 3.17.1.1
+    newTag: 3.19.0.1
 resources:
   - calico/upstream/calico-policy-only.yaml
   - calico/rbac.yaml

@@ -13,3 +13,4 @@ spec:
         args:
         - --key-renew-period=8760h
         - --key-ttl=876000h
+        - --update-status

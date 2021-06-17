@@ -29,6 +29,6 @@ images:
     newTag: 2.0.0.1
   - name: quay.io/integreatly/grafana-operator
     newName: quay.io/cybozu/grafana-operator
-    newTag: 3.8.1.1
+    newTag: 3.10.1.1
   - name: quay.io/cybozu/heartbeat
-    newTag: 1.0.1
+    newTag: 1.0.3

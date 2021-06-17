@@ -6,17 +6,7 @@ resources:
 patchesStrategicMerge:
 - deployment.yaml
 
-patches:
-- target:
-    group: apiextensions.k8s.io
-    version: v1
-    kind: CustomResourceDefinition
-    name: sealedsecrets.bitnami.com
-  patch: |-
-    - op: remove
-      path: /spec/versions/0/schema/openAPIV3Schema/properties/spec/properties
-
 images:
   - name: quay.io/bitnami/sealed-secrets-controller
     newName: quay.io/cybozu/sealed-secrets
-    newTag: 0.14.1.1
+    newTag: 0.16.0.1

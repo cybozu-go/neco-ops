@@ -261,9 +261,6 @@ func testGrafanaOperator() {
 			}
 			stdout, stderr, err := ExecInNetns("external", "curl", "--resolve", grafanaFQDN+":443:"+ip, "-kL", "-u", "admin:AUJUl1K2xgeqwMdZ3XlEFc1QhgEQItODMNzJwQme", "https://"+grafanaFQDN+"/api/search?type=dash-db")
 			if err != nil {
-				return fmt.Errorf("unable to get admin stats, stderr: %s, err: %v", stderr, err)
-			}
-			if err != nil {
 				return fmt.Errorf("unable to get dashboards, stderr: %s, err: %v", stderr, err)
 			}
 			var dashboards []struct {
@@ -353,6 +350,12 @@ func testVMCommonClusterComponents(setType vmSetType) {
 				return err
 			}
 
+			if doUpgrade {
+				if err := deleteOldStatefulSet(sts); err != nil {
+					return err
+				}
+			}
+
 			if int(sts.Status.ReadyReplicas) != setType.vmamCount {
 				return fmt.Errorf("ReadyReplicas is not %d: %d", setType.vmamCount, int(sts.Status.ReadyReplicas))
 			}
@@ -381,7 +384,7 @@ func testVMCommonClusterComponents(setType vmSetType) {
 				_, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "exec",
 					podName, "curl", "http://localhost:9093/-/healthy")
 				if err != nil {
-					return fmt.Errorf("unable to curl http://%s:9093/-/halthy, stderr: %s, err: %v", podName, stderr, err)
+					return fmt.Errorf("unable to curl http://%s:9093/-/healthy, stderr: %s, err: %v", podName, stderr, err)
 				}
 			}
 			return nil
@@ -825,4 +828,39 @@ func findTargets(job string, targets []promv1.ActiveTarget) []*promv1.ActiveTarg
 		}
 	}
 	return ret
+}
+
+// When the ConfigMap for a VMAlertmanager is updated, VictoriaMetrics operator should update the StatefulSet for the VMAlertmanager to refer to the new ConfigMap.
+// The operator sometimes fails to do this because the old StatefulSet gets unstable due to the deletion of the old ConfigMap.
+// The operator cannot reconcile unstable StatefulSets.
+// So this function deletes the old StatefulSet until the StatefulSet refers to the proper ConfigMap.
+func deleteOldStatefulSet(sts *appsv1.StatefulSet) error {
+	configMapName := ""
+	for _, v := range sts.Spec.Template.Spec.Volumes {
+		if v.Name == "alertmanager-config-volume" && v.ConfigMap != nil {
+			configMapName = v.ConfigMap.Name
+			break
+		}
+	}
+	if configMapName == "" {
+		return fmt.Errorf("reference to ConfigMap not found in StatefulSet %s", sts.Name)
+	}
+
+	_, _, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "get", "configmap", configMapName)
+	if err == nil {
+		return nil
+	}
+
+	// VM operator even blocks deletion of StatefulSet when unstable, so remove the finalizers.
+	_, stderr, err := ExecAt(boot0, "kubectl", "--namespace=monitoring", "patch", "statefulset", sts.Name, "--type=json", `--patch='[{"op":"remove","path":"/metadata/finalizers"}]'`)
+	if err != nil {
+		return fmt.Errorf("failed to patch StatefulSet %s: stderr=%s, err=%w", sts.Name, stderr, err)
+	}
+
+	_, stderr, err = ExecAt(boot0, "kubectl", "--namespace=monitoring", "delete", "statefulset", sts.Name)
+	if err != nil {
+		return fmt.Errorf("failed to delete StatefulSet %s: stderr=%s, err=%w", sts.Name, stderr, err)
+	}
+
+	return fmt.Errorf("old ConfigMap %s was used in StatefulSet %s", configMapName, sts.Name)
 }

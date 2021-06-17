@@ -5,7 +5,7 @@ metadata:
 spec:
   name: ceph-osd.json
   # based on https://grafana.com/grafana/dashboards/5336
-  json: >
+  json: |
     {
         "annotations": {
         "list": [

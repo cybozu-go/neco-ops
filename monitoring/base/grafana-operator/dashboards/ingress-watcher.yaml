@@ -4,7 +4,7 @@ metadata:
   name: ingress-watcher
 spec:
   name: ingress-watcher.json
-  json: >
+  json: |
     {
         "annotations": {
             "list": [

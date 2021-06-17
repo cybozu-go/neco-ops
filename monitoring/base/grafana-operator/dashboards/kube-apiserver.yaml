@@ -4,7 +4,7 @@ metadata:
   name: kube-apiserver
 spec:
   name: kube-apiserver.json
-  json: >
+  json: |
     {
         "annotations": {
             "list": [

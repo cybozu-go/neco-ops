@@ -4,7 +4,7 @@ metadata:
   name: topolvm-volumegroup
 spec:
   name: topolvm-volumegroup.json
-  json: >
+  json: |
     {
         "annotations": {
             "list": [

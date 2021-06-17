@@ -4,7 +4,7 @@ metadata:
   name: kubelet
 spec:
   name: kubelet.json
-  json: >
+  json: |
     {
       "annotations": {
         "list": [

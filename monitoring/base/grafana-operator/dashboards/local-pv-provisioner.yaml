@@ -4,7 +4,7 @@ metadata:
   name: local-pv-provisioner
 spec:
   name: local-pv-provisioner.json
-  json: >
+  json: |
     {
         "annotations": {
             "list": [
