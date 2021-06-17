@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/cybozu-go/neco-apps.git
-    targetRevision: stage
+    targetRevision: release
     path: hnc/base
   destination:
     server: https://kubernetes.default.svc

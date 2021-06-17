@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - ../../base
 - argocd-config.yaml
+- hnc.yaml
 - tenants
 patchesStrategicMerge:
 - argocd-ingress.yaml
@@ -13,7 +14,6 @@ patchesStrategicMerge:
 - customer-egress.yaml
 - elastic.yaml
 - external-dns.yaml
-- hnc.yaml
 - ingress.yaml
 - kube-metrics-adapter.yaml
 - local-pv-provisioner.yaml
