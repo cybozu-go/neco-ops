@@ -120,11 +120,6 @@ var prohibitedResources = []string{
 	// This resource is classified as prohibitedResources, but that is not intentionally done by Neco team.
 	"extensionservices.projectcontour.io",
 
-	// ECK
-	// This resource is not allowed to unprivileged users in upstream ClusterRole.
-	// We follow this decision for a while because it is under development.
-	"agents.agent.k8s.elastic.co",
-
 	// HNC
 	"hncconfigurations.hnc.x-k8s.io",
 
