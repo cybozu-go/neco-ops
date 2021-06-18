@@ -3,14 +3,17 @@ kind: Application
 metadata:
   name: argocd-config
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/manifest-generate-paths: ..
 spec:
+  project: default
   source:
-    path: argocd-config/overlays/stage0
-    targetRevision: stage
+    repoURL: https://github.com/cybozu-go/neco-apps.git
+    targetRevision: release
+    path: argocd-config/base
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
   syncPolicy:
     automated:
       prune: true
-      selfHeal: false
