@@ -129,6 +129,7 @@ webhooks:
     - DELETE
     resources:
     - persistentvolumeclaims
+    - services
   - apiGroups:
     - objectbucket.io
     apiVersions:
