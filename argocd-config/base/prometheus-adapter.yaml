@@ -95,7 +95,7 @@ spec:
               metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>,container!="POD"}) by (<<.GroupBy>>)
 
             # this is used for e2e test...
-            - seriesQuery: '{namespace="sandbox",__name__=~"^test_hpa_.*"}'
+            - seriesQuery: '{namespace="dctest",__name__=~"^test_hpa_.*"}'
               seriesFilters: []
               resources:
                 template: <<.Resource>>

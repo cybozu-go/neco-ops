@@ -58,6 +58,24 @@ function(teams) [
           kind: 'NetworkPolicy',
         },
       ],
+      clusterResourceWhitelist: [
+        {
+          group: 'apiextensions.k8s.io',
+          kind: 'CustomResourceDefinition',
+        },
+        {
+          group: '',
+          kind: 'Namespace',
+        },
+        {
+          group: 'rbac.authorization.k8s.io',
+          kind: 'ClusterRole',
+        },
+        {
+          group: 'rbac.authorization.k8s.io',
+          kind: 'ClusterRoleBinding',
+        },
+      ],
       orphanedResources: {
         warn: false,
       },

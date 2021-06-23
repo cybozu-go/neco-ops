@@ -2,7 +2,7 @@ apiVersion: elasticsearch.k8s.elastic.co/v1beta1
 kind: Elasticsearch
 metadata:
   name: sample
-  namespace: sandbox
+  namespace: dctest
 spec:
   version: 7.4.2
   nodeSets:
@@ -24,7 +24,6 @@ spec:
         storageClassName: topolvm-provisioner
     podTemplate:
       spec:
-        serviceAccountName: elastic
         securityContext:
           runAsUser: 1000
         containers:
@@ -42,7 +41,7 @@ apiVersion: crd.projectcalico.org/v1
 kind: NetworkPolicy
 metadata:
   name: ingress-sample
-  namespace: sandbox
+  namespace: dctest
 spec:
   order: 2000.0
   selector: elasticsearch.k8s.elastic.co/cluster-name == "sample"

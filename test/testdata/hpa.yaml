@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hpa-resource
-  namespace: sandbox
+  namespace: dctest
 spec:
   selector:
     matchLabels:
@@ -30,7 +30,7 @@ apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: hpa-resource
-  namespace: sandbox
+  namespace: dctest
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -50,7 +50,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hpa-custom
-  namespace: sandbox
+  namespace: dctest
 spec:
   selector:
     matchLabels:
@@ -71,7 +71,7 @@ apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: hpa-custom
-  namespace: sandbox
+  namespace: dctest
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -92,7 +92,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hpa-external
-  namespace: sandbox
+  namespace: dctest
 spec:
   selector:
     matchLabels:
@@ -113,7 +113,7 @@ apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: hpa-external
-  namespace: sandbox
+  namespace: dctest
   annotations:
     metric-config.external.processed-events-per-second.prometheus/query: |
       scalar(test_hpa_external)

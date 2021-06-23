@@ -135,7 +135,7 @@ func testLocalPVProvisioner() {
 	It("should access a local PV as block device from Pod", func() {
 		By("waiting for the test Pod to get ready")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", "test-local-pv-provisioner", "--", "date")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "dctest", "test-local-pv-provisioner", "--", "date")
 			if err != nil {
 				return fmt.Errorf("failed to execute a command. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -144,11 +144,11 @@ func testLocalPVProvisioner() {
 		}).Should(Succeed())
 
 		By("making a filesystem on the local-pv")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", "test-local-pv-provisioner", "--", "mkfs.ext4", "-F", "/dev/local-dev")
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "dctest", "test-local-pv-provisioner", "--", "mkfs.ext4", "-F", "/dev/local-dev")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 		By("getting used local PV")
-		stdout = ExecSafeAt(boot0, "kubectl", "get", "pvc", "local-pvc", "-n", "sandbox", "-o", "json")
+		stdout = ExecSafeAt(boot0, "kubectl", "get", "pvc", "local-pvc", "-n", "dctest", "-o", "json")
 
 		pvc := new(corev1.PersistentVolumeClaim)
 		err = json.Unmarshal(stdout, pvc)
@@ -156,8 +156,8 @@ func testLocalPVProvisioner() {
 		usedPVName := pvc.Spec.VolumeName
 
 		By("deleting test resources")
-		ExecSafeAt(boot0, "kubectl", "-n", "sandbox", "delete", "pods", "test-local-pv-provisioner")
-		ExecSafeAt(boot0, "kubectl", "-n", "sandbox", "delete", "pvc", "local-pvc")
+		ExecSafeAt(boot0, "kubectl", "-n", "dctest", "delete", "pods", "test-local-pv-provisioner")
+		ExecSafeAt(boot0, "kubectl", "-n", "dctest", "delete", "pvc", "local-pvc")
 
 		var pv corev1.PersistentVolume
 		By("waiting used local PV will be recreated")

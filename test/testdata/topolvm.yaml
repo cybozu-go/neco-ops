@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: topolvm-test
-  namespace: sandbox
+  namespace: dctest
 spec:
   priorityClassName: node-bound
   containers:
@@ -21,7 +21,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: topo-pvc
-  namespace: sandbox
+  namespace: dctest
   annotations:
     resize.topolvm.io/threshold: 90%
     resize.topolvm.io/increase: 1Gi

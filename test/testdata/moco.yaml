@@ -2,7 +2,7 @@
 apiVersion: moco.cybozu.com/v1beta1
 kind: MySQLCluster
 metadata:
-  namespace: sandbox
+  namespace: dctest
   name: test
 spec:
   # replicas is the number of mysqld Pods.  The default is 1.
