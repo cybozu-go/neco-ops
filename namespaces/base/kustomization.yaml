@@ -15,7 +15,6 @@ resources:
 - monitoring.yaml
 - prometheus-adapter.yaml
 - pvc-autoresizer.yaml
-- registry.yaml
 - rook-ceph.yaml
 - teleport.yaml
 - topolvm.yaml
