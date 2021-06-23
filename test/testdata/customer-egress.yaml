@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ubuntu-without-nat-annotation
-  namespace: sandbox
+  namespace: dctest
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ubuntu-with-nat-annotation
-  namespace: sandbox
+  namespace: dctest
 spec:
   replicas: 1
   selector:

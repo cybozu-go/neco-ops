@@ -123,7 +123,7 @@ func testSetup() {
 
 		It("should prepare secrets", func() {
 			By("creating namespace and secrets for grafana")
-			createNamespaceIfNotExists("sandbox", true)
+			createNamespaceIfNotExists("sandbox", false)
 
 			By("creating namespace and secrets for teleport")
 			stdout, stderr, err := ExecAt(boot0, "env", "ETCDCTL_API=3", "etcdctl", "--cert=/etc/etcd/backup.crt", "--key=/etc/etcd/backup.key",
@@ -143,11 +143,15 @@ func testSetup() {
 			Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 		})
 	} else {
-		It("should set privileged label to sandbox namespace", func() {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "label", "--overwrite", "namespace/sandbox", "pod-security.cybozu.com/policy=privileged")
+		It("should clear privileged label to sandbox namespace", func() {
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "label", "--overwrite", "namespace/sandbox", "pod-security.cybozu.com/policy-")
 			Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		})
 	}
+
+	It("should prepare general purpose namespace for dctest", func() {
+		createNamespaceIfNotExists("dctest", true)
+	})
 
 	It("should checkout neco-apps repository@"+commitID, func() {
 		ExecSafeAt(boot0, "rm", "-rf", "neco-apps")

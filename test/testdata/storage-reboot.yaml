@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: pod-ob
-  namespace: sandbox
+  namespace: dctest
 spec:
   containers:
   - name: mycontainer

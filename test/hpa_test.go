@@ -25,7 +25,7 @@ func prepareHPA() {
 func testHPA() {
 	It("should work for standard resources (CPU)", func() {
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "sandbox", "get", "deployments", "hpa-resource", "-o", "json")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "dctest", "get", "deployments", "hpa-resource", "-o", "json")
 			if err != nil {
 				return fmt.Errorf("failed to get hpa-resource deployment: %s: %w", stderr, err)
 			}
@@ -39,7 +39,7 @@ func testHPA() {
 			return nil
 		}).Should(Succeed())
 
-		ExecSafeAt(boot0, "kubectl", "-n", "sandbox", "delete", "deployments", "hpa-resource")
+		ExecSafeAt(boot0, "kubectl", "-n", "dctest", "delete", "deployments", "hpa-resource")
 	})
 
 	It("should work for custom resources provided by prometheus-adapter", func() {
@@ -47,7 +47,7 @@ func testHPA() {
 		var pod *corev1.Pod
 		Eventually(func() error {
 			pods := &corev1.PodList{}
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "sandbox", "get", "pods", "-l", "run=hpa-custom", "-o", "json")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "dctest", "get", "pods", "-l", "run=hpa-custom", "-o", "json")
 			if err != nil {
 				return fmt.Errorf("failed to get pod list: %s: %w", stderr, err)
 			}
@@ -61,7 +61,7 @@ func testHPA() {
 			return nil
 		}).Should(Succeed())
 
-		metric := fmt.Sprintf(`test_hpa_requests_per_second{namespace="sandbox",pod="%s"} 20`, pod.Name) + "\n"
+		metric := fmt.Sprintf(`test_hpa_requests_per_second{namespace="dctest",pod="%s"} 20`, pod.Name) + "\n"
 		url := fmt.Sprintf("http://%s/metrics/job/some_job", bastionPushgatewayFQDN)
 
 		By("checking the number of replicas increases")
@@ -74,7 +74,7 @@ func testHPA() {
 			if err != nil {
 				return fmt.Errorf("failed to push a metrics to pushgateway: %s: %w", stderr, err)
 			}
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "sandbox", "get", "deployments", "hpa-custom", "-o", "json")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "dctest", "get", "deployments", "hpa-custom", "-o", "json")
 			if err != nil {
 				return fmt.Errorf("failed to get hpa-custom deployment: %s: %w", stderr, err)
 			}
@@ -88,7 +88,7 @@ func testHPA() {
 			return nil
 		}).Should(Succeed())
 
-		ExecSafeAt(boot0, "kubectl", "-n", "sandbox", "delete", "deployments", "hpa-custom")
+		ExecSafeAt(boot0, "kubectl", "-n", "dctest", "delete", "deployments", "hpa-custom")
 	})
 
 	It("should work for external resources provided by kube-metrics-adapter", func() {
@@ -103,7 +103,7 @@ func testHPA() {
 			if err != nil {
 				return fmt.Errorf("failed to push a metrics to pushgateway: %s: %w", stderr, err)
 			}
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "sandbox", "get", "deployments", "hpa-external", "-o", "json")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "-n", "dctest", "get", "deployments", "hpa-external", "-o", "json")
 			if err != nil {
 				return fmt.Errorf("failed to get hpa-external deployment: %s: %w", stderr, err)
 			}
@@ -117,6 +117,6 @@ func testHPA() {
 			return nil
 		}).Should(Succeed())
 
-		ExecSafeAt(boot0, "kubectl", "-n", "sandbox", "delete", "deployments", "hpa-external")
+		ExecSafeAt(boot0, "kubectl", "-n", "dctest", "delete", "deployments", "hpa-external")
 	})
 }

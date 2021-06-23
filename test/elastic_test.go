@@ -47,7 +47,7 @@ func testElastic() {
 		Eventually(func() error {
 			stdout, stderr, err := ExecAt(
 				boot0,
-				"kubectl", "-n", "sandbox", "get", "elasticsearch/sample",
+				"kubectl", "-n", "dctest", "get", "elasticsearch/sample",
 				"--template", "'{{ .status.health }}'",
 			)
 			if err != nil {
@@ -61,7 +61,7 @@ func testElastic() {
 
 		By("accessing to elasticsearch")
 		stdout, stderr, err := ExecAt(boot0,
-			"kubectl", "get", "secret", "sample-es-elastic-user", "-n", "sandbox", "-o=jsonpath='{.data.elastic}'",
+			"kubectl", "get", "secret", "sample-es-elastic-user", "-n", "dctest", "-o=jsonpath='{.data.elastic}'",
 			"|", "base64", "--decode")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 		password := string(stdout)
@@ -74,7 +74,7 @@ func testElastic() {
 		workerAddr := cluster.Nodes[0].Address
 		stdout, stderr, err = ExecAt(boot0,
 			"ckecli", "ssh", "cybozu@"+workerAddr, "--",
-			"curl", "-u", "elastic:"+password, "-k", "https://sample-es-http.sandbox.svc:9200")
+			"curl", "-u", "elastic:"+password, "-k", "https://sample-es-http.dctest.svc:9200")
 		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s", stdout, stderr)
 	})
 }

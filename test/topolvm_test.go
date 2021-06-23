@@ -44,7 +44,7 @@ func testTopoLVM() {
 
 		By("checking the test pod is running")
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "-n", "sandbox", "pods", "topolvm-test", "-o", "json")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "-n", "dctest", "pods", "topolvm-test", "-o", "json")
 			if err != nil {
 				return fmt.Errorf("failed to get topolvm-test pod: %s: %w", stderr, err)
 			}
@@ -65,7 +65,7 @@ func testTopoLVM() {
 		}).Should(Succeed())
 
 		By("writing large file")
-		ExecSafeAt(boot0, "kubectl", "exec", "-n", "sandbox", "topolvm-test", "--", "dd", "if=/dev/zero", "of=/test1/largefile", "bs=1M", "count=110")
+		ExecSafeAt(boot0, "kubectl", "exec", "-n", "dctest", "topolvm-test", "--", "dd", "if=/dev/zero", "of=/test1/largefile", "bs=1M", "count=110")
 
 		By("waiting for the PV getting resized")
 		Eventually(func() error {
@@ -89,7 +89,7 @@ func testTopoLVM() {
 					continue
 				}
 
-				if string(sample.Metric["namespace"]) != "sandbox" {
+				if string(sample.Metric["namespace"]) != "dctest" {
 					continue
 				}
 				if string(sample.Metric["persistentvolumeclaim"]) != "topo-pvc" {

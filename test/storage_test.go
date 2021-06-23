@@ -375,7 +375,7 @@ func testOSDPodsSpread() {
 
 func testRookRGW() {
 	By("putting/getting data with s3 client", func() {
-		ns := "sandbox"
+		ns := "dctest"
 		waitRGW(ns, "pod-ob")
 
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c", `"echo 'putting getting data' > /tmp/put_get"`)
@@ -407,7 +407,7 @@ func testRookRBD(storageClassName string) {
 	pod := storageClassName + "-pod-rbd"
 	By("mounting RBD of "+storageClassName, func() {
 		Eventually(func() error {
-			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", pod, "--", "mountpoint", "-d", "/test1")
+			stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "dctest", pod, "--", "mountpoint", "-d", "/test1")
 			if err != nil {
 				return fmt.Errorf("failed to check mount point. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -415,11 +415,11 @@ func testRookRBD(storageClassName string) {
 		}).Should(Succeed())
 
 		writePath := "/test1/test.txt"
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", pod, "--", "cp", "/etc/passwd", writePath)
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "dctest", pod, "--", "cp", "/etc/passwd", writePath)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", pod, "--", "sync")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "dctest", pod, "--", "sync")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", pod, "--", "cat", writePath)
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "dctest", pod, "--", "cat", writePath)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 	})
 }
@@ -428,7 +428,7 @@ func prepareRebootRookCeph() {
 	Context("preparing rook-ceph for reboot", prepareRookCeph)
 
 	It("should store data via RGW before reboot", func() {
-		ns := "sandbox"
+		ns := "dctest"
 		waitRGW(ns, "pod-ob")
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", ns, "pod-ob", "--", "sh", "-c", `"echo 'reboot data' > /tmp/reboot"`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
@@ -447,11 +447,11 @@ func testRebootRookCeph() {
 		_, stderr, err := ExecAtWithInput(boot0, storageRebootYAML, "kubectl", "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), "stderr: %s", stderr)
 
-		waitRGW("sandbox", "pod-ob")
-		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", "pod-ob", "--", "sh", "-c",
+		waitRGW("dctest", "pod-ob")
+		stdout, stderr, err := ExecAt(boot0, "kubectl", "exec", "-n", "dctest", "pod-ob", "--", "sh", "-c",
 			`"s3cmd get s3://\${BUCKET_NAME}/reboot /tmp/reboot_download --no-ssl --host=\${BUCKET_HOST} --host-bucket="`)
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "sandbox", "pod-ob", "--", "cat", "/tmp/reboot_download")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "exec", "-n", "dctest", "pod-ob", "--", "cat", "/tmp/reboot_download")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 		Expect(stdout).To(Equal([]byte("reboot data\n")))
 	})
