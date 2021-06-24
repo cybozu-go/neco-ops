@@ -87,6 +87,7 @@
       "app-oauth-redirector",
       "app-octodns",
       "maneki"
-    ]
+    ],
+    "neco-devusers": []
   }
 }

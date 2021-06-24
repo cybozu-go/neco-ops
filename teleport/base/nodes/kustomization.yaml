@@ -10,4 +10,5 @@ resources:
   - ept.yaml
   - garoon.yaml
   - maneki.yaml
+  - neco-devusers.yaml
   - serviceaccount.yaml
