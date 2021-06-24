@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ssmtest
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/manifest-generate-paths: ..
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/cybozu-go/neco-apps.git
+    targetRevision: argocd-stop-self-management-test2
+    path: ssmtest/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
