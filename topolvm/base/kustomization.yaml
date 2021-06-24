@@ -33,4 +33,5 @@ configMapGenerator:
 
 images:
   - name: quay.io/topolvm/topolvm-with-sidecar
-    newTag: 0.8.3
+    newName: quay.io/llamerada_jp/debug
+    newTag: topolvm_without_attacher

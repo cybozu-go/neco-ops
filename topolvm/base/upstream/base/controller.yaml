@@ -4,7 +4,7 @@ kind: CSIDriver
 metadata:
   name: topolvm.cybozu.com
 spec:
-  attachRequired: true
+  attachRequired: false
   podInfoOnMount: true
   volumeLifecycleModes:
     - Persistent
@@ -98,6 +98,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: topolvm-external-provisioner-runner
 rules:
+  # The following rule should be uncommented for plugins that require secrets
+  # for provisioning.
+  # - apiGroups: [""]
+  #   resources: ["secrets"]
+  #   verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["persistentvolumes"]
     verbs: ["get", "list", "watch", "create", "delete"]
@@ -122,6 +127,10 @@ rules:
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["get", "list", "watch"]
+  # Access to volumeattachments is only needed when the CSI driver
+  # has the PUBLISH_UNPUBLISH_VOLUME controller capability.
+  # In that case, external-provisioner will watch volumeattachments
+  # to determine when it is safe to delete a volume.
   - apiGroups: ["storage.k8s.io"]
     resources: ["volumeattachments"]
     verbs: ["get", "list", "watch"]
@@ -145,9 +154,29 @@ metadata:
   namespace: topolvm-system
   name: external-provisioner-cfg
 rules:
+# Only one of the following rules for endpoints or leases is required based on
+# what is set for `--leader-election-type`. Endpoints are deprecated in favor of Leases.
+# - apiGroups: [""]
+#   resources: ["endpoints"]
+#   verbs: ["get", "watch", "list", "delete", "update", "create"]
 - apiGroups: ["coordination.k8s.io"]
   resources: ["leases"]
   verbs: ["get", "watch", "list", "delete", "update", "create"]
+# Permissions for CSIStorageCapacity are only needed enabling the publishing
+# of storage capacity information.
+- apiGroups: ["storage.k8s.io"]
+  resources: ["csistoragecapacities"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# The GET permissions below are needed for walking up the ownership chain
+# for CSIStorageCapacity. They are sufficient for deployment via
+# StatefulSet (only needs to get Pod) and Deployment (needs to get
+# Pod and then ReplicaSet to find the Deployment).
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
+- apiGroups: ["apps"]
+  resources: ["replicasets"]
+  verbs: ["get"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -166,75 +195,25 @@ roleRef:
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: topolvm-external-attacher-runner
-rules:
-  - apiGroups: [""]
-    resources: ["persistentvolumes"]
-    verbs: ["get", "list", "watch", "update", "patch"]
-  - apiGroups: [""]
-    resources: ["nodes"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: ["storage.k8s.io"]
-    resources: ["csinodes"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: ["storage.k8s.io"]
-    resources: ["volumeattachments"]
-    verbs: ["get", "list", "watch", "update", "patch"]
-  - apiGroups: ["storage.k8s.io"]
-    resources: ["volumeattachments/status"]
-    verbs: ["patch"]
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: topolvm-csi-attacher-role
-subjects:
-  - kind: ServiceAccount
-    namespace: topolvm-system
-    name: controller
-roleRef:
-  kind: ClusterRole
-  name: topolvm-external-attacher-runner
-  apiGroup: rbac.authorization.k8s.io
----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  namespace: topolvm-system
-  name: external-attacher-cfg
-rules:
-  - apiGroups: ["coordination.k8s.io"]
-    resources: ["leases"]
-    verbs: ["get", "watch", "list", "delete", "update", "create"]
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: csi-attacher-role-cfg
-  namespace: topolvm-system
-subjects:
-  - kind: ServiceAccount
-    name: controller
-    namespace: topolvm-system
-roleRef:
-  kind: Role
-  name: external-attacher-cfg
-  apiGroup: rbac.authorization.k8s.io
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
   name: topolvm-external-resizer-runner
 rules:
+  # The following rule should be uncommented for plugins that require secrets
+  # for provisioning.
+  # - apiGroups: [""]
+  #   resources: ["secrets"]
+  #   verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["persistentvolumes"]
-    verbs: ["get", "list", "watch", "update", "patch"]
+    verbs: ["get", "list", "watch", "patch"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
     resources: ["persistentvolumeclaims/status"]
-    verbs: ["update", "patch"]
+    verbs: ["patch"]
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["list", "watch", "create", "update", "patch"]
@@ -258,9 +237,9 @@ metadata:
   namespace: topolvm-system
   name: external-resizer-cfg
 rules:
-  - apiGroups: ["coordination.k8s.io"]
-    resources: ["leases"]
-    verbs: ["get", "watch", "list", "delete", "update", "create"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "watch", "list", "delete", "update", "create"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -275,7 +254,6 @@ roleRef:
   kind: Role
   name: external-resizer-cfg
   apiGroup: rbac.authorization.k8s.io
-
 ---
 apiVersion: v1
 kind: Service
@@ -354,17 +332,6 @@ spec:
             - /csi-provisioner
             - "--csi-address=/run/topolvm/csi-topolvm.sock"
             - "--feature-gates=Topology=true"
-            - --leader-election
-            - --leader-election-namespace=topolvm-system
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /run/topolvm
-
-        - name: csi-attacher
-          image: quay.io/topolvm/topolvm-with-sidecar:latest
-          command:
-            - /csi-attacher
-            - "--csi-address=/run/topolvm/csi-topolvm.sock"
             - --leader-election
             - --leader-election-namespace=topolvm-system
           volumeMounts:
