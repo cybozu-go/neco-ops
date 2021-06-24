@@ -8,6 +8,7 @@ configMapGenerator:
       - conf/ept-role.yaml
       - conf/garoon-role.yaml
       - conf/maneki-role.yaml
+      - conf/neco-devusers-role.yaml
       - conf/neco-readonly-role.yaml
     name: teleport-role
     namespace: teleport

@@ -51,6 +51,7 @@ spec:
         - cybozu-private:garoon
         - cybozu-private:maneki
         - cybozu-private:neco
+        - cybozu-private:neco-devusers
       name: admin
       policies:
         - p, proj:tenant-apps:admin, applications, *, tenant-apps/*, allow

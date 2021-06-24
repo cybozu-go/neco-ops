@@ -147,6 +147,12 @@ func testAppProjectResources(t *testing.T) {
 				}
 				namespaces = append(namespaces, dest.Namespace)
 			}
+
+			// Some dev teams do not have their namespaces and are only accessible for sandbox and dev-* namespaces.
+			if len(namespaces) == 1 && namespaces[0] == "sandbox" {
+				continue
+			}
+
 			sort.Strings(namespaces)
 			namespacesInAppProject[proj.Name] = namespaces
 		}
