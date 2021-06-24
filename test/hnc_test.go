@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var (
@@ -55,7 +56,7 @@ metadata:
 	stdout, stderr, err := ExecAtWithInput(boot0,
 		[]byte(fmt.Sprintf(subnamespaceAnchorYAMLtemplate,
 			HNCTestSubnamespaces[0], HNCTestNamespace)),
-		"kubectl", "apply", "--as-group=tenant", "--as=tenant", "-f", "-")
+		"kubectl", "apply", "--as-group=tenant", "--as-group=system:authenticated", "--as=tenant", "-f", "-")
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 	By("checking subnamespace is OK")
@@ -79,8 +80,8 @@ metadata:
 
 	By("creating subnamespace with kubectl-hns")
 	stdout, stderr, err = ExecAt(boot0,
-		"kubectl", "hns", "--as-group=tenant", "--as=tenant",
-		"create", HNCTestSubnamespaces[1], "-n", HNCTestNamespace)
+		"kubectl", "hns", "--as-group=tenant", "--as-group=system:authenticated",
+		"--as=tenant", "create", HNCTestSubnamespaces[1], "-n", HNCTestNamespace)
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 	By("checking subnamespace is OK")
@@ -108,8 +109,8 @@ func checkPropagation() {
 	Eventually(func() error {
 		for _, namespace := range HNCTestSubnamespaces {
 			stdout, stderr, err := ExecAt(boot0,
-				"kubectl", "get", "--as-group=tenant", "--as=tenant",
-				"rolebindings", "tenant-role-binding", "-n", namespace)
+				"kubectl", "get", "--as-group=tenant", "--as-group=system:authenticated",
+				"--as=tenant", "rolebindings", "tenant-role-binding", "-n", namespace)
 			if err != nil {
 				return fmt.Errorf("failed to get the propageted role binding. stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
 			}
@@ -121,9 +122,18 @@ func checkPropagation() {
 func deleteSubnamespace() {
 	By("deleting subnamespaceanchor")
 	stdout, stderr, err := ExecAt(boot0,
-		"kubectl", "delete", "--as-group=tenant", "--as=tenant",
-		"subnamespaceanchors.hnc.x-k8s.io", HNCTestSubnamespaces[1], "-n", HNCTestNamespace)
+		"kubectl", "delete", "--as-group=tenant", "--as-group=system:authenticated",
+		"--as=tenant", "subnamespaceanchors.hnc.x-k8s.io", HNCTestSubnamespaces[1], "-n", HNCTestNamespace)
 	Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+	stdout, stderr, err = ExecAt(boot0,
+		"kubectl", "delete", "--as-group=tenant", "--as-group=system:authenticated", "--as=tenant", "subnamespaceanchors.hnc.x-k8s.io", HNCTestSubnamespaces[1], "-n", HNCTestNamespace)
+	Expect(err).Should(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+	Expect(apierrors.IsNotFound(err)).Should(BeTrue())
+
+	By("checking subnamespace is deleted")
+	stdout, stderr, err = ExecAt(boot0, "kubectl", "get", HNCTestSubnamespaces[1])
+	Expect(err).Should(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
+	Expect(apierrors.IsNotFound(err)).Should(BeTrue())
 }
 
 func testHNC() {
