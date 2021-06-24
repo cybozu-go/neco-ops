@@ -9,6 +9,5 @@ images:
     newTag: 0.8.0.1
 patchesStrategicMerge:
   - crd.yaml
-  - hnc-system.yaml
   - deployment.yaml
   - clusterroles/cluster_role_aggregate_hnc_admin_edit.yaml

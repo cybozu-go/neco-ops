@@ -7,7 +7,6 @@ resources:
 - domestic-egress.yaml
 - elastic.yaml
 - external-dns.yaml
-- hnc.yaml
 - ingress.yaml
 - internet-egress.yaml
 - kube-system.yaml
