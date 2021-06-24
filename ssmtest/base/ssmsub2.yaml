@@ -1,11 +1,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ssmsub1
+  name: ssmsub2
   namespace: argocd
   annotations:
     argocd.argoproj.io/manifest-generate-paths: ..
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/cybozu-go/neco-apps.git
     targetRevision: argocd-stop-self-management-test3
-    path: ssmsub1/base
+    path: ssmsub2/base
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

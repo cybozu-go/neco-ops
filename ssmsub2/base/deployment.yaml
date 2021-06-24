@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: testhttpd
-  namespace: ssmsub1
+  namespace: ssmsub2
   labels:
     app.kubernetes.io/name: testhttpd
 spec:
