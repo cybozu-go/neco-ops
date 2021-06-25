@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+    hnc.x-k8s.io/excluded-namespace: "true"
+    team: neco
+  name: hnc-system

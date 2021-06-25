@@ -11,3 +11,4 @@ patchesStrategicMerge:
   - crd.yaml
   - deployment.yaml
   - clusterroles/cluster_role_aggregate_hnc_admin_edit.yaml
+  - namespace.yaml
