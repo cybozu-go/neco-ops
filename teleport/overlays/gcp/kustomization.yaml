@@ -13,6 +13,7 @@ patchesStrategicMerge:
   - nodes/ept.yaml
   - nodes/garoon.yaml
   - nodes/maneki.yaml
+  - nodes/neco-devusers.yaml
   - statefulset.yaml
 resources:
   - ../../base
