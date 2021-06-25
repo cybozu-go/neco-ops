@@ -9,7 +9,6 @@ rules:
 - apiGroups:
   - hnc.x-k8s.io
   resources:
-  - hierarchyconfigurations
   - subnamespaceanchors
   verbs:
   - get
@@ -19,3 +18,11 @@ rules:
   - update
   - patch
   - delete
+- apiGroups:
+  - hnc.x-k8s.io
+  resources:
+  - hierarchyconfigurations
+  verbs:
+  - get
+  - list
+  - watch

@@ -54,7 +54,6 @@ var requiredResources = []string{
 	"grafanas.integreatly.org",
 
 	// HNC
-	"hierarchyconfigurations.hnc.x-k8s.io",
 	"subnamespaceanchors.hnc.x-k8s.io",
 
 	// MOCO
@@ -104,6 +103,9 @@ var viewableResources = []string{
 
 	// Contour
 	"tlscertificatedelegations.projectcontour.io",
+
+	// HNC
+	"hierarchyconfigurations.hnc.x-k8s.io",
 
 	// Topolvm
 	"logicalvolumes.topolvm.cybozu.com",
