@@ -13,6 +13,54 @@ spec:
       kind: Application
   orphanedResources:
     warn: false
+  roles:
+    - groups:
+        - cybozu-private:cydec
+      name: cydec-apps
+      policies:
+        - p, proj:tenant-app-of-apps:cydec-apps, applications, get, tenant-app-of-apps/cydec-apps, allow
+        - p, proj:tenant-app-of-apps:cydec-apps, applications, sync, tenant-app-of-apps/cydec-apps, allow
+    - groups:
+        - cybozu-private:dbre
+      name: dbre-apps
+      policies:
+        - p, proj:tenant-app-of-apps:dbre-apps, applications, get, tenant-app-of-apps/dbre-apps, allow
+        - p, proj:tenant-app-of-apps:dbre-apps, applications, sync, tenant-app-of-apps/dbre-apps, allow
+    - groups:
+        - cybozu-private:maneki
+      name: elasticsearch-apps
+      policies:
+        - p, proj:tenant-app-of-apps:elasticsearch-apps, applications, get, tenant-app-of-apps/elasticsearch-apps, allow
+        - p, proj:tenant-app-of-apps:elasticsearch-apps, applications, sync, tenant-app-of-apps/elasticsearch-apps, allow
+    - groups:
+        - cybozu-private:ept
+      name: ept-apps
+      policies:
+        - p, proj:tenant-app-of-apps:ept-apps, applications, get, tenant-app-of-apps/ept-apps, allow
+        - p, proj:tenant-app-of-apps:ept-apps, applications, sync, tenant-app-of-apps/ept-apps, allow
+    - groups:
+        - cybozu-private:garoon
+      name: garoon-apps
+      policies:
+        - p, proj:tenant-app-of-apps:garoon-apps, applications, get, tenant-app-of-apps/garoon-apps, allow
+        - p, proj:tenant-app-of-apps:garoon-apps, applications, sync, tenant-app-of-apps/garoon-apps, allow
+    - groups:
+        - cybozu-private:maneki
+      name: maneki-apps
+      policies:
+        - p, proj:tenant-app-of-apps:maneki-apps, applications, get, tenant-app-of-apps/maneki-apps, allow
+        - p, proj:tenant-app-of-apps:maneki-apps, applications, sync, tenant-app-of-apps/maneki-apps, allow
+    - groups:
+        - cybozu-private:cydec
+        - cybozu-private:dbre
+        - cybozu-private:ept
+        - cybozu-private:garoon
+        - cybozu-private:maneki
+        - cybozu-private:neco-devusers
+      name: tenant-apps
+      policies:
+        - p, proj:tenant-app-of-apps:tenant-apps, applications, get, tenant-app-of-apps/tenant-apps, allow
+        - p, proj:tenant-app-of-apps:tenant-apps, applications, sync, tenant-app-of-apps/tenant-apps, allow
   sourceRepos:
     - '*'
 ---

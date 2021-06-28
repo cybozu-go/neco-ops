@@ -1,4 +1,4 @@
-function(teams) [
+function(apps, teams) [
   {
     apiVersion: 'argoproj.io/v1alpha1',
     kind: 'AppProject',
@@ -25,6 +25,23 @@ function(teams) [
       orphanedResources: {
         warn: false,
       },
+      roles: [
+        {
+          groups: (
+            if app_name == 'tenant-apps' then
+              ['cybozu-private:' + team for team in teams]
+            else
+              ['cybozu-private:' + apps[app_name].team]
+          ),
+          name: app_name,
+          policies: [
+            std.format('p, proj:tenant-app-of-apps:%(name)s, applications, get, tenant-app-of-apps/%(name)s, allow', { name: app_name }),
+            std.format('p, proj:tenant-app-of-apps:%(name)s, applications, sync, tenant-app-of-apps/%(name)s, allow', { name: app_name }),
+          ],
+        }
+        for app_name in std.objectFields(apps)
+        if apps[app_name].team != '' || app_name == 'tenant-apps'
+      ],
     },
   },
   {
