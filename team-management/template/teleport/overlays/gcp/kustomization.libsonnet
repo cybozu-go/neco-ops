@@ -10,7 +10,7 @@ function(teams) [{
     'statefulset.yaml',
     'apps/vmalertmanager-largeset.yaml',
     'apps/vmalertmanager-smallset.yaml',
-  ] + std.map(function(x) 'nodes/' + x + '.yaml', teams)),
+  ] + std.map(function(x) 'nodes/' + x + '.yaml', teams + ['neco'])),
   images: [
     {
       name: 'quay.io/gravitational/teleport-ent',

@@ -5,10 +5,12 @@ images:
     newTag: 6.2.0.1
 kind: Kustomization
 resources:
+  - clusterrolebinding.yaml
   - cydec.yaml
   - dbre.yaml
   - ept.yaml
   - garoon.yaml
   - maneki.yaml
   - neco-devusers.yaml
+  - neco.yaml
   - serviceaccount.yaml

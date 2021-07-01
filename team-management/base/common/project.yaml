@@ -93,6 +93,7 @@ spec:
     warn: false
   roles:
     - groups:
+        - cybozu-private:csa
         - cybozu-private:cydec
         - cybozu-private:dbre
         - cybozu-private:ept

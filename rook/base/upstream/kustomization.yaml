@@ -5,7 +5,7 @@ resources:
 images:
   - name: rook/ceph
     newName: quay.io/cybozu/rook
-    newTag: 1.6.3.3
+    newTag: 1.6.3.4
 patchesJSON6902:
 - target:
     group: apps

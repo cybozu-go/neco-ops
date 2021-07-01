@@ -70,6 +70,7 @@ metadata:
 data:
   # Specify the team's slug.
   policy.csv: |
+    g, cybozu-private:csa, role:admin
     g, cybozu-private:neco, role:admin
     g, cybozu-private:neco-readonly, role:readonly
   # Drop default privileges. So unauthenticated users cannot see the app, projects, etc...

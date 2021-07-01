@@ -1,5 +1,5 @@
 function(team) [
-  (if team != 'maneki' then { '$patch': 'delete' } else {})
+  (if !std.member(['maneki', 'neco'], team) then { '$patch': 'delete' } else {})
   + {
     apiVersion: 'apps/v1',
     kind: 'StatefulSet',
@@ -7,17 +7,17 @@ function(team) [
       name: 'node-' + team,
       namespace: 'teleport',
     },
-  } + (if team == 'maneki' then
+  } + (if std.member(['maneki', 'neco'], team) then
          {
            spec: {
              template: {
                spec: {
                  containers: [
                    {
-                     name: 'node-maneki',
+                     name: 'node-' + team,
                      args: [
                        '--roles=node',
-                       '--labels=team=maneki',
+                       '--labels=team=' + team,
                        '--diag-addr=0.0.0.0:3020',
                        '--insecure',
                      ],
