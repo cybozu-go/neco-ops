@@ -100,6 +100,7 @@ function(apps, teams) [
         {
           name: 'admin',
           groups: std.set([
+            'cybozu-private:csa',
             'cybozu-private:neco',
           ] + std.map(function(x) 'cybozu-private:' + x, teams)),
           policies: [

@@ -269,14 +269,8 @@ func testClusterStable() {
 	}
 }
 
-func testMONPodsSpreadAll() {
-	testMONPodsSpread("ceph-hdd", "ceph-hdd")
-	testMONPodsSpread("ceph-ssd", "ceph-ssd")
-	testMONPodsSpread("ceph-poc", "ceph-poc")
-}
-
-func testMONPodsSpread(cephClusterName, cephClusterNamespace string) {
-	By("checking MON Pods for "+cephClusterName+" are spread", func() {
+func testDaemonPodsSpread(daemonName, appLabel, cephClusterNamespace string, expectDaemonCount, expectDaemonCountOnNode, expectDaemonCountInRack int) {
+	By(fmt.Sprintf("checking %s Pods for %s are spread", daemonName, cephClusterNamespace), func() {
 		stdout, stderr, err := ExecAt(boot0, "kubectl", "get", "node", "-l", "node-role.kubernetes.io/cs=true", "-o=json")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
@@ -285,31 +279,44 @@ func testMONPodsSpread(cephClusterName, cephClusterNamespace string) {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		stdout, stderr, err = ExecAt(boot0, "kubectl", "--namespace="+cephClusterNamespace,
-			"get", "pod", "-l", "app=rook-ceph-mon", "-o=json")
+			"get", "pod", "-l", appLabel, "-o=json")
 		Expect(err).ShouldNot(HaveOccurred(), "stdout=%s, stderr=%s", stdout, stderr)
 
 		pods := new(corev1.PodList)
 		err = json.Unmarshal(stdout, pods)
 		Expect(err).ShouldNot(HaveOccurred())
+		Expect(pods.Items).To(HaveLen(expectDaemonCount))
 
 		nodeCounts := make(map[string]int)
 		for _, pod := range pods.Items {
 			nodeCounts[pod.Spec.NodeName]++
 		}
 		for node, count := range nodeCounts {
-			Expect(count).To(Equal(1), "node=%s, count=%d", node, count)
+			Expect(count).To(Equal(expectDaemonCountOnNode), "node=%s, count=%d", node, count)
 		}
-		Expect(nodeCounts).Should(HaveLen(3))
 
 		rackCounts := make(map[string]int)
 		for _, node := range nodes.Items {
-			rackCounts[node.Labels["topology.kubernetes.io/zone"]] += nodeCounts[node.Name]
+			if nodeCounts[node.Name] != 0 {
+				rackCounts[node.Labels["topology.kubernetes.io/zone"]] += nodeCounts[node.Name]
+			}
 		}
-		for node, count := range nodeCounts {
-			Expect(count).To(Equal(1), "node=%s, count=%d", node, count)
+		for rack, count := range rackCounts {
+			Expect(count).To(Equal(expectDaemonCountInRack), "rack=%s, count=%d", rack, count)
 		}
-		Expect(nodeCounts).Should(HaveLen(3))
 	})
+}
+
+func testMONPodsSpreadAll() {
+	for _, namespace := range []string{"ceph-hdd", "ceph-ssd", "ceph-poc"} {
+		testDaemonPodsSpread("MON", "app=rook-ceph-mon", namespace, 3, 1, 1)
+	}
+}
+
+func testMGRPodsSpreadAll() {
+	for _, namespace := range []string{"ceph-hdd", "ceph-ssd", "ceph-poc"} {
+		testDaemonPodsSpread("MGR", "app=rook-ceph-mgr", namespace, 2, 1, 1)
+	}
 }
 
 func testOSDPodsSpread() {
@@ -474,6 +481,7 @@ func testRookCeph() {
 		testClusterStable()
 		testOSDPodsSpread()
 		testMONPodsSpreadAll()
+		testMGRPodsSpreadAll()
 		testRookRGW()
 		testRookRBDAll()
 	})
