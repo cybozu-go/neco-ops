@@ -264,7 +264,7 @@ update-victoriametrics:
 	$(call get-latest-tag,alertmanager)
 	sed -i -E '/name: VM_VMALERTMANAGER_ALERTMANAGERVERSION$$/!b;n;s/value:.*$$/value: "$(latest_tag)"/' monitoring/base/victoriametrics/operator.yaml
 	$(call get-latest-tag,configmap-reload)
-	sed -i -E 's,quay.io/cybozu/configmap-reload:.*$$,quay.io/cybozu/configmap-reload:$(latest_tag),' monitoring/base/victoriametrics/operator.yaml
+	sed -i -E 's,quay.io/cybozu/configmap-reload:.*$$,quay.io/cybozu/configmap-reload:$(latest_tag),' monitoring/base/victoriametrics/operator.yaml monitoring/base/victoriametrics/vmalertmanager-largeset.yaml monitoring/base/victoriametrics/vmalertmanager-smallset.yaml
 	$(call get-latest-tag,prometheus-config-reloader)
 	sed -i -E 's,quay.io/cybozu/prometheus-config-reloader:.*$$,quay.io/cybozu/prometheus-config-reloader:$(latest_tag),' monitoring/base/victoriametrics/operator.yaml
 

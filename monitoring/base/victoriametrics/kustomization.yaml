@@ -87,5 +87,7 @@ configMapGenerator:
   - name: vmalertmanager-settype-smallset
     literals:
       - 'settype.template={{ define "neco.settype" }}smallset{{ end }}'
+generatorOptions:
+  disableNameSuffixHash: true
 configurations:
 - kustomizeconfig.yaml

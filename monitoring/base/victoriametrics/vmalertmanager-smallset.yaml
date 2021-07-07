@@ -18,6 +18,26 @@ spec:
     - name: vmalertmanager-settype
       configMap:
         name: vmalertmanager-settype-smallset
+  containers:
+    - name: configmap-reloader
+      image: quay.io/cybozu/configmap-reload:0.5.0.1
+      imagePullPolicy: IfNotPresent
+      args:
+        - -webhook-url=http://127.0.0.1:9093/-/reload
+        - -volume-dir=/etc/vm/configs/vmalertmanager
+        - -volume-dir=/etc/vm/configs/vmalertmanager-settype
+        - -web.listen-address=:9534
+      volumeMounts:
+        - name: alertmanager-config-volume
+          mountPath: /etc/vm/configs/vmalertmanager
+          readOnly: true
+        - name: vmalertmanager-settype
+          mountPath: /etc/vm/configs/vmalertmanager-settype
+          readOnly: true
+      resources:
+        limits:
+          cpu: 100m
+          memory: 25Mi
   resources:
     requests:
       cpu: 100m
