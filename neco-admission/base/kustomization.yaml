@@ -31,4 +31,4 @@ patches:
       value: neco-admission
 images:
   - name: quay.io/cybozu/neco-admission
-    newTag: 0.11.1
+    newTag: 0.9.4

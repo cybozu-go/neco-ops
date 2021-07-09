@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"strings"
 	"text/template"
 
 	. "github.com/onsi/ginkgo"
@@ -25,6 +26,29 @@ var admissionHTTPProxyYAML []byte
 var admissionApplicationYAML string
 
 func testAdmission() {
+	It("should mutate pod to append emptyDir for /tmp", func() {
+		stdout, stderr, err := ExecAtWithInput(boot0, admissionPodYAML, "kubectl", "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+
+		By("confirming that a emptyDir is added")
+		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pod", "pod-mutator-test", "-o", "json")
+		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
+
+		po := new(corev1.Pod)
+		err = json.Unmarshal(stdout, po)
+		Expect(err).NotTo(HaveOccurred())
+
+		found := false
+		for _, vol := range po.Spec.Volumes {
+			if !strings.HasPrefix(vol.Name, "tmp-") {
+				continue
+			}
+			found = true
+			Expect(vol.VolumeSource).Should(Equal(corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}))
+		}
+		Expect(found).Should(BeTrue())
+	})
+
 	It("should validate Calico NetworkPolicy", func() {
 		_, stderr, err := ExecAtWithInput(boot0, admissionNetworkPolicyYAML, "kubectl", "apply", "-f", "-")
 		Expect(err).To(HaveOccurred())
@@ -87,36 +111,5 @@ func testAdmission() {
 		By("trying to delete a CephCluster")
 		_, _, err = ExecAt(boot0, "kubectl", "delete", "-n", "ceph-hdd", "cephclusters.ceph.rook.io", "ceph-hdd")
 		Expect(err).Should(HaveOccurred())
-	})
-
-	It("should mutate pod to apply ephemeral storage limitation", func() {
-		stdout, stderr, err := ExecAtWithInput(boot0, admissionPodYAML, "kubectl", "apply", "-f", "-")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-
-		By("confirming that resource request/limit of ephemeral storage are added/overwritten")
-		stdout, stderr, err = ExecAt(boot0, "kubectl", "get", "pod", "pod-mutator-test", "-o", "json")
-		Expect(err).NotTo(HaveOccurred(), "stdout: %s, stderr: %s, err: %v", stdout, stderr, err)
-
-		po := new(corev1.Pod)
-		err = json.Unmarshal(stdout, po)
-		Expect(err).NotTo(HaveOccurred())
-
-		containers := po.Spec.Containers
-		containers = append(containers, po.Spec.InitContainers...)
-
-		// assumed that containers[0]'s request/limit of ephemeral storage are not set originally and added by admission.
-		Expect(containers[0].Resources.Requests).ShouldNot(BeNil())
-		Expect(containers[0].Resources.Limits).ShouldNot(BeNil())
-		ephemeralRequest, ok := containers[0].Resources.Requests[corev1.ResourceEphemeralStorage]
-		Expect(ok).Should(BeTrue())
-		ephemeralLimit, ok := containers[0].Resources.Limits[corev1.ResourceEphemeralStorage]
-		Expect(ok).Should(BeTrue())
-
-		for _, con := range containers {
-			Expect(con.Resources.Requests).ShouldNot(BeNil())
-			Expect(con.Resources.Limits).ShouldNot(BeNil())
-			Expect(con.Resources.Requests[corev1.ResourceEphemeralStorage]).To(Equal(ephemeralRequest))
-			Expect(con.Resources.Limits[corev1.ResourceEphemeralStorage]).To(Equal(ephemeralLimit))
-		}
 	})
 }

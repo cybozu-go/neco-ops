@@ -11,32 +11,3 @@ spec:
       runAsUser: 1000
       runAsGroup: 1000
     command: ["pause"]
-  - name: ubuntu-ephemeral-overwritten
-    image: quay.io/cybozu/ubuntu:20.04
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-    command: ["pause"]
-    resources:
-      requests:
-        ephemeral-storage: 1Gi
-      limits:
-        ephemeral-storage: 10Gi
-  initContainers:
-  - name: ubuntu-init
-    image: quay.io/cybozu/ubuntu:20.04
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-    command: ["pause"]
-  - name: ubuntu-init-ephemeral-overwritten
-    image: quay.io/cybozu/ubuntu:20.04
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-    command: ["pause"]
-    resources:
-      requests:
-        ephemeral-storage: 1Gi
-      limits:
-        ephemeral-storage: 10Gi
