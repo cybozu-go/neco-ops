@@ -766,8 +766,10 @@ tests:
               summary: A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours.
   - interval: 1m
     input_series:
+      - series: 'kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume0", namespace="hoge"}'
+        values: '0 9 80 80 80 80'
       - series: 'kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume1", namespace="foo"}'
-        values: '0 9 90 90 90 90'
+        values: '0 81 81 0 0 0'
       - series: 'kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume2", namespace="bar"}'
         values: '0 91 91 0 0 0'
       - series: 'kubelet_volume_stats_used_bytes{job="prometheus", persistentvolumeclaim="volume3", namespace="baz"}'
@@ -795,6 +797,22 @@ tests:
         alertname: PersistentVolumeSpaceExceeded
         exp_alerts:
           - exp_labels:
+              severity: warning
+              job: prometheus
+              namespace: foo
+              persistentvolumeclaim: volume1
+            exp_annotations:
+              runbook: Please consider resizing volume
+              summary: Disk usage of `volume1, foo` is more than 80%.
+          - exp_labels:
+              severity: warning
+              job: prometheus
+              namespace: bar
+              persistentvolumeclaim: volume2
+            exp_annotations:
+              runbook: Please consider resizing volume
+              summary: Disk usage of `volume2, bar` is more than 80%.
+          - exp_labels:
               severity: critical
               job: prometheus
               namespace: bar
@@ -805,6 +823,14 @@ tests:
       - eval_time: 5m
         alertname: PersistentVolumeSpaceExceeded
         exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: prometheus
+              namespace: baz
+              persistentvolumeclaim: volume3
+            exp_annotations:
+              runbook: Please consider resizing volume
+              summary: Disk usage of `volume3, baz` is more than 80%.
           - exp_labels:
               severity: critical
               job: prometheus
