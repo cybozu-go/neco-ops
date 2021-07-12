@@ -70,7 +70,7 @@ spec:
   priorityClassNames:
     osd: node-bound
   disruptionManagement:
-    managePodBudgets: true
+    managePodBudgets: false
     osdMaintenanceTimeout: 60 # rebooting worker nodes takes about 60 minutes.
     pgHealthCheckTimeout: 0
   storage:

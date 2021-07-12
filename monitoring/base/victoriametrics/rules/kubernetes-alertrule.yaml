@@ -611,6 +611,17 @@ spec:
           expr: |
             (kubelet_volume_stats_used_bytes * on(namespace) group_left kube_namespace_labels{label_team="neco"})
               /
+            (kubelet_volume_stats_capacity_bytes* on(namespace) group_left kube_namespace_labels{label_team="neco"}) > 0.80
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: Disk usage of `{{ $labels.persistentvolumeclaim }}, {{ $labels.namespace }}` is more than 80%.
+            runbook: Please consider resizing volume
+        - alert: PersistentVolumeSpaceExceeded
+          expr: |
+            (kubelet_volume_stats_used_bytes * on(namespace) group_left kube_namespace_labels{label_team="neco"})
+              /
             (kubelet_volume_stats_capacity_bytes* on(namespace) group_left kube_namespace_labels{label_team="neco"}) > 0.90
           for: 1m
           labels:
